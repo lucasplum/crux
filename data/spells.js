@@ -1,0 +1,22 @@
+/* ========== SPELL LIBRARY ========== */
+const SPELLS = [
+  { name: 'Kula Ognia', shape: 'sphere', size: 20, desc: '🔥 8k6 obrażeń, promień 20 ft', school: 'Ewokacja', level: 3 },
+  { name: 'Kula Lodu', shape: 'sphere', size: 20, desc: '❄️ 8k6 obrażeń, promień 20 ft', school: 'Ewokacja', level: 3 },
+  { name: 'Meteor', shape: 'sphere', size: 40, desc: '☄️ 20k6 obrażeń, promień 40 ft', school: 'Ewokacja', level: 9 },
+  { name: 'Stożek Zimna', shape: 'cone', size: 60, desc: '❄️ 8k6 obrażeń, stożek 60 ft', school: 'Ewokacja', level: 5 },
+  { name: 'Ognisty Oddech', shape: 'cone', size: 30, desc: '🔥 5k6 obrażeń, stożek 30 ft', school: 'Ewokacja', level: 2 },
+  { name: 'Promień Światła', shape: 'line', size: 120, desc: '💫 10k6 obrażeń, linia 120 ft', school: 'Ewokacja', level: 6 },
+  { name: 'Piorun', shape: 'line', size: 100, desc: '⚡ 8k6 obrażeń, linia 100 ft', school: 'Ewokacja', level: 3 },
+  { name: 'Kula Śmierci', shape: 'sphere', size: 30, desc: '💀 12k6 obrażeń nekrotycznych, promień 30 ft', school: 'Nekromancja', level: 6 },
+  { name: 'Sześcian Ognia', shape: 'cube', size: 30, desc: '🔥 10k6 obrażeń, sześcian 30 ft', school: 'Ewokacja', level: 4 },
+  { name: 'Błogosławieństwo', shape: 'sphere', size: 30, desc: '✨ Buff sojuszników, promień 30 ft', school: 'Oczarowanie', level: 1 },
+  { name: 'Mroczna Moc', shape: 'sphere', size: 20, desc: '🌑 Przywraca życie, promień 20 ft', school: 'Nekromancja', level: 3 },
+  { name: 'Aura Życia', shape: 'sphere', size: 30, desc: '💚 Leczenie sojuszników, promień 30 ft', school: 'Oczarowanie', level: 4 },
+  { name: 'Bariera', shape: 'sphere', size: 10, desc: '🛡️ +2 do KP dla sojuszników, promień 10 ft', school: 'Ochrona', level: 1 },
+  { name: 'Mroczna Chmura', shape: 'sphere', size: 30, desc: '☁️ Zasłania widoczność, promień 30 ft', school: 'Czarowanie', level: 2 },
+  { name: 'Ściana Ognia', shape: 'line', size: 60, desc: '🔥 Ściana ognia 60 ft', school: 'Ewokacja', level: 4 },
+  { name: 'Krąg Ochrony', shape: 'sphere', size: 30, desc: '🔮 Antymagia, promień 30 ft', school: 'Ochrona', level: 6 },
+  { name: 'Uścisk Ziemi', shape: 'cube', size: 20, desc: '🪨 Trzyma wrogów w miejscu, sześcian 20 ft', school: 'Przyzywanie', level: 2 },
+  { name: 'Mroczne Oczy', shape: 'cone', size: 30, desc: '👁️ Paraliżuje wrogów, stożek 30 ft', school: 'Nekromancja', level: 4 },
+  { name: 'Tarcza Światła', shape: 'sphere', size: 15, desc: '✨ Oślepia wrogów, promień 15 ft', school: 'Ewokacja', level: 2 },
+];
