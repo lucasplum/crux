@@ -7,10 +7,11 @@ var lastInitCount=0;
 var focusFire=[];
 var timers=[];
 var timerInterval=null;
-var selectedTargetForState=null;
 var turnLog=[];
 var selectedAvatar='🧙';
 var selectedAvatarUrl='';
+var selectedCombatantAvatar='⚔️';
+var selectedCombatantAvatarUrl='';
 
 const $=id=>document.getElementById(id);
 const AudioContext=window.AudioContext||window.webkitAudioContext;
@@ -21,6 +22,14 @@ const canvasState={size:{zoom:1,panX:0,panY:0},spell:{zoom:1,panX:0,panY:0}};
 function isMobile(){return window.innerWidth<=768||'ontouchstart' in window;}
 function isTouchDevice(){return 'ontouchstart' in window||navigator.maxTouchPoints>0;}
 function optimizeCanvasForMobile(c){return isMobile()?Math.min(window.devicePixelRatio||1,1.5):Math.min(window.devicePixelRatio||1,2);}
+
+/* === NEW: Clamp pan aby grid się nie rozjeżdżał === */
+function clampPan(type){
+  const state=canvasState[type];
+  const maxPan=250;
+  state.panX=Math.max(-maxPan,Math.min(maxPan,state.panX));
+  state.panY=Math.max(-maxPan,Math.min(maxPan,state.panY));
+}
 
 /* ========== NAWIGACJA ========== */
 function initNavigation(){
@@ -78,6 +87,7 @@ function initCanvasPanZoom(){
       if(!isDragging) return;
       state.panX+=e.clientX-lastX;state.panY+=e.clientY-lastY;
       lastX=e.clientX;lastY=e.clientY;
+      clampPan(type);
       if(type==='size') renderSizeCanvas(); else if(type==='spell') renderSpellCanvas();
     });
     document.addEventListener('mouseup',()=>{if(isDragging){isDragging=false;container.style.cursor='grab';}});
@@ -86,6 +96,7 @@ function initCanvasPanZoom(){
       if(!isDragging||e.touches.length!==1) return;
       state.panX+=e.touches[0].clientX-lastX;state.panY+=e.touches[0].clientY-lastY;
       lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
+      clampPan(type);
       if(type==='size') renderSizeCanvas(); else if(type==='spell') renderSpellCanvas();
       e.preventDefault();
     },{passive:false});
@@ -244,6 +255,7 @@ function renderSizeCanvas(){
   const container=document.getElementById('sizeCanvasContainer');
   if(!container||container.offsetWidth===0) return;
   const dpr=optimizeCanvasForMobile(sizeCanvas),state=canvasState.size;
+  clampPan('size');
   const baseW=container.offsetWidth,baseH=Math.max(280,container.offsetHeight);
   sizeCanvas.width=Math.round(baseW*state.zoom*dpr);sizeCanvas.height=Math.round(baseH*state.zoom*dpr);
   sizeCanvas.style.width=baseW+'px';sizeCanvas.style.height=baseH+'px';
@@ -308,6 +320,7 @@ function renderSpellCanvas(){
   const container=document.getElementById('spellCanvasContainer');
   if(!container||container.offsetWidth===0) return;
   const dpr=optimizeCanvasForMobile(spellCanvas),state=canvasState.spell;
+  clampPan('spell');
   const baseW=container.offsetWidth,baseH=Math.max(280,container.offsetHeight);
   spellCanvas.width=Math.round(baseW*state.zoom*dpr);spellCanvas.height=Math.round(baseH*state.zoom*dpr);
   spellCanvas.style.width=baseW+'px';spellCanvas.style.height=baseH+'px';
@@ -351,81 +364,45 @@ $('showCount').addEventListener('change',renderSpellCanvas);
 
 /* ========== STANY ========== */
 function getStateEmoji(state){const m={'Blinded':'👁️','Charmed':'💗','Deafened':'🔇','Frightened':'😨','Grappled':'🤝','Incapacitated':'💫','Invisible':'👻','Paralyzed':'🧊','Petrified':'🪨','Poisoned':'☠️','Prone':'⬇️','Restrained':'⛓️','Stunned':'💥','Unconscious':'💀','Exhaustion':'🥱'};return m[state]||'⚡';}
+
+/* === FIXED: Usunięte emoji z treści opisów (zostają tylko w nagłówku) === */
 const STATE_DESCRIPTIONS={
-  'Blinded':'<strong>👁️ Oślepiony</strong><br/>Nie widzi. Ataki przeciwko niemu mają przewagę, jego ataki mają utrudnienie. Automatycznie oblewa testy wymagające wzroku.',
-  'Charmed':'<strong>💗 Zauroczony</strong><br/>Nie może atakować źródła uroku. Źródło ma przewagę w testach towarzyskich.',
-  'Deafened':'<strong>🔇 Ogłuszony</strong><br/>Nie słyszy. Automatycznie oblewa testy wymagające słuchu.',
-  'Frightened':'<strong>😨 Przerażony</strong><br/>Utrudnienie na ataki i testy, gdy widzi źródło strachu. Nie może się do niego zbliżyć.',
-  'Grappled':'<strong>🤝 Pochwycony</strong><br/>Prędkość spada do 0. Może użyć akcji aby się uwolnić.',
-  'Incapacitated':'<strong>💫 Obezwładniony</strong><br/>Nie może podejmować akcji ani reakcji. Nie może koncentrować się na czarach.',
-  'Invisible':'<strong>👻 Niewidzialny</strong><br/>Traktowany jako mocno zasłonięty. Ataki na niego z utrudnieniem, jego z przewagą.',
-  'Paralyzed':'<strong>🧊 Sparaliżowany</strong><br/>Obezwładniony. Trafienie z 5 ft to krytyk. Automatycznie oblewa rzuty obronne na Siłę i Zręczność.',
-  'Petrified':'<strong>🪨 Spetryfikowany</strong><br/>Odporny na obrażenia. Niewrażliwy na trucizny. Zamieniony w kamień.',
-  'Poisoned':'<strong>☠️ Zatruty</strong><br/>Utrudnienie na testy ataków i rzuty obronne.',
-  'Prone':'<strong>⬇️ Leżący</strong><br/>Ataki w zwarciu z przewagą, na dystans z utrudnieniem.',
-  'Restrained':'<strong>⛓️ Skrępowany</strong><br/>Prędkość 0. Ataki na cel z przewagą. Utrudnienie na własne ataki.',
-  'Stunned':'<strong>💥 Oszołomiony</strong><br/>Obezwładniony. Oblewa rzuty na Siłę i Zręczność. Nie może mówić.',
-  'Unconscious':'<strong>💀 Nieprzytomny</strong><br/>Obezwładniony. Trafienie w zwarciu to krytyk. Upuszcza wszystko.',
-  'Exhaustion':'<strong>🥱 Wyczerpanie</strong><br/>Skala 1-6: 1-utrudnienie testów; 2-prędkość połowa; 3-utrudnienie ataków; 4-HP max połowa; 5-prędkość 0; 6-śmierć.'
+  'Blinded':'Nie widzi. Ataki przeciwko niemu mają przewagę, jego ataki mają utrudnienie. Automatycznie oblewa testy wymagające wzroku.',
+  'Charmed':'Nie może atakować źródła uroku. Źródło ma przewagę w testach towarzyskich. Nie może celować w źródło uroku szkodliwymi zdolnościami.',
+  'Deafened':'Nie słyszy. Automatycznie oblewa testy wymagające słuchu. Nie może korzystać z mocy wymagających słyszenia.',
+  'Frightened':'Utrudnienie na ataki i testy umiejętności, gdy widzi źródło strachu. Nie może się do niego zbliżyć.',
+  'Grappled':'Prędkość spada do 0. Może użyć akcji, aby uwolnić się testem Siły (Atletyka) przeciwko testowi Siły (Atletyka) lub Zręczności (Akrobatyka) porywacza.',
+  'Incapacitated':'Nie może podejmować akcji ani reakcji. Nie może koncentrować się na czarach.',
+  'Invisible':'Traktowany jako mocno zasłonięty. Ataki na niego z utrudnieniem, jego z przewagą. Nie można go celować czarami wymagającymi widzenia celu.',
+  'Paralyzed':'Obezwładniony. Trafienie z 5 ft to krytyk. Automatycznie oblewa rzuty obronne na Siłę i Zręczność.',
+  'Petrified':'Odporny na obrażenia. Niewrażliwy na trucizny. Zamieniony w kamień - waga x10.',
+  'Poisoned':'Utrudnienie na testy ataków i rzuty obronne. Nie ma wpływu na obrażenia od trucizny.',
+  'Prone':'Ataki w zwarciu z przewagą, na dystans z utrudnieniem. Ruchy wymagają dodatkowej połowy prędkości.',
+  'Restrained':'Prędkość 0. Ataki na cel z przewagą. Utrudnienie na ataki wykonywane przez cel. Oblewa rzuty obronne na Zręczność.',
+  'Stunned':'Obezwładniony. Oblewa rzuty na Siłę i Zręczność. Nie może mówić.',
+  'Unconscious':'Obezwładniony. Trafienie w zwarciu to krytyk. Upuszcza wszystko co trzyma. Automatycznie oblewa rzuty obronne.',
+  'Exhaustion':'Skala 1-6: Poziom 1 - utrudnienie na testy umiejętności; 2 - prędkość połowa; 3 - utrudnienie na ataki i obrony; 4 - HP max połowa; 5 - prędkość 0; 6 - śmierć.'
 };
 
-/* === NEW: Render listy stanów w Info === */
 function renderStatesInfoList(){
   const container=document.getElementById('statesInfoList');
   if(!container) return;
   container.innerHTML='';
   const order=['Blinded','Charmed','Deafened','Frightened','Grappled','Incapacitated','Invisible','Paralyzed','Petrified','Poisoned','Prone','Restrained','Stunned','Unconscious','Exhaustion'];
+  const polishNames={'Blinded':'Oślepiony','Charmed':'Zauroczony','Deafened':'Ogłuszony','Frightened':'Przerażony','Grappled':'Pochwycony','Incapacitated':'Obezwładniony','Invisible':'Niewidzialny','Paralyzed':'Sparaliżowany','Petrified':'Spetryfikowany','Poisoned':'Zatruty','Prone':'Leżący','Restrained':'Skrępowany','Stunned':'Oszołomiony','Unconscious':'Nieprzytomny','Exhaustion':'Wyczerpanie'};
   order.forEach(state=>{
     const item=document.createElement('div');item.className='info-item';
-    item.innerHTML=`<div class="info-item-header"><span class="info-icon">${getStateEmoji(state)}</span><span class="info-title">${state}</span></div><div class="info-desc">${STATE_DESCRIPTIONS[state]||''}</div>`;
+    item.innerHTML=`<div class="info-item-header"><span class="info-icon">${getStateEmoji(state)}</span><span class="info-title">${polishNames[state]||state} <span style="color:var(--muted);font-weight:400;font-size:.8em;">(${state})</span></span></div><div class="info-desc">${STATE_DESCRIPTIONS[state]||''}</div>`;
     container.appendChild(item);
   });
 }
 
-/* ========== TARGET SELECTION + APLIKACJA STANÓW ========== */
-function selectTargetForState(type,index){
-  selectedTargetForState={type,index};
-  let name='';
-  if(type==='player'&&players[index]) name=players[index].name;
-  else if(type==='init'&&combatants[index]) name=combatants[index].name;
-  const display=document.getElementById('selectedTargetDisplay');
-  if(name){display.textContent='🎯 Wybrany cel: '+name;display.style.display='block';}
-  else{display.textContent='';display.style.display='none';}
-}
-function toggleStateOnTarget(state){
-  if(!selectedTargetForState){alert('Najpierw kliknij postać aby ją wybrać');return;}
-  const {type,index}=selectedTargetForState;
-  let target=null;
-  if(type==='player'&&players[index]) target=players[index];
-  else if(type==='init'&&combatants[index]) target=combatants[index];
-  if(!target) return;
-  if(!target.conditions.includes(state)){
-    target.conditions.push(state);
-    addTurnLog(target.name,'👤 '+getStateEmoji(state)+' '+state);
-  } else {
-    target.conditions=target.conditions.filter(c=>c!==state);
-  }
-  if(type==='player') renderPlayers(); else renderInit();
-  playSound('state');
-}
-function clearStatesOnTarget(){
-  if(!selectedTargetForState){alert('Najpierw kliknij postać aby ją wybrać');return;}
-  const {type,index}=selectedTargetForState;
-  if(type==='player'&&players[index]){players[index].conditions=[];renderPlayers();}
-  else if(type==='init'&&combatants[index]){combatants[index].conditions=[];renderInit();}
-  playSound('add');
-}
-
-/* ========== TURN LOG ========== */
-function addTurnLog(name,action){turnLog.push({name,action,turn:round});if(turnLog.length>20) turnLog.shift();updateFocusFire();}
-function getTurnLogDisplay(){return turnLog.slice(-5).map(e=>`<div class="ff-target"><span class="ff-name">${e.name}</span><span class="ff-status">${e.action}</span></div>`).join('');}
-
-/* === NEW: MODAL DODAWANIA POSTACI === */
+/* ========== MODAL DODAWANIA POSTACI ========== */
 function openAddPlayerModal(){
   selectedAvatar='🧙';selectedAvatarUrl='';
   $('pName').value='';$('pHp').value='';$('pAc').value='';$('pRole').value='Gracz';$('avatarUrl').value='';
   updateAvatarPreview();
-  document.querySelectorAll('.avatar-btn').forEach(b=>b.classList.toggle('active',b.dataset.avatar==='🧙'));
+  document.querySelectorAll('#avatarGrid .avatar-btn').forEach(b=>b.classList.toggle('active',b.dataset.avatar==='🧙'));
   $('addPlayerPopup').style.display='flex';
   setTimeout(()=>$('pName').focus(),100);
 }
@@ -446,11 +423,10 @@ function confirmAddPlayer(){
   });
   closeAddPlayerModal();renderPlayers();playSound('add');
 }
-// Inicjalizacja pickera avatara
 function initAvatarPicker(){
-  document.querySelectorAll('.avatar-btn').forEach(btn=>{
+  document.querySelectorAll('#avatarGrid .avatar-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      document.querySelectorAll('.avatar-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('#avatarGrid .avatar-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       selectedAvatar=btn.dataset.avatar;
       selectedAvatarUrl='';
@@ -460,9 +436,54 @@ function initAvatarPicker(){
   });
   $('avatarUrl').addEventListener('input',function(){
     const url=this.value.trim();
-    if(url){selectedAvatarUrl=url;selectedAvatar='';document.querySelectorAll('.avatar-btn').forEach(b=>b.classList.remove('active'));}
+    if(url){selectedAvatarUrl=url;selectedAvatar='';document.querySelectorAll('#avatarGrid .avatar-btn').forEach(b=>b.classList.remove('active'));}
     else{selectedAvatarUrl='';selectedAvatar='🧙';}
     updateAvatarPreview();
+  });
+}
+
+/* === NEW: MODAL DODAWANIA BOJOWNIKA === */
+function openAddCombatantModal(){
+  selectedCombatantAvatar='⚔️';selectedCombatantAvatarUrl='';
+  $('cName').value='';$('cInit').value='';$('cHp').value='';$('cAc').value='';$('cRole').value='Wróg';$('combatantAvatarUrl').value='';
+  updateCombatantAvatarPreview();
+  document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(b=>b.classList.toggle('active',b.dataset.avatar==='⚔️'));
+  $('addCombatantPopup').style.display='flex';
+  setTimeout(()=>$('cName').focus(),100);
+}
+function closeAddCombatantModal(){$('addCombatantPopup').style.display='none';}
+function updateCombatantAvatarPreview(){
+  const preview=$('combatantAvatarPreview');
+  if(selectedCombatantAvatarUrl){preview.innerHTML=`<img src="${selectedCombatantAvatarUrl}" onerror="this.parentNode.textContent='⚔️'">`;}
+  else{preview.textContent=selectedCombatantAvatar;}
+}
+function confirmAddCombatant(){
+  const name=$('cName').value.trim(),init=parseInt($('cInit').value)||0,hp=parseInt($('cHp').value)||0,ac=parseInt($('cAc').value)||0,role=$('cRole').value;
+  if(!name){alert('Podaj nazwę bojownika');return;}
+  combatants.push({
+    name,init,hp,maxHp:hp||null,ac:ac||'—',role,
+    conditions:[],roundDamage:0,
+    avatar:selectedCombatantAvatarUrl||selectedCombatantAvatar
+  });
+  sortInit();
+  closeAddCombatantModal();playSound('add');
+}
+function initCombatantAvatarPicker(){
+  document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedCombatantAvatar=btn.dataset.avatar;
+      selectedCombatantAvatarUrl='';
+      $('combatantAvatarUrl').value='';
+      updateCombatantAvatarPreview();
+    });
+  });
+  $('combatantAvatarUrl').addEventListener('input',function(){
+    const url=this.value.trim();
+    if(url){selectedCombatantAvatarUrl=url;selectedCombatantAvatar='';document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(b=>b.classList.remove('active'));}
+    else{selectedCombatantAvatarUrl='';selectedCombatantAvatar='⚔️';}
+    updateCombatantAvatarPreview();
   });
 }
 
@@ -472,57 +493,75 @@ function showPlayerDmg(index){dmgPopupTarget={type:'player',index};showDamagePop
 function addPlayerToInitiative(index){
   const p=players[index];if(!p) return;
   const initVal=prompt('Inicjatywa dla '+p.name+':')||'0';
-  combatants.push({name:p.name,init:parseInt(initVal)||0,hp:p.hp,maxHp:p.maxHp,ac:p.ac,conditions:[...p.conditions],roundDamage:0});
+  combatants.push({name:p.name,init:parseInt(initVal)||0,hp:p.hp,maxHp:p.maxHp,ac:p.ac,role:p.role,conditions:[...p.conditions],roundDamage:0,avatar:p.avatar});
   sortInit();playSound('add');
 }
 function getRoleBadge(role){const m={'Gracz':'gracz','Companion':'companion','Wróg':'wrog','NPC':'npc'};return 'p-role-badge '+(m[role]||'npc');}
 
-/* === NEW: SZYBKIE STANY na karcie === */
-const QUICK_STATES=[
-  {id:'Stunned',icon:'💥',lbl:'Oszołom'},
-  {id:'Prone',icon:'⬇️',lbl:'Powal'},
-  {id:'Poisoned',icon:'☠️',lbl:'Zatruj'},
-  {id:'Blinded',icon:'👁️',lbl:'Oślep'},
-];
+/* === NEW: Pokaż modal stanów dla postaci === */
+function showPlayerCondPopup(index){
+  conditionPopupTarget={type:'player',index};
+  showCondPopup(players[index].name,players[index].conditions,(cond)=>{
+    const idx=players[index].conditions.indexOf(cond);
+    if(idx>-1) players[index].conditions.splice(idx,1);
+    else{players[index].conditions.push(cond);addTurnLog(players[index].name,'👤 '+getStateEmoji(cond)+' '+cond);}
+    renderPlayers();
+    const popup=document.getElementById('condPopup');if(popup) updateCondPopup(popup,players[index].conditions);
+  });
+}
+
+/* === NEW: Animacja HP hit === */
+function triggerHpHitAnimation(index){
+  const cards=document.querySelectorAll('.player-card');
+  if(cards[index]){
+    cards[index].classList.remove('hp-hit');
+    void cards[index].offsetWidth; // restart animacji
+    cards[index].classList.add('hp-hit');
+    setTimeout(()=>cards[index].classList.remove('hp-hit'),600);
+  }
+}
 
 function renderPlayers(){
   const container=$('playerTracker');container.innerHTML='';
-  if(players.length===0){container.innerHTML='<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:12px;">👥 Brak postaci – kliknij „Dodaj postać"</div>';return;}
+  if(players.length===0){container.innerHTML='<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:12px;">👥 Brak postaci – kliknij „➕ Dodaj postać"</div>';return;}
   players.forEach((p,i)=>{
     const div=document.createElement('div');div.className='player-card';div.dataset.role=p.role;
-    div.onclick=()=>selectTargetForState('player',i);
     const hpPct=p.maxHp>0?Math.round((p.hp/p.maxHp)*100):0;
     const hpColor=hpPct<25?'var(--red)':hpPct<50?'var(--gold)':'var(--green)';
     const condTags=p.conditions.map(c=>`<span class="tag">${getStateEmoji(c)} ${c}</span>`).join('');
     const ds=p.deathSaves||{passes:0,fails:0};
-    const avatarHtml=p.avatar&&p.avatar.startsWith('http')?`<img src="${p.avatar}" onerror="this.parentNode.textContent='🧙'">`:p.avatar||'🧙';
-
-    // Szybkie stany
-    const quickStatesHtml=QUICK_STATES.map(qs=>{
-      const active=p.conditions.includes(qs.id)?'active':'';
-      return `<button class="qs-btn ${active}" onclick="event.stopPropagation();selectedTargetForState={type:'player',index:${i}};toggleStateOnTarget('${qs.id}')" title="${qs.id}"><span class="qs-icon">${qs.icon}</span><span class="qs-lbl">${qs.lbl}</span></button>`;
-    }).join('')+`<button class="qs-btn danger" onclick="event.stopPropagation();selectedTargetForState={type:'player',index:${i}};clearStatesOnTarget()" title="Wyczyść stany"><span class="qs-icon">✕</span><span class="qs-lbl">Wyczyść</span></button>`;
+    const avatarHtml=p.avatar&&p.avatar.startsWith('http')?`<img src="${p.avatar}" onerror="this.parentNode.innerHTML='${p.avatar&&p.avatar.length<=2?p.avatar:'🧙'}'">`:(p.avatar||'🧙');
+    
+    // Animacja stanu na avatarze - pokazuje pierwszy stan
+    const firstState=p.conditions[0];
+    const stateOverlay=firstState?`<div class="avatar-state-overlay" style="color:${getStateColor(firstState)}">${getStateEmoji(firstState)}</div>`:'';
+    
+    // Button zarządzania stanami
+    const stateBtnClass=p.conditions.length>0?'p-state-btn has-conds':'p-state-btn';
+    const stateBtnText=p.conditions.length>0?`⚙️ Stany (${p.conditions.length})`:'⚙️ Zarządzaj stanami';
 
     div.innerHTML=`
       <div class="p-header">
-        <div class="p-avatar">${avatarHtml}</div>
+        <div class="p-avatar">${avatarHtml}${stateOverlay}</div>
         <div class="p-main">
           <div class="p-name">${p.name}<span class="${getRoleBadge(p.role)}">${p.role}</span>${p.hp<=0?'💀':''}</div>
-          ${p.ac>0?`<span style="font-size:.6rem;color:var(--blue);padding:2px 8px;border:1px solid rgba(107,184,255,0.2);border-radius:6px;">🛡${p.ac}</span>`:''}
+          <div class="p-stats-row">
+            ${p.ac>0?`<div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">${p.ac}</span><span style="font-size:.6rem;color:var(--muted);margin-left:2px;">AC</span></div>`:''}
+            <div style="flex:1;"></div>
+          </div>
         </div>
       </div>
       <div class="p-hp-wrap">
-        <div class="p-hp-bar"><div class="p-hp-fill" style="width:${hpPct}%;background:${hpColor};"></div></div>
+        <div class="p-hp-bar"><div class="p-hp-fill" style="width:${hpPct}%;background:linear-gradient(90deg,${hpColor},${hpColor}dd);"></div></div>
         <div class="p-hp-text" style="color:${hpColor}">${p.hp}/${p.maxHp}</div>
       </div>
-      ${p.hp<=0?`<div style="font-size:.5rem;color:var(--muted);margin:2px 0;">🪦 Death Saves: ✅${ds.passes} ❌${ds.fails}</div>`:''}
+      ${p.hp<=0?`<div style="font-size:.55rem;color:var(--muted);margin:2px 0;">🪦 Death Saves: ✅${ds.passes} ❌${ds.fails}</div>`:''}
       <div class="p-stats">
-        <span>❤️${p.hp}</span>
-        ${p.ac>0?`<span>🛡${p.ac}</span>`:''}
-        ${p.conditions.length>0?`<span>⚡${p.conditions.length}</span>`:''}
+        <span>❤️ ${p.hp}</span>
+        ${p.conditions.length>0?`<span>⚡ ${p.conditions.length}</span>`:''}
       </div>
       <div class="p-cond">${condTags}</div>
-      <div class="p-quick-states">${quickStatesHtml}</div>
+      <button class="${stateBtnClass}" onclick="event.stopPropagation();showPlayerCondPopup(${i})">${stateBtnText}</button>
       <div class="p-controls">
         <button onclick="event.stopPropagation();showPlayerDmg(${i})">⚔️ Obrażenia</button>
         <button onclick="event.stopPropagation();addPlayerToInitiative(${i})">⚡ Do potyczki</button>
@@ -533,6 +572,13 @@ function renderPlayers(){
     container.appendChild(div);
   });
 }
+
+/* === NEW: Kolor stanu dla animacji === */
+function getStateColor(state){
+  const m={'Blinded':'#aaa','Charmed':'#f0a','Deafened':'#777','Frightened':'#ff6b6b','Grappled':'#8b4','Incapacitated':'#d4a843','Invisible':'#6bb8ff','Paralyzed':'#a0f','Petrified':'#888','Poisoned':'#6bff9e','Prone':'#c84','Restrained':'#ba0','Stunned':'#a87cff','Unconscious':'#555','Exhaustion':'#f55'};
+  return m[state]||'#a87cff';
+}
+
 function deathSave(index){
   const p=players[index];if(!p) return;
   const roll=rollDice(20);
@@ -580,7 +626,7 @@ function applyDamage(){
       if(existing) existing.dmg+=finalDmg; else focusFire.push({name,dmg:finalDmg,status:'⚔️ '+finalDmg+' dmg'});
       addTurnLog(name,'⚔️ '+finalDmg+' obrażeń');
       if(players[index].hp<=0){playSound('death');addTurnLog(name,'💀 ŚMIERĆ!');setTimeout(()=>{renderPlayers();updateFocusFire();},200);}
-      else{playSound(finalDmg>10?'crit':'hit');renderPlayers();updateFocusFire();}
+      else{playSound(finalDmg>10?'crit':'hit');renderPlayers();triggerHpHitAnimation(index);updateFocusFire();}
     } else if(type==='init'&&combatants[index]){
       combatants[index].hp=Math.max(0,combatants[index].hp-finalDmg);
       combatants[index].roundDamage=(combatants[index].roundDamage||0)+finalDmg;
@@ -603,6 +649,8 @@ function updateFocusFire(){
   container.innerHTML=logHtml||'<div style="color:var(--muted);font-size:.6rem;text-align:center;padding:3px;">Brak akcji w tej rundzie</div>';
 }
 function resetFocusFire(){focusFire=[];turnLog=[];updateFocusFire();}
+function addTurnLog(name,action){turnLog.push({name,action,turn:round});if(turnLog.length>20) turnLog.shift();updateFocusFire();}
+function getTurnLogDisplay(){return turnLog.slice(-5).map(e=>`<div class="ff-target"><span class="ff-name">${e.name}</span><span class="ff-status">${e.action}</span></div>`).join('');}
 
 /* ========== DEATH ANIM ========== */
 function triggerDeath(index){
@@ -616,12 +664,6 @@ function triggerDeath(index){
 }
 
 /* ========== POTYCZKA ========== */
-function addCombatant(){
-  const name=$('initName').value.trim(),init=Number($('initVal').value),hp=Number($('initHp').value)||'—',ac=Number($('initAc').value)||'—';
-  if(!name) return;
-  combatants.push({name,init,hp,ac,maxHp:typeof hp==='number'?hp:null,conditions:[],roundDamage:0});
-  sortInit();$('initName').value='';$('initVal').value='';$('initHp').value='';$('initAc').value='';playSound('add');
-}
 function addFromParty(){
   if(players.length===0){alert('Dodaj najpierw postacie do "Postaci"!');return;}
   const names=players.map((p,i)=>(i+1)+'. '+p.name+' ('+p.role+')').join('\n');
@@ -631,7 +673,7 @@ function addFromParty(){
   else player=players.find(p=>p.name.toLowerCase()===choice.toLowerCase());
   if(!player){alert('Nie znaleziono');return;}
   const initVal=prompt('Inicjatywa dla '+player.name+':')||'0';
-  combatants.push({name:player.name,init:parseInt(initVal)||0,hp:player.hp,maxHp:player.maxHp,ac:player.ac,conditions:[...player.conditions],roundDamage:0});
+  combatants.push({name:player.name,init:parseInt(initVal)||0,hp:player.hp,maxHp:player.maxHp,ac:player.ac,role:player.role,conditions:[...player.conditions],roundDamage:0,avatar:player.avatar});
   sortInit();playSound('add');
 }
 function sortInit(){combatants.sort((a,b)=>b.init-a.init);currentTurn=0;round=1;renderInit();}
@@ -692,7 +734,6 @@ function renderInit(){
   $('roundBadge').textContent=`— Runda ${round} —`;$('turnBtns').style.display='flex';
   combatants.forEach((c,i)=>{
     const div=document.createElement('div');div.className='init-entry'+(i===currentTurn?' current':'');
-    div.onclick=()=>selectTargetForState('init',i);
     if(i===combatants.length-1) div.classList.add('slide-in');
     const hpText=typeof c.hp==='number'?`${c.hp}/${c.maxHp} HP`:'? HP';
     const hpClass=typeof c.hp==='number'&&c.maxHp&&c.hp/c.maxHp<.33?' low':'';
@@ -707,7 +748,7 @@ function renderInit(){
         <button class="init-cond-btn ${c.conditions&&c.conditions.length>0?'has-cond':''}" onclick="event.stopPropagation();showInitCondPopup(${i})" title="Zarządzaj stanami">${c.conditions&&c.conditions.length>0?'🔄':'⚙️'}</button>
         <button class="init-cond-btn" onclick="event.stopPropagation();showInitDmg(${i})" title="Zadaj obrażenia">⚔️</button>
       </div>
-      ${c.ac!=='—'?`<div class="init-ac" title="Klasa Pancerza">🛡 ${c.ac}</div>`:''}
+      ${c.ac&&c.ac!=='—'?`<div class="init-ac" title="Klasa Pancerza">🛡 ${c.ac}</div>`:''}
       ${typeof c.hp==='number'?`<div class="init-hp ${hpClass}" onclick="event.stopPropagation();showInitDmg(${i})">${hpText}</div>`:''}
       <div class="init-remove" onclick="event.stopPropagation();removeCombatant(${i})">✕</div>
     `;
@@ -735,15 +776,22 @@ function updateCondPopup(popup,currentConds){popup.querySelectorAll('.cond-popup
 function closeCondPopup(){const p=document.getElementById('condPopup');if(p) p.remove();conditionPopupTarget=null;}
 
 // ESC zamyka popupy
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCondPopup();closeDmgPopup();closeDicePopup();closeTimerPopup();closeAddPlayerModal();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCondPopup();closeDmgPopup();closeDicePopup();closeTimerPopup();closeAddPlayerModal();closeAddCombatantModal();}});
 // Klik poza popupem
 document.addEventListener('mousedown',e=>{
-  ['condPopup','dmgPopup','dicePopup','timerPopup','addPlayerPopup'].forEach(id=>{
+  ['condPopup','dmgPopup','dicePopup','timerPopup'].forEach(id=>{
     const p=document.getElementById(id);
-    if(p&&!p.contains(e.target)&&e.target.closest('.popup-content')===null&&id!=='addPlayerPopup') closeCondPopup();
+    if(p&&!p.contains(e.target)&&e.target.closest('.popup-content')===null) {
+      if(id==='condPopup') closeCondPopup();
+      else if(id==='dmgPopup') closeDmgPopup();
+      else if(id==='dicePopup') closeDicePopup();
+      else if(id==='timerPopup') closeTimerPopup();
+    }
   });
   const addP=document.getElementById('addPlayerPopup');
   if(addP&&addP.style.display==='flex'&&e.target===addP) closeAddPlayerModal();
+  const addC=document.getElementById('addCombatantPopup');
+  if(addC&&addC.style.display==='flex'&&e.target===addC) closeAddCombatantModal();
 });
 // Swipe to close (mobile)
 if(isTouchDevice()){
@@ -765,6 +813,7 @@ initNavigation();
 initInfoTabs();
 initCanvasPanZoom();
 initAvatarPicker();
+initCombatantAvatarPicker();
 renderStatesInfoList();
 renderPlayers();
 updateFocusFire();
