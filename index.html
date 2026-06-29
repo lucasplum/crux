@@ -14,7 +14,7 @@
 </div>
 
 <div class="app">
-  <!-- ===== HEADER / WINIETA (ZMNIEJSZONA) ===== -->
+  <!-- ===== HEADER ===== -->
   <header>
     <div class="raven-stage">
       <div class="raven-orbit"></div>
@@ -30,7 +30,7 @@
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
-  <!-- ===== NAWIGACJA GÓRNA ===== -->
+  <!-- ===== NAWIGACJA ===== -->
   <nav class="top-nav">
     <button class="nav-btn active" data-tab="tools">🏠 Narzędzia</button>
     <button class="nav-btn" data-tab="spells">🎨 Zaklęcia</button>
@@ -175,9 +175,11 @@
 
   <!-- ===== TAB: POSTACIE ===== -->
   <section class="tab-section" data-tab="players">
-    <div class="card">
-      <div class="card-title">👥 Postacie</div>
-      <button class="btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
+    <div class="card players-card">
+      <div class="card-header-row">
+        <div class="card-title">👥 Postacie</div>
+        <button class="btn add-player-btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
+      </div>
       <div class="player-grid" id="playerTracker"></div>
       <div id="selectedTargetDisplay" style="display:none;margin-top:10px;padding:8px;background:var(--card3);border-radius:8px;font-size:var(--font-sm);color:var(--accent2);text-align:center;"></div>
     </div>
@@ -185,15 +187,13 @@
 
   <!-- ===== TAB: POTYCZKA ===== -->
   <section class="tab-section" data-tab="combat">
-    <div class="card">
-      <div class="card-title">⚔️ Potyczka</div>
-      <div class="init-row">
-        <input type="text" id="initName" placeholder="Nazwa">
-        <input type="number" id="initVal" placeholder="Init">
-        <input type="number" id="initHp" placeholder="HP">
-        <input type="number" id="initAc" placeholder="AC">
-        <button class="btn" onclick="addCombatant()">+</button>
-        <button class="btn outline" onclick="addFromParty()" title="Dodaj z listy postaci">👥</button>
+    <div class="card combat-card">
+      <div class="card-header-row">
+        <div class="card-title">⚔️ Potyczka</div>
+        <div class="combat-header-btns">
+          <button class="btn outline" onclick="openAddCombatantModal()" title="Dodaj bojownika">➕ Dodaj</button>
+          <button class="btn outline" onclick="addFromParty()" title="Dodaj z listy postaci">👥 Z drużyny</button>
+        </div>
       </div>
       <div class="init-list" id="initList"></div>
       <div class="round-badge" id="roundBadge"></div>
@@ -205,7 +205,6 @@
         <button class="btn danger" onclick="resetInit()" title="Wyczyść potyczkę">✕ Reset</button>
       </div>
 
-      <!-- PRZEBIEG RUNDY – NA SAMYM DOLE -->
       <div class="focus-fire">
         <div class="ff-header">
           <div class="ff-title">🎯 Przebieg rundy</div>
@@ -233,7 +232,6 @@
         <button class="info-tab-btn" data-info="travel">Podróż</button>
       </div>
 
-      <!-- STANY – teraz jako lista -->
       <div class="info-content active" data-info="states">
         <div class="info-list" id="statesInfoList"></div>
       </div>
@@ -319,7 +317,7 @@
     </div>
   </section>
 
-  <!-- ===== NAWIGACJA DOLNA (MOBILE) ===== -->
+  <!-- ===== BOTTOM NAV ===== -->
   <nav class="bottom-nav">
     <button class="bottom-nav-btn active" data-tab="tools"><span class="bottom-nav-icon">🏠</span><span class="bottom-nav-label">Narzędzia</span></button>
     <button class="bottom-nav-btn" data-tab="spells"><span class="bottom-nav-icon">🎨</span><span class="bottom-nav-label">Zaklęcia</span></button>
@@ -333,7 +331,6 @@
 <div class="popup-overlay" id="addPlayerPopup" style="display:none;">
   <div class="popup-content add-player-popup">
     <div class="popup-title">➕ Nowa postać</div>
-
     <div class="avatar-section">
       <div class="avatar-preview" id="avatarPreview">🧙</div>
       <div class="avatar-grid" id="avatarGrid">
@@ -364,7 +361,6 @@
       </div>
       <input type="text" id="avatarUrl" class="avatar-url-input" placeholder="lub URL obrazka (opcjonalnie)">
     </div>
-
     <input type="text" id="pName" class="modal-input" placeholder="Imię / Nazwa">
     <div class="modal-row">
       <input type="number" id="pHp" class="modal-input" placeholder="HP (max)">
@@ -376,7 +372,6 @@
       <option value="Wróg">⚔️ Wróg</option>
       <option value="NPC">📜 NPC</option>
     </select>
-
     <div class="modal-actions">
       <button class="btn" onclick="confirmAddPlayer()">✓ Dodaj</button>
       <button class="btn outline" onclick="closeAddPlayerModal()">Anuluj</button>
@@ -384,7 +379,61 @@
   </div>
 </div>
 
-<!-- ===== SKRYPT ===== -->
+<!-- ===== MODAL: DODAWANIE BOJOWNIKA ===== -->
+<div class="popup-overlay" id="addCombatantPopup" style="display:none;">
+  <div class="popup-content add-combatant-popup">
+    <div class="popup-title">⚔️ Nowy bojownik</div>
+    <div class="avatar-section">
+      <div class="avatar-preview" id="combatantAvatarPreview">⚔️</div>
+      <div class="avatar-grid" id="combatantAvatarGrid">
+        <button class="avatar-btn active" data-avatar="⚔️">⚔️</button>
+        <button class="avatar-btn" data-avatar="🗡️">🗡️</button>
+        <button class="avatar-btn" data-avatar="🏹">🏹</button>
+        <button class="avatar-btn" data-avatar="🐺">🐺</button>
+        <button class="avatar-btn" data-avatar="🐉">🐉</button>
+        <button class="avatar-btn" data-avatar="👹">👹</button>
+        <button class="avatar-btn" data-avatar="💀">💀</button>
+        <button class="avatar-btn" data-avatar="👻">👻</button>
+        <button class="avatar-btn" data-avatar="🧟">🧟</button>
+        <button class="avatar-btn" data-avatar="🧛">🧛</button>
+        <button class="avatar-btn" data-avatar="🦇">🦇</button>
+        <button class="avatar-btn" data-avatar="🕷️">🕷️</button>
+        <button class="avatar-btn" data-avatar="🐍">🐍</button>
+        <button class="avatar-btn" data-avatar="🦂">🦂</button>
+        <button class="avatar-btn" data-avatar="🐻">🐻</button>
+        <button class="avatar-btn" data-avatar="🦁">🦁</button>
+        <button class="avatar-btn" data-avatar="🐗">🐗</button>
+        <button class="avatar-btn" data-avatar="🦴">🦴</button>
+        <button class="avatar-btn" data-avatar="👑">👑</button>
+        <button class="avatar-btn" data-avatar="🧙">🧙</button>
+        <button class="avatar-btn" data-avatar="🛡️">🛡️</button>
+        <button class="avatar-btn" data-avatar="🪄">🪄</button>
+        <button class="avatar-btn" data-avatar="🔥">🔥</button>
+        <button class="avatar-btn" data-avatar="🌑">🌑</button>
+      </div>
+      <input type="text" id="combatantAvatarUrl" class="avatar-url-input" placeholder="lub URL obrazka (opcjonalnie)">
+    </div>
+    <input type="text" id="cName" class="modal-input" placeholder="Nazwa">
+    <div class="modal-row">
+      <input type="number" id="cInit" class="modal-input" placeholder="Inicjatywa">
+      <input type="number" id="cHp" class="modal-input" placeholder="HP (max)">
+    </div>
+    <div class="modal-row">
+      <input type="number" id="cAc" class="modal-input" placeholder="AC (KP)">
+      <select id="cRole" class="modal-input">
+        <option value="Wróg">⚔️ Wróg</option>
+        <option value="Gracz">🧙 Gracz</option>
+        <option value="Companion">🐾 Companion</option>
+        <option value="NPC">📜 NPC</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="confirmAddCombatant()">✓ Dodaj</button>
+      <button class="btn outline" onclick="closeAddCombatantModal()">Anuluj</button>
+    </div>
+  </div>
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>
