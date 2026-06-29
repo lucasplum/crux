@@ -10,22 +10,36 @@ function renderSizeCanvas() {
   var container = document.getElementById('sizeCanvasContainer');
   if (!container || container.offsetWidth === 0 || !sizeCanvas || !sctx) return;
 
-  var dpr = optimizeCanvasForMobile(sizeCanvas);
+  var dims = getCanvasDimensions('size');
+  if (dims.width === 0 || dims.height === 0) {
+    // Pierwsze uruchomienie - ustaw wymiary
+    dims.width = container.offsetWidth;
+    dims.height = Math.max(280, container.offsetHeight);
+    canvasDimensions.size.width = dims.width;
+    canvasDimensions.size.height = dims.height;
+  }
+
   var state = canvasState.size;
   clampPan('size');
 
+  var dpr = dims.dpr;
   var baseW = container.offsetWidth;
   var baseH = Math.max(280, container.offsetHeight);
+  
+  // Używamy stałych wymiarów dla canvas
+  var canvasW = dims.width;
+  var canvasH = dims.height;
 
-  sizeCanvas.width = Math.round(baseW * state.zoom * dpr);
-  sizeCanvas.height = Math.round(baseH * state.zoom * dpr);
-  sizeCanvas.style.width = baseW + 'px';
-  sizeCanvas.style.height = baseH + 'px';
+  // Ustawiamy canvas na stałe wymiary
+  sizeCanvas.width = Math.round(canvasW * state.zoom * dpr);
+  sizeCanvas.height = Math.round(canvasH * state.zoom * dpr);
+  sizeCanvas.style.width = canvasW + 'px';
+  sizeCanvas.style.height = canvasH + 'px';
 
   sctx.setTransform(1, 0, 0, 1, 0, 0);
   sctx.scale(dpr * state.zoom, dpr * state.zoom);
 
-  var w = baseW, h = baseH;
+  var w = canvasW, h = canvasH;
   sctx.clearRect(
     -state.panX / state.zoom,
     -state.panY / state.zoom,
@@ -84,3 +98,7 @@ document.querySelectorAll('.size-btn').forEach(function(btn) {
 // Inicjalne info
 var sizeInfo = document.getElementById('sizeInfo');
 if (sizeInfo) sizeInfo.textContent = '1×1 · Mały (Small)';
+
+// Eksport
+window.renderSizeCanvas = renderSizeCanvas;
+window.activeSize = activeSize;

@@ -2,6 +2,17 @@
 //  RENDER / VIEWPORT HELPERS
 // ============================================================
 
+var canvasState = {
+  size: { zoom: 1, panX: 0, panY: 0 },
+  spell: { zoom: 1, panX: 0, panY: 0 }
+};
+
+// Przechowujemy stałe wymiary canvas dla każdego typu
+var canvasDimensions = {
+  size: { width: 0, height: 0 },
+  spell: { width: 0, height: 0 }
+};
+
 function isMobile() {
   return window.innerWidth <= 768 || 'ontouchstart' in window;
 }
@@ -10,18 +21,43 @@ function isTouchDevice() {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 }
 
-function optimizeCanvasForMobile(canvas) {
-  return isMobile() ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2);
+function getCanvasDPR() {
+  // Stały DPR dla całej sesji - nie zmienia się przy każdym renderowaniu
+  if (typeof getCanvasDPR._dpr === 'undefined') {
+    getCanvasDPR._dpr = isMobile() ? Math.min(window.devicePixelRatio || 1, 1.5) : Math.min(window.devicePixelRatio || 1, 2);
+  }
+  return getCanvasDPR._dpr;
 }
 
-var canvasState = {
-  size: { zoom: 1, panX: 0, panY: 0 },
-  spell: { zoom: 1, panX: 0, panY: 0 }
-};
+function getCanvasDimensions(type) {
+  var container = document.getElementById(type + 'CanvasContainer');
+  if (!container) return { width: 0, height: 0 };
+  
+  var dpr = getCanvasDPR();
+  var state = canvasState[type];
+  
+  // Podstawowe wymiary kontenera
+  var baseW = container.offsetWidth;
+  var baseH = Math.max(280, container.offsetHeight);
+  
+  // Używamy stałych wymiarów jeśli już zostały ustawione
+  if (canvasDimensions[type].width === 0 || canvasDimensions[type].height === 0) {
+    canvasDimensions[type].width = baseW;
+    canvasDimensions[type].height = baseH;
+  }
+  
+  return {
+    width: canvasDimensions[type].width,
+    height: canvasDimensions[type].height,
+    baseW: baseW,
+    baseH: baseH,
+    dpr: dpr
+  };
+}
 
 function clampPan(type) {
   var state = canvasState[type];
-  var maxPan = 250;
+  var maxPan = Math.max(500, 300 * state.zoom);
   state.panX = Math.max(-maxPan, Math.min(maxPan, state.panX));
   state.panY = Math.max(-maxPan, Math.min(maxPan, state.panY));
 }
@@ -29,9 +65,17 @@ function clampPan(type) {
 // ====== ZOOM / PAN ======
 function zoomCanvas(type, direction) {
   var state = canvasState[type];
+  var oldZoom = state.zoom;
   state.zoom = direction > 0 ? Math.min(3, state.zoom + 0.25) : Math.max(0.5, state.zoom - 0.25);
+  clampPan(type);
+  
   var zd = document.getElementById(type + 'ZoomLevel');
   if (zd) zd.textContent = Math.round(state.zoom * 100) + '%';
+  
+  // Przy zmianie zoomu resetujemy wymiary - będą ponownie obliczone
+  canvasDimensions[type].width = 0;
+  canvasDimensions[type].height = 0;
+  
   if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
   else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
 }
@@ -41,6 +85,11 @@ function resetCanvas(type) {
   state.zoom = 1;
   state.panX = 0;
   state.panY = 0;
+  
+  // Resetujemy wymiary
+  canvasDimensions[type].width = 0;
+  canvasDimensions[type].height = 0;
+  
   var zd = document.getElementById(type + 'ZoomLevel');
   if (zd) zd.textContent = '100%';
   if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
@@ -106,8 +155,26 @@ function initCanvasPanZoom() {
 
     container.addEventListener('dblclick', function() { resetCanvas(type); });
   });
+  
+  // Obsługa resize - odświeżamy wymiary
+  var resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      // Resetujemy wymiary przy zmianie rozmiaru okna
+      canvasDimensions.size.width = 0;
+      canvasDimensions.size.height = 0;
+      canvasDimensions.spell.width = 0;
+      canvasDimensions.spell.height = 0;
+      if (typeof renderSizeCanvas === 'function') renderSizeCanvas();
+      if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
+    }, 250);
+  });
 }
 
 // Eksport globalny
 window.zoomCanvas = zoomCanvas;
 window.resetCanvas = resetCanvas;
+window.getCanvasDPR = getCanvasDPR;
+window.getCanvasDimensions = getCanvasDimensions;
+window.canvasDimensions = canvasDimensions;

@@ -7,6 +7,30 @@ var selectedSpell = null;
 var spellCanvas = document.getElementById('spellCanvas');
 var pctx = spellCanvas ? spellCanvas.getContext('2d') : null;
 
+// ---- LISTA ZAKLĘĆ Z POLSKIMI I ANGIELSKIMI NAZWAMI ----
+var SPELLS = [
+  { name: 'Kula Ognia (Fireball)', shape: 'sphere', size: 20, desc: '🔥 8k6, promień 20 ft', school: 'Ewokacja', level: 3 },
+  { name: 'Kula Lodu (Ice Storm)', shape: 'sphere', size: 20, desc: '❄️ 8k6, promień 20 ft', school: 'Ewokacja', level: 3 },
+  { name: 'Meteor (Meteor Swarm)', shape: 'sphere', size: 40, desc: '☄️ 20k6, promień 40 ft', school: 'Ewokacja', level: 9 },
+  { name: 'Stożek Zimna (Cone of Cold)', shape: 'cone', size: 60, desc: '❄️ 8k6, stożek 60 ft', school: 'Ewokacja', level: 5 },
+  { name: 'Ognisty Oddech (Dragon\'s Breath)', shape: 'cone', size: 30, desc: '🔥 5k6, stożek 30 ft', school: 'Ewokacja', level: 2 },
+  { name: 'Promień Światła (Sunbeam)', shape: 'line', size: 120, desc: '💫 10k6, linia 120 ft', school: 'Ewokacja', level: 6 },
+  { name: 'Piorun (Lightning Bolt)', shape: 'line', size: 100, desc: '⚡ 8k6, linia 100 ft', school: 'Ewokacja', level: 3 },
+  { name: 'Kula Śmierci (Circle of Death)', shape: 'sphere', size: 30, desc: '💀 12k6 nekrotycznych, promień 30 ft', school: 'Nekromancja', level: 6 },
+  { name: 'Sześcian Ognia (Fire Cube)', shape: 'cube', size: 30, desc: '🔥 10k6, sześcian 30 ft', school: 'Ewokacja', level: 4 },
+  { name: 'Błogosławieństwo (Bless)', shape: 'sphere', size: 30, desc: '✨ Buff, promień 30 ft', school: 'Oczarowanie', level: 1 },
+  { name: 'Mroczna Moc (Revivify)', shape: 'sphere', size: 20, desc: '🌑 Przywraca życie, promień 20 ft', school: 'Nekromancja', level: 3 },
+  { name: 'Aura Życia (Aura of Life)', shape: 'sphere', size: 30, desc: '💚 Leczenie, promień 30 ft', school: 'Oczarowanie', level: 4 },
+  { name: 'Bariera (Shield of Faith)', shape: 'sphere', size: 10, desc: '🛡️ +2 KP, promień 10 ft', school: 'Ochrona', level: 1 },
+  { name: 'Mroczna Chmura (Dark Cloud)', shape: 'sphere', size: 30, desc: '☁️ Zasłona, promień 30 ft', school: 'Czarowanie', level: 2 },
+  { name: 'Ściana Ognia (Wall of Fire)', shape: 'line', size: 60, desc: '🔥 Ściana 60 ft', school: 'Ewokacja', level: 4 },
+  { name: 'Krąg Ochrony (Circle of Power)', shape: 'sphere', size: 30, desc: '🔮 Antymagia, promień 30 ft', school: 'Ochrona', level: 6 },
+  { name: 'Uścisk Ziemi (Earthbind)', shape: 'cube', size: 20, desc: '🪨 Trzyma wrogów, sześcian 20 ft', school: 'Przyzywanie', level: 2 },
+  { name: 'Mroczne Oczy (Eyebite)', shape: 'cone', size: 30, desc: '👁️ Paraliż, stożek 30 ft', school: 'Nekromancja', level: 4 },
+  { name: 'Tarcza Światła (Sunburst)', shape: 'sphere', size: 15, desc: '✨ Oślepia, promień 15 ft', school: 'Ewokacja', level: 2 },
+];
+
+// ====== RENDER LISTY ZAKLĘĆ ======
 function renderSpellList(filter, levelFilter, schoolFilter) {
   filter = filter || '';
   levelFilter = levelFilter || 'all';
@@ -56,26 +80,39 @@ function renderSpellList(filter, levelFilter, schoolFilter) {
   });
 }
 
+// ====== RENDER CANVAS ZAKLĘĆ ======
 function renderSpellCanvas() {
   var container = document.getElementById('spellCanvasContainer');
   if (!container || container.offsetWidth === 0 || !spellCanvas || !pctx) return;
 
-  var dpr = optimizeCanvasForMobile(spellCanvas);
+  var dims = getCanvasDimensions('spell');
+  if (dims.width === 0 || dims.height === 0) {
+    // Pierwsze uruchomienie - ustaw wymiary
+    dims.width = container.offsetWidth;
+    dims.height = Math.max(280, container.offsetHeight);
+    canvasDimensions.spell.width = dims.width;
+    canvasDimensions.spell.height = dims.height;
+  }
+
   var state = canvasState.spell;
   clampPan('spell');
 
-  var baseW = container.offsetWidth;
-  var baseH = Math.max(280, container.offsetHeight);
+  var dpr = dims.dpr;
+  
+  // Używamy stałych wymiarów dla canvas
+  var canvasW = dims.width;
+  var canvasH = dims.height;
 
-  spellCanvas.width = Math.round(baseW * state.zoom * dpr);
-  spellCanvas.height = Math.round(baseH * state.zoom * dpr);
-  spellCanvas.style.width = baseW + 'px';
-  spellCanvas.style.height = baseH + 'px';
+  // Ustawiamy canvas na stałe wymiary
+  spellCanvas.width = Math.round(canvasW * state.zoom * dpr);
+  spellCanvas.height = Math.round(canvasH * state.zoom * dpr);
+  spellCanvas.style.width = canvasW + 'px';
+  spellCanvas.style.height = canvasH + 'px';
 
   pctx.setTransform(1, 0, 0, 1, 0, 0);
   pctx.scale(dpr * state.zoom, dpr * state.zoom);
 
-  var w = baseW, h = baseH;
+  var w = canvasW, h = canvasH;
   pctx.clearRect(
     -state.panX / state.zoom,
     -state.panY / state.zoom,
@@ -204,7 +241,7 @@ function renderSpellCanvas() {
   }
 }
 
-// ---- Eventy ----
+// ====== EVENTY ======
 ['shape', 'spellSize', 'direction', 'cubeOrigin'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('change', renderSpellCanvas);
@@ -213,7 +250,7 @@ function renderSpellCanvas() {
 var showCount = document.getElementById('showCount');
 if (showCount) showCount.addEventListener('change', renderSpellCanvas);
 
-// ---- Inicjalizacja ----
+// ====== INICJALIZACJA ======
 var searchInput = document.getElementById('spellSearch');
 var levelSelect = document.getElementById('spellLevel');
 var schoolSelect = document.getElementById('spellSchool');
@@ -236,3 +273,8 @@ if (schoolSelect) {
 
 // Render initial
 renderSpellList();
+
+// ====== EKSPORT GLOBALNY ======
+window.renderSpellList = renderSpellList;
+window.renderSpellCanvas = renderSpellCanvas;
+window.SPELLS = SPELLS;
