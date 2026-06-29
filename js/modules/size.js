@@ -12,7 +12,6 @@ function renderSizeCanvas() {
 
   var dims = getCanvasDimensions('size');
   if (dims.width === 0 || dims.height === 0) {
-    // Pierwsze uruchomienie - ustaw wymiary
     dims.width = container.offsetWidth;
     dims.height = Math.max(280, container.offsetHeight);
     canvasDimensions.size.width = dims.width;
@@ -23,10 +22,6 @@ function renderSizeCanvas() {
   clampPan('size');
 
   var dpr = dims.dpr;
-  var baseW = container.offsetWidth;
-  var baseH = Math.max(280, container.offsetHeight);
-  
-  // Używamy stałych wymiarów dla canvas
   var canvasW = dims.width;
   var canvasH = dims.height;
 
@@ -41,8 +36,8 @@ function renderSizeCanvas() {
 
   var w = canvasW, h = canvasH;
   sctx.clearRect(
-    -state.panX / state.zoom,
-    -state.panY / state.zoom,
+    -state.panX / state.zoom - 50,
+    -state.panY / state.zoom - 50,
     w / state.zoom + 100,
     h / state.zoom + 100
   );
@@ -101,4 +96,3 @@ if (sizeInfo) sizeInfo.textContent = '1×1 · Mały (Small)';
 
 // Eksport
 window.renderSizeCanvas = renderSizeCanvas;
-window.activeSize = activeSize;

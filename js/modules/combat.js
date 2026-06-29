@@ -468,6 +468,236 @@ var style = document.createElement('style');
 style.textContent = '@keyframes fadeOut{0%{opacity:1;}100%{opacity:0;}}';
 document.head.appendChild(style);
 
+// ====== SYSTEM ATAKU ======
+
+function openAttackPopup() {
+  if (combatants.length === 0) {
+    alert('Brak bojowników w potyczce!');
+    return;
+  }
+
+  var existing = document.getElementById('attackPopup');
+  if (existing) existing.remove();
+
+  var popup = document.createElement('div');
+  popup.className = 'popup-overlay';
+  popup.id = 'attackPopup';
+  
+  // Lista celów do wyboru
+  var targetOptions = combatants.map(function(c, i) {
+    var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
+    var condText = c.conditions && c.conditions.length > 0 ? ' ⚡' + c.conditions.length : '';
+    return '<option value="' + i + '">' + c.name + ' (' + hpText + ')' + condText + '</option>';
+  }).join('');
+
+  popup.innerHTML = `
+    <div class="popup-content attack-popup-content">
+      <div class="popup-title">⚔️ Atak</div>
+      <div class="attack-form">
+        <div class="attack-row">
+          <label>Atakujący</label>
+          <select id="attackerSelect">
+            ${targetOptions}
+          </select>
+        </div>
+        <div class="attack-row">
+          <label>Cel</label>
+          <select id="targetSelect">
+            ${targetOptions}
+          </select>
+        </div>
+        <div class="attack-row">
+          <label>Bonus do trafienia</label>
+          <input type="number" id="attackBonus" value="0" step="1" />
+        </div>
+        <div class="attack-row">
+          <label>Kości obrażeń</label>
+          <input type="text" id="damageDice" placeholder="np. 2d6+3" value="1d8" />
+        </div>
+        <div class="attack-row">
+          <label>Typ obrażeń</label>
+          <select id="damageType">
+            <option value="obuchowe">⚡ Obuchowe</option>
+            <option value="cięte">🗡️ Cięte</option>
+            <option value="kłute">🏹 Kłute</option>
+            <option value="ogniste">🔥 Ogniste</option>
+            <option value="zimne">❄️ Zimne</option>
+            <option value="elektryczne">⚡ Elektryczne</option>
+            <option value="trucizna">☠️ Trucizna</option>
+            <option value="nekrotyczne">💀 Nekrotyczne</option>
+            <option value="kwas">🧪 Kwas</option>
+            <option value="psychiczne">🧠 Psychiczne</option>
+            <option value="promieniowanie">☀️ Promieniowanie</option>
+            <option value="grzmot">🔊 Grzmot</option>
+          </select>
+        </div>
+        <div class="attack-check">
+          <input type="checkbox" id="attackAdvantage" />
+          <label for="attackAdvantage">⚡ Przewaga</label>
+          <input type="checkbox" id="attackDisadvantage" />
+          <label for="attackDisadvantage">🌑 Utrudnienie</label>
+        </div>
+        <div class="attack-actions">
+          <button class="btn" onclick="executeAttack()">⚔️ Rzuć atak</button>
+          <button class="btn outline" onclick="closeAttackPopup()">Anuluj</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function closeAttackPopup() {
+  var p = document.getElementById('attackPopup');
+  if (p) p.remove();
+}
+
+function executeAttack() {
+  var attackerIdx = parseInt(document.getElementById('attackerSelect').value);
+  var targetIdx = parseInt(document.getElementById('targetSelect').value);
+  var attackBonus = parseInt(document.getElementById('attackBonus').value) || 0;
+  var damageDice = document.getElementById('damageDice').value || '1d8';
+  var damageType = document.getElementById('damageType').value;
+  var advantage = document.getElementById('attackAdvantage').checked;
+  var disadvantage = document.getElementById('attackDisadvantage').checked;
+
+  if (attackerIdx === targetIdx) {
+    alert('Nie możesz atakować samego siebie!');
+    return;
+  }
+
+  var attacker = combatants[attackerIdx];
+  var target = combatants[targetIdx];
+
+  // Rzut na trafienie
+  var roll1 = rollDice(20);
+  var roll2 = rollDice(20);
+  var attackRoll;
+  var rollText = '';
+
+  if (advantage && !disadvantage) {
+    attackRoll = Math.max(roll1, roll2);
+    rollText = 'Przewaga: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
+  } else if (disadvantage && !advantage) {
+    attackRoll = Math.min(roll1, roll2);
+    rollText = 'Utrudnienie: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
+  } else {
+    attackRoll = roll1;
+    rollText = 'Rzut: ' + attackRoll;
+  }
+
+  var totalAttack = attackRoll + attackBonus;
+  var isCrit = attackRoll === 20;
+  var isMiss = attackRoll === 1;
+
+  // Wynik
+  var resultDiv = document.createElement('div');
+  resultDiv.className = 'attack-result';
+
+  if (isMiss) {
+    resultDiv.innerHTML = `
+      <div class="attack-result-header">💨 PUDŁO!</div>
+      <div class="attack-result-detail">${attacker.name} chybił ${target.name} (krytyczne pudło)</div>
+    `;
+    playSound('death');
+  } else if (totalAttack >= target.ac) {
+    // Oblicz obrażenia
+    var dmgMatch = damageDice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+    var damage = 0;
+    var damageRolls = [];
+
+    if (dmgMatch) {
+      var count = parseInt(dmgMatch[1]);
+      var sides = parseInt(dmgMatch[2]);
+      var bonus = dmgMatch[3] ? parseInt(dmgMatch[3]) : 0;
+      
+      // Krytyk - podwójna liczba kości
+      var rollCount = isCrit ? count * 2 : count;
+      
+      for (var i = 0; i < rollCount; i++) {
+        var r = rollDice(sides);
+        damageRolls.push(r);
+        damage += r;
+      }
+      damage += bonus;
+    } else {
+      // Fallback - pojedyncza kość
+      damage = rollDice(8);
+      damageRolls.push(damage);
+    }
+
+    var critText = isCrit ? ' 💥 KRYTYK!' : '';
+    var targetName = target.name;
+    
+    // Zadaj obrażenia
+    target.hp = Math.max(0, target.hp - damage);
+    target.roundDamage = (target.roundDamage || 0) + damage;
+    
+    // Log
+    addTurnLog(attacker.name, '⚔️ Atak na ' + targetName + ' (' + damage + ' ' + damageType + ')' + critText);
+    
+    // Dodaj do focus fire
+    var existing = focusFire.find(function(f) { return f.name === targetName; });
+    if (existing) existing.dmg += damage;
+    else focusFire.push({ name: targetName, dmg: damage, status: '⚔️ ' + damage + ' ' + damageType });
+    
+    // Wynik
+    resultDiv.innerHTML = `
+      <div class="attack-result-header">${isCrit ? '💥' : '🎯'} TRAFIONY! ${critText}</div>
+      <div class="attack-result-detail">
+        ${rollText} + ${attackBonus} = ${totalAttack} (AC ${target.ac})<br>
+        🎲 ${damageDice} → ${damageRolls.join(' + ')} = ${damage} ${damageType}
+      </div>
+      <div class="attack-result-damage">${targetName} traci ${damage} HP (${target.hp}/${target.maxHp})</div>
+    `;
+    
+    playSound(isCrit ? 'crit' : 'hit');
+    
+    // Sprawdź czy cel zginął
+    if (target.hp <= 0) {
+      resultDiv.innerHTML += `<div class="attack-result-death">💀 ${targetName} PADA! (${target.hp}/${target.maxHp})</div>`;
+      playSound('death');
+      addTurnLog(targetName, '💀 ŚMIERĆ!');
+    }
+    
+    renderInit();
+    updateFocusFire();
+    
+  } else {
+    resultDiv.innerHTML = `
+      <div class="attack-result-header">🛡️ PUDŁO!</div>
+      <div class="attack-result-detail">
+        ${rollText} + ${attackBonus} = ${totalAttack} (wymagane: ${target.ac})
+      </div>
+    `;
+    playSound('hit');
+  }
+
+  // Dodaj wynik do popupu
+  var container = document.getElementById('attackPopup');
+  if (container) {
+    var content = container.querySelector('.popup-content');
+    var existingResult = content.querySelector('.attack-result');
+    if (existingResult) existingResult.remove();
+    content.appendChild(resultDiv);
+    
+    // Przewiń na dół
+    content.scrollTop = content.scrollHeight;
+  }
+  
+  // Wyłącz przyciski na chwilę
+  var btns = document.querySelectorAll('.attack-actions .btn');
+  btns.forEach(function(b) { b.disabled = true; });
+  setTimeout(function() {
+    btns.forEach(function(b) { b.disabled = false; });
+  }, 1000);
+}
+
+// ====== EKSPORT ======
+window.openAttackPopup = openAttackPopup;
+window.closeAttackPopup = closeAttackPopup;
+window.executeAttack = executeAttack;
+
 // ====== Eksport globalny ======
 window.openAddCombatantModal = openAddCombatantModal;
 window.closeAddCombatantModal = closeAddCombatantModal;

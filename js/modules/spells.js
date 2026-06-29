@@ -87,7 +87,6 @@ function renderSpellCanvas() {
 
   var dims = getCanvasDimensions('spell');
   if (dims.width === 0 || dims.height === 0) {
-    // Pierwsze uruchomienie - ustaw wymiary
     dims.width = container.offsetWidth;
     dims.height = Math.max(280, container.offsetHeight);
     canvasDimensions.spell.width = dims.width;
@@ -98,8 +97,6 @@ function renderSpellCanvas() {
   clampPan('spell');
 
   var dpr = dims.dpr;
-  
-  // Używamy stałych wymiarów dla canvas
   var canvasW = dims.width;
   var canvasH = dims.height;
 
@@ -114,8 +111,8 @@ function renderSpellCanvas() {
 
   var w = canvasW, h = canvasH;
   pctx.clearRect(
-    -state.panX / state.zoom,
-    -state.panY / state.zoom,
+    -state.panX / state.zoom - 50,
+    -state.panY / state.zoom - 50,
     w / state.zoom + 100,
     h / state.zoom + 100
   );

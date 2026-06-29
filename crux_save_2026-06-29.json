@@ -1,0 +1,26 @@
+{
+  "players": [
+    {
+      "name": "Faen",
+      "hp": 50,
+      "maxHp": 50,
+      "ac": 17,
+      "role": "Gracz",
+      "conditions": [],
+      "deathSaves": {
+        "passes": 0,
+        "fails": 0
+      },
+      "avatar": "🧙"
+    }
+  ],
+  "combatants": [],
+  "round": 1,
+  "currentTurn": 0,
+  "focusFire": [],
+  "turnLog": [],
+  "timers": [],
+  "version": "1.0",
+  "timestamp": "2026-06-29T21:26:37.126Z",
+  "exportDate": "2026-06-29T21:26:37.126Z"
+}
