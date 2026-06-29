@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.5,user-scalable=yes">
+<meta name="theme-color" content="#0a0612">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>⬡ Hex Toolkit · Kruxx</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="bg-layer">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+
+<div class="app">
+  <header>
+    <h1>⬡ Hex Toolkit</h1>
+    <p><span class="highlight">🐦‍⬛ Kruxx</span> · Asystent Mistrza Gry</p>
+    <div class="hex-deco"><span></span><span></span><span></span></div>
+  </header>
+
+  <!-- TOP NAVIGATION (Desktop) -->
+  <nav class="top-nav">
+    <button class="nav-btn active" data-tab="tools">🏠 Narzędzia</button>
+    <button class="nav-btn" data-tab="spells">🎨 Zaklęcia</button>
+    <button class="nav-btn" data-tab="party">👥 Postacie</button>
+    <button class="nav-btn" data-tab="combat">⚔️ Potyczka</button>
+    <button class="nav-btn" data-tab="info">📖 Info</button>
+  </nav>
+
+  <!-- TAB: NARZĘDZIA -->
+  <section class="tab-section active" data-tab="tools">
+    <div class="card">
+      <div class="card-title">Przelicznik odległości</div>
+      <div class="converter">
+        <div class="field"><label>Stopy (ft)</label><input id="feet" type="number" placeholder="0"></div>
+        <div class="field"><label>Metry (m)</label><input id="meters" type="number" placeholder="0"></div>
+        <div class="field"><label>Hexe</label><input id="hexes" type="number" placeholder="0"></div>
+      </div>
+      <div class="conv-note">1 hex = <span>5 ft</span> = <span>1.5 m</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tabela odległości</div>
+      <div class="tabs">
+        <button class="active" data-unit="ft">Stopy</button>
+        <button data-unit="m">Metry</button>
+        <button data-unit="hex">Hexe</button>
+      </div>
+      <div class="dist-grid" id="distanceGrid"></div>
+      <div class="dist-result" id="distanceResult">
+        <span class="dist-placeholder">Kliknij odległość aby zobaczyć szczegóły</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB: ZAKLĘCIA -->
+  <section class="tab-section" data-tab="spells">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Rozmiar stworów</div>
+        <div class="size-grid">
+          <button class="size-btn active" data-size="sm">Mały <span>Small</span></button>
+          <button class="size-btn" data-size="med">Średni <span>Medium</span></button>
+          <button class="size-btn" data-size="lg">Duży <span>Large</span></button>
+          <button class="size-btn" data-size="huge">Ogromny <span>Huge</span></button>
+          <button class="size-btn" data-size="garg">Gargantuiczny <span>Gargantuan</span></button>
+          <button class="size-btn" data-size="col">Kolosalny <span>Colossal</span></button>
+        </div>
+        <div class="size-info" id="sizeInfo">1 × 1 hex · Mały (Small)</div>
+        
+        <div class="canvas-wrapper">
+          <div class="canvas-controls">
+            <button class="canvas-ctrl-btn" onclick="zoomCanvas('size', -1)" title="Pomniejsz">−</button>
+            <span class="canvas-zoom-level" id="sizeZoomLevel">100%</span>
+            <button class="canvas-ctrl-btn" onclick="zoomCanvas('size', 1)" title="Powiększ">+</button>
+            <button class="canvas-ctrl-btn" onclick="resetCanvas('size')" title="Reset">↺</button>
+          </div>
+          <div class="canvas-container" id="sizeCanvasContainer">
+            <canvas id="sizeCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔮 Obszary zaklęć</div>
+        <input class="spell-search" id="spellSearch" placeholder="Szukaj zaklęcia..." />
+        
+        <div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">
+          <select id="spellLevel" style="flex:1;padding:6px 8px;background:var(--card3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:0.6rem;min-height:30px;font-family:'Inter',sans-serif;">
+            <option value="all">Poziom</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          </select>
+          <select id="spellSchool" style="flex:1;padding:6px 8px;background:var(--card3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:0.6rem;min-height:30px;font-family:'Inter',sans-serif;">
+            <option value="all">Szkoła</option>
+            <option value="Ewokacja">🔥 Ewokacja</option>
+            <option value="Nekromancja">💀 Nekromancja</option>
+            <option value="Oczarowanie">✨ Oczarowanie</option>
+            <option value="Ochrona">🛡️ Ochrona</option>
+            <option value="Czarowanie">🔮 Czarowanie</option>
+            <option value="Iluzja">🎭 Iluzja</option>
+            <option value="Przyzywanie">📯 Przyzywanie</option>
+          </select>
+        </div>
+        
+        <div class="spell-list" id="spellList"></div>
+        <div class="spell-controls">
+          <div class="ctrl-group">
+            <label>Kształt</label>
+            <select id="shape">
+              <option value="sphere">● Sfera</option>
+              <option value="cone">▲ Stożek</option>
+              <option value="line">━ Linia</option>
+              <option value="cube">■ Sześcian</option>
+            </select>
+          </div>
+          <div class="ctrl-group">
+            <label>Zasięg (ft)</label>
+            <select id="spellSize">
+              <option>5</option><option>10</option><option selected>15</option>
+              <option>20</option><option>30</option><option>60</option><option>90</option>
+            </select>
+          </div>
+          <div class="ctrl-group">
+            <label>Kierunek</label>
+            <select id="direction">
+              <option value="0">0° (↑)</option><option value="1">30° (↗)</option>
+              <option value="2">60° (↗)</option><option value="3">90° (→)</option>
+              <option value="4">120° (↘)</option><option value="5">150° (↘)</option>
+              <option value="6">180° (↓)</option><option value="7">210° (↙)</option>
+              <option value="8">240° (↙)</option><option value="9">270° (←)</option>
+              <option value="10">300° (↖)</option><option value="11">330° (↖)</option>
+            </select>
+          </div>
+          <div class="ctrl-group" id="originRow" style="display:none">
+            <label>Punkt startowy</label>
+            <select id="cubeOrigin">
+              <option value="center">Środek</option>
+              <option value="edge">Krawędź</option>
+              <option value="corner_l">Lewy róg</option>
+              <option value="corner_r">Prawy róg</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="facing-row" style="margin-top:-2px; margin-bottom:4px">
+          <span class="toggle-label">Pokaż hexcount</span>
+          <label class="toggle"><input type="checkbox" id="showCount" checked><span class="toggle-slider"></span></label>
+        </div>
+        
+        <div class="canvas-wrapper">
+          <div class="canvas-controls">
+            <button class="canvas-ctrl-btn" onclick="zoomCanvas('spell', -1)" title="Pomniejsz">−</button>
+            <span class="canvas-zoom-level" id="spellZoomLevel">100%</span>
+            <button class="canvas-ctrl-btn" onclick="zoomCanvas('spell', 1)" title="Powiększ">+</button>
+            <button class="canvas-ctrl-btn" onclick="resetCanvas('spell')" title="Reset">↺</button>
+          </div>
+          <div class="canvas-container" id="spellCanvasContainer">
+            <canvas id="spellCanvas"></canvas>
+          </div>
+        </div>
+        
+        <div class="legend" id="spellLegend">
+          <div class="legend-item"><div class="legend-swatch" style="background:#a87cff88;"></div> Zasięg</div>
+          <div class="legend-item"><div class="legend-line"></div> Obrys</div>
+          <div class="legend-item"><div class="legend-swatch" style="background:#555;border-radius:50%"></div> Caster</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB: POSTACIE -->
+  <section class="tab-section" data-tab="party">
+    <div class="card">
+      <div class="card-title">👥 Postacie</div>
+      <div class="player-grid" id="playerTracker"></div>
+      <div class="p-add-row">
+        <input id="pName" placeholder="Imię..." />
+        <input id="pHp" type="number" placeholder="HP" style="flex:.4" />
+        <input id="pAc" type="number" placeholder="KP" style="flex:.3" />
+        <select id="pRole" style="flex:.5;padding:4px 6px;background:var(--card3);color:var(--text);border:1px solid var(--border);border-radius:6px;font-size:0.55rem;min-height:30px;font-family:'Inter',sans-serif;">
+          <option value="Gracz">🧙 Gracz</option>
+          <option value="Companion">🐉 Companion</option>
+          <option value="Wróg">⚔️ Wróg</option>
+          <option value="NPC">📜 NPC</option>
+        </select>
+        <button class="btn" onclick="addPlayer()">+</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB: POTYCZKA -->
+  <section class="tab-section" data-tab="combat">
+    <div class="card">
+      <div class="card-title">⚔️ Potyczka</div>
+      <div class="init-row">
+        <input id="initName" placeholder="Nazwa..." style="flex:2" />
+        <input id="initVal" type="number" placeholder="Init" style="flex:.6" />
+        <input id="initHp" type="number" placeholder="HP" style="flex:.6" />
+        <input id="initAc" type="number" placeholder="KP" style="flex:.4" />
+        <button class="btn" onclick="addCombatant()">+</button>
+        <button class="btn outline sm" onclick="addFromParty()">👥</button>
+      </div>
+      <div class="round-badge" id="roundBadge"></div>
+      <div class="init-list" id="initList"></div>
+      
+      <div class="focus-fire" id="focusFire">
+        <div class="ff-header">
+          <span class="ff-title">🎯 Przebieg rundy</span>
+          <span class="ff-reset" onclick="resetFocusFire()">✕ Reset</span>
+        </div>
+        <div id="focusFireList"></div>
+      </div>
+      
+      <div class="turn-btn" id="turnBtns" style="display:none">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn" onclick="nextTurn()">▶ Tura</button>
+          <button class="btn outline sm" onclick="openDice()">🎲</button>
+          <button class="btn outline sm" onclick="openTimers()">⏱️</button>
+        </div>
+        <button class="btn danger sm" onclick="resetInit()">✕</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB: INFO -->
+  <section class="tab-section" data-tab="info">
+    <div class="card">
+      <div class="card-title">📖 Informacje z podręcznika</div>
+      
+      <div class="info-tabs">
+        <button class="info-tab-btn active" data-info="states">Stany</button>
+        <button class="info-tab-btn" data-info="actions">Akcje</button>
+        <button class="info-tab-btn" data-info="movement">Ruch</button>
+        <button class="info-tab-btn" data-info="rest">Odpoczynek</button>
+        <button class="info-tab-btn" data-info="vision">Widoczność</button>
+        <button class="info-tab-btn" data-info="falling">Spadanie</button>
+        <button class="info-tab-btn" data-info="concentration">Koncentracja</button>
+        <button class="info-tab-btn" data-info="travel">Podróż</button>
+      </div>
+      
+      <!-- STANY -->
+      <div class="info-content active" data-info="states">
+        <div class="state-detail" id="stateDetail">
+          Kliknij stan, aby zobaczyć opis
+        </div>
+        
+        <div class="state-grid" id="stateGrid">
+          <button class="state-btn" data-state="Blinded"><span class="state-icon">👁️</span><span class="state-label">Oślepiony</span></button>
+          <button class="state-btn" data-state="Charmed"><span class="state-icon">💗</span><span class="state-label">Zauroczony</span></button>
+          <button class="state-btn" data-state="Deafened"><span class="state-icon">🔇</span><span class="state-label">Ogłuszony</span></button>
+          <button class="state-btn" data-state="Frightened"><span class="state-icon">😨</span><span class="state-label">Przerażony</span></button>
+          <button class="state-btn" data-state="Grappled"><span class="state-icon">🤝</span><span class="state-label">Pochwycony</span></button>
+          <button class="state-btn" data-state="Incapacitated"><span class="state-icon">💫</span><span class="state-label">Obezwładniony</span></button>
+          <button class="state-btn" data-state="Invisible"><span class="state-icon">👻</span><span class="state-label">Niewidzialny</span></button>
+          <button class="state-btn" data-state="Paralyzed"><span class="state-icon">🧊</span><span class="state-label">Sparaliżowany</span></button>
+          <button class="state-btn" data-state="Petrified"><span class="state-icon">🪨</span><span class="state-label">Spetryfikowany</span></button>
+          <button class="state-btn" data-state="Poisoned"><span class="state-icon">☠️</span><span class="state-label">Zatruty</span></button>
+          <button class="state-btn" data-state="Prone"><span class="state-icon">⬇️</span><span class="state-label">Leżący</span></button>
+          <button class="state-btn" data-state="Restrained"><span class="state-icon">⛓️</span><span class="state-label">Skrępowany</span></button>
+          <button class="state-btn" data-state="Stunned"><span class="state-icon">💥</span><span class="state-label">Oszołomiony</span></button>
+          <button class="state-btn" data-state="Unconscious"><span class="state-icon">💀</span><span class="state-label">Nieprzytomny</span></button>
+          <button class="state-btn" data-state="Exhaustion"><span class="state-icon">🥱</span><span class="state-label">Wyczerpanie</span></button>
+        </div>
+        
+        <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;">
+          <button class="btn outline sm" onclick="applyStateToSelected('Prone')">⬇️ Powal</button>
+          <button class="btn outline sm" onclick="applyStateToSelected('Stunned')">💥 Oszołom</button>
+          <button class="btn outline sm" onclick="applyStateToSelected('Poisoned')">☠️ Zatruj</button>
+          <button class="btn outline sm" onclick="applyStateToSelected('Blinded')">👁️ Oślep</button>
+          <button class="btn danger sm" onclick="clearSelectedStates()">✕ Wyczyść stany</button>
+        </div>
+        
+        <div style="margin-top:6px;font-size:0.65rem;color:var(--muted);">
+          <span>🎯 Kliknij postać w <strong>Postaciach</strong> lub <strong>Potyczce</strong>, aby zaznaczyć cel</span>
+          <span id="selectedTargetDisplay" style="display:block;color:var(--accent2);font-weight:600;margin-top:2px;"></span>
+        </div>
+      </div>
+      
+      <!-- AKCJE -->
+      <div class="info-content" data-info="actions">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⚔️</span><span class="info-title">Atak (Attack)</span></div>
+            <div class="info-desc">Wykonaj jeden atak wręcz lub dystansowy. Niektóre zdolności (np. Extra Attack) pozwalają na więcej ataków w ramach tej akcji.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🔮</span><span class="info-title">Rzucenie czaru (Cast a Spell)</span></div>
+            <div class="info-desc">Rzuć czar z czasem rzucania 1 akcja. Komponenty: V (werbalne), S (somatyczne), M (materialne). Czary z czasem dłuższym wymagają innej akcji.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🏃</span><span class="info-title">Zryw (Dash)</span></div>
+            <div class="info-desc">Zyskujesz dodatkowy ruch w tej turze równy twojej prędkości (po modyfikatorach). Np. przy prędkości 30 ft, zyskujesz dodatkowe 30 ft ruchu.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">💨</span><span class="info-title">Wycofanie (Disengage)</span></div>
+            <div class="info-desc">Twój ruch nie prowokuje okazyjnych ataków w tej turze. Bezpieczne wyjście ze zwarcia.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🛡️</span><span class="info-title">Unik (Dodge)</span></div>
+            <div class="info-desc">Do końca następnej tury: ataki przeciwko tobie mają utrudnienie, twoje rzuty obronne na Zręczność mają przewagę. Jeśli jesteś niewidomy/obezwładniony - tracisz tę korzyść.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🤝</span><span class="info-title">Pomoc (Help)</span></div>
+            <div class="info-desc">Odwróć uwagę wroga - pierwszy atak sojusznika przeciwko celowi w zasięgu 5 ft ma przewagę (musi być wykonany przed twoją następną turą). Albo pomóż w teście umiejętności.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">👻</span><span class="info-title">Ukrycie (Hide)</span></div>
+            <div class="info-desc">Wymaga silnego zasłonięcia lub potwora niepatrzącego na ciebie. Wykonaj test Zręczności (Skradanie) przeciwko Pasywnej Percepcji wrogów. Przy sukcesie jesteś ukryty.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⏳</span><span class="info-title">Przygotowanie (Ready)</span></div>
+            <div class="info-desc">Wybierz akcję i wyzwalacz. Gdy wyzwalacz nastąpi, użyj reakcji aby wykonać przygotowaną akcję. Dla czarów: trzymaj koncentrację do momentu wyzwolenia.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🔍</span><span class="info-title">Szukanie (Search)</span></div>
+            <div class="info-desc">Poświęć uwagę na znalezienie czegoś. Wykonaj test Mądrości (Percepcja) lub Inteligencji (Śledztwo) w zależności od tego czego szukasz.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🔧</span><span class="info-title">Użycie przedmiotu (Use an Object)</span></div>
+            <div class="info-desc">Użyj przedmiotu (np. mikstury, narzędzia złodziejskiego). Możesz wchodzić w interakcję z jednym przedmiotem za darmo w ramach ruchu/akcji.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- RUCH -->
+      <div class="info-content" data-info="movement">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🚶</span><span class="info-title">Prędkość ruchu</span></div>
+            <div class="info-desc">Większość postaci ma prędkość 30 ft (9 m). Małe rasy (krasnoludy, niziołki, gnomy) mają 25 ft (7.5 m). Możesz dzielić ruch między akcjami.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🌿</span><span class="info-title">Trudny teren</span></div>
+            <div class="info-desc">Każdy foot ruchu na trudnym terenie kosztuje 1 dodatkowy foot (2x koszt). Przykłady: gruz, gęste zarośla, strome schody, płytkie bagno.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🤼</span><span class="info-title">Chwytanie (Grapple)</span></div>
+            <div class="info-desc">Specjalny atak wręcz. Test Siły (Atletyka) vs Siła (Atletyka) lub Zręczność (Akrobatyka) celu. Musisz mieć przynajmniej jedną wolną rękę. Cel ma prędkość 0.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">👊</span><span class="info-title">Popchnięcie (Shove)</span></div>
+            <div class="info-desc">Specjalny atak wręcz. Test Siły (Atletyka) vs Siła (Atletyka) lub Zręczność (Akrobatyka) celu. Możesz powalić cel LUB popchnąć 5 ft od siebie.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⚡</span><span class="info-title">Okazyjny atak</span></div>
+            <div class="info-desc">Gdy wróg w twoim zasięgu wychodzi z niego (nie używając Wycofania), możesz wykonać reakcję - jeden atak wręcz przeciwko niemu.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🐎</span><span class="info-title">Wsiadanie na wierzchowca</span></div>
+            <div class="info-desc">Jeśli wsiadasz/zsiadasz w swojej turze - kosztuje to połowę prędkości. Np. przy prędkości 30 ft, wsiadanie kosztuje 15 ft ruchu.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🏊</span><span class="info-title">Pływanie i wspinaczka</span></div>
+            <div class="info-desc">Bez odpowiedniej prędkości (pływania/wspinaczki), każdy foot kosztuje 2x (jak trudny teren). Z odpowiednią prędkością - normalny koszt.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🎁</span><span class="info-title">Darmowa interakcja z przedmiotem</span></div>
+            <div class="info-desc">Raz na turę możesz za darmo: wyciągnąć/schować broń, otworzyć/zamknąć drzwi, podnieść mały przedmiot, wyciągnąć miksturę. Drugi przedmiot wymaga akcji.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ODPOCZYNEK -->
+      <div class="info-content" data-info="rest">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">☕</span><span class="info-title">Krótki odpoczynek</span></div>
+            <div class="info-desc"><strong>Czas:</strong> min. 1 godzina<br><strong>Aktywność:</strong> nic bardziej wymagającego niż jedzenie, picie, czytanie, opatrywanie ran<br><strong>Korzyści:</strong><br>• Wydaj kości Hit Dice aby odzyskać HP (1 HD = rzut + modyfikator KON)<br>• Niektóre zdolności odnawiają się (np. Akcje Mniszka, Warlock slots)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🛏️</span><span class="info-title">Długi odpoczynek</span></div>
+            <div class="info-desc"><strong>Czas:</strong> min. 8 godzin (w tym 6h snu + max 2h lekkiej aktywności)<br><strong>Przerwanie:</strong> 1h+ wymagającej aktywności przerywa<br><strong>Korzyści:</strong><br>• Odzyskujesz wszystkie HP<br>• Odzyskujesz połowę max slotów czarów (min 1 slot)<br>• Odzyskujesz wszystkie zużyte zdolności<br>• Nie możesz mieć więcej niż 1 długi odpoczynek w 24h<br>• Wymaga min. 1 HP na start</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⚠️</span><span class="info-title">Wariant: Gritty Realism</span></div>
+            <div class="info-desc"><strong>Krótki odpoczynek:</strong> 7 dni<br><strong>Długi odpoczynek:</strong> 7 dni<br>Świetne do kampanii survivalowych, gdzie każdy odpoczynek to wydarzenie.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">💤</span><span class="info-title">Wariant: Heroic</span></div>
+            <div class="info-desc"><strong>Krótki odpoczynek:</strong> 5 minut<br><strong>Długi odpoczynek:</strong> 1 godzina<br>Idealne do szybkich, epickich kampanii bez ciągłego liczenia zasobów.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- WIDOCZNOŚĆ -->
+      <div class="info-content" data-info="vision">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">☀️</span><span class="info-title">Jasne światło (Bright Light)</span></div>
+            <div class="info-desc">Normalne oświetlenie: światło dzienne, pochodnia w promieniu 20 ft, spell Light. Wszystkie stworzenia mają normalną percepcję.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🌤️</span><span class="info-title">Słabe światło (Dim Light)</span></div>
+            <div class="info-desc">Zaciemniony obszar: księżyc w pełni, światło pochodni na zewnętrznym zasięgu (20-40 ft), mgła lekka. Tworzy <strong>lekko zasłonięty</strong> teren - utrudnienie w testach Percepcji (wzrok).</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🌑</span><span class="info-title">Ciemność (Darkness)</span></div>
+            <div class="info-desc">Brak światła: noc bez księżyca, podziemia, spell Darkness. Tworzy <strong>silnie zasłonięty</strong> teren - stworzenia bez Darkvision są efektywnie oślepione.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">👁️</span><span class="info-title">Darkvision (Mroczny wzrok)</span></div>
+            <div class="info-desc">Widzisz w ciemności w promieniu (zwykle 60 ft) jakby to było słabe światło. Nie widzisz kolorów - tylko odcienie szarości. Nie działa przez magiczną ciemność (spell Darkness).</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🌫️</span><span class="info-title">Lekko zasłonięty (Lightly Obscured)</span></div>
+            <div class="info-desc">Słabe światło, lekka mgła, gęste listowie. <strong>Utrudnienie</strong> w testach Percepcji wymagających wzroku.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🌫️</span><span class="info-title">Silnie zasłonięty (Heavily Obscured)</span></div>
+            <div class="info-desc">Ciemność, gęsta mgła, gęste zarośla. <strong>Efektywnie oślepiony</strong> - automatyczny fail testów Percepcji wymagających wzroku.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🔥</span><span class="info-title">Zasięg światła pochodni</span></div>
+            <div class="info-desc"><strong>Jasne światło:</strong> 20 ft promień<br><strong>Słabe światło:</strong> kolejne 20 ft (do 40 ft)<br>Świeca: 5 ft jasne, 5 ft słabe<br>Lampka: 15 ft jasne, 30 ft słabe<br>Lantern (hooded): 30 ft jasne, 30 ft słabe</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SPADANIE -->
+      <div class="info-content" data-info="falling">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">💥</span><span class="info-title">Obrażenia od upadku</span></div>
+            <div class="info-desc"><strong>1k6 obrażeń obuchowych za każde 10 ft</strong> spadku (max 20k6). Lądujesz leżący (prone).</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⏱️</span><span class="info-title">Czas spadania</span></div>
+            <div class="info-desc"><strong>500 ft w pierwszej rundzie</strong><br><strong>500 ft w każdej kolejnej rundzie</strong><br>Jeśli możesz reagować (np. Feather Fall, Jump, reakcja) - możesz coś zrobić.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🪂</span><span class="info-title">Lądowanie na stworzeniu</span></div>
+            <div class="info-desc">Jeśli spadniesz na stworzenie, a ono nie jest przydatne rozmiarem - musisz wykonać test Zręczności (DC 10) aby nie wylądować na nim. Inaczej dzielisz obrażenia po połowie i obaj jesteście prone.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🏊</span><span class="info-title">Spadanie do wody</span></div>
+            <div class="info-desc"><strong>Głębokość min. 10 ft:</strong> test Siły/Akrobatyki DC 15 aby uniknąć obrażeń. DC zmniejsza się o 2 za każde 10 ft głębi (min DC 0).<br><strong>Płytko:</strong> normalne obrażenia.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🪶</span><span class="info-title">Feather Fall</span></div>
+            <div class="info-desc">Czar 1 poziomu, reakcja, 60 ft zasięg, do 5 stworzeń. Prędkość spadania spada do 60 ft/rundę. Lądujesz stojąc. Idealny do ratowania drużyny!</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🧗</span><span class="info-title">Skoki</span></div>
+            <div class="info-desc"><strong>Daleki (w miejscu):</strong> Siła × 5 ft (z rozbiegiem: Siła × 10 ft)<br><strong>Wysoki (w miejscu):</strong> 3 + modyfikator Siły ft (z rozbiegiem: Siła ft)<br>Każdy foot skoku wysokiego kosztuje 10 ft ruchu.</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- KONCENTRACJA -->
+      <div class="info-content" data-info="concentration">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🎯</span><span class="info-title">Zasady koncentracji</span></div>
+            <div class="info-desc">Możesz utrzymywać koncentrację tylko na <strong>jednym czaru naraz</strong>. Rzucenie innego czaru wymagającego koncentracji przerywa poprzedni.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">💥</span><span class="info-title">Utrata koncentracji od obrażeń</span></div>
+            <div class="info-desc">Gdy otrzymasz obrażenia, wykonaj <strong>rzt obronny KON</strong>:<br>• DC = 10 lub połowa obrażeń (co wyższe)<br>• Przy wielu źródłach obrażeń - osobny rzut dla każdego<br>• Przy 0 HP - automatyczna strata koncentracji</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⚡</span><span class="info-title">Inne źródła utraty</span></div>
+            <div class="info-desc">• <strong>Incapacitated</strong> (Obezwładniony) - tracisz<br>• <strong>Stunned</strong> (Oszołomiony) - tracisz<br>• <strong>Zabity</strong> (0 HP lub mniej) - tracisz<br>• <strong>GM może wymagać rzutu</strong> przy ekstremalnych wydarzeniach (fala uderzeniowa, trzęsienie ziemi)</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🛡️</span><span class="info-title">War Caster (feat)</span></div>
+            <div class="info-desc">Masz <strong>przewagę</strong> na rzuty obronne KON dla utrzymania koncentracji. Pozwala też na komponenty somatyczne z zajętymi rękami i ataki okazyjne z czarem.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🔮</span><span class="info-title">Resilient (KON) feat</span></div>
+            <div class="info-desc">Zyskujesz biegłość w rzutach obronnych na KON + zwiększasz KON o 1. Kluczowe dla casterów!</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">⏳</span><span class="info-title">Czas trwania</span></div>
+            <div class="info-desc">Czary z koncentracją trwają dopóki:<br>• Nie minie czas trwania<br>• Nie stracisz koncentracji<br>• Nie zostaniesz zabity/obezwładniony<br>• Nie rzucisz innego czaru z koncentracją</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- PODRÓŻ -->
+      <div class="info-content" data-info="travel">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🚶</span><span class="info-title">Tempo podróży</span></div>
+            <div class="info-desc"><strong>Szybkie:</strong> 4 mph (6.4 km/h) - nieświadomi zagrożenia, -5 do Pasywnej Percepcji<br><strong>Normalne:</strong> 3 mph (4.8 km/h) - standard<br><strong>Wolne:</strong> 2 mph (3.2 km/h) - Skradanie możliwe</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🗺️</span><span class="info-title">Dystans dzienny</span></div>
+            <div class="info-desc"><strong>Szybkie:</strong> 30 mil/dzień (48 km)<br><strong>Normalne:</strong> 24 mile/dzień (38 km)<br><strong>Wolne:</strong> 18 mil/dzień (29 km)<br>W trudnym terenie: połowa dystansu.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🎒</span><span class="info-title">Aktywności podczas podróży</span></div>
+            <div class="info-desc">Każda postać może robić jedną z:<br>• <strong>Maszerowanie</strong> - wpływa na tempo<br>• <strong>Nawigacja</strong> - test Mądrości (Przetrwanie) aby nie zabłądzić<br>• <strong>Śledzenie</strong> - test Mądrości (Przetrwanie)<br>• <strong>Poszukiwanie</strong> - test Inteligencji (Śledztwo) lub Mądrości (Percepcja)<br>• <strong>Rysowanie mapy</strong> - zawsze możliwe<br>• <strong>Foraging</strong> - test Mądrości (Przetrwanie) dla jedzenia/wody</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🍞</span><span class="info-title">Jedzenie i woda</span></div>
+            <div class="info-desc"><strong>Jedzenie:</strong> 1 funt/dzień (0.5 kg). Brak jedzenia = 1 poziom wyczerpania po 3+ dniach.<br><strong>Woda:</strong> 1 galon/dzień (4 litry), 2x w gorącym klimacie. Brak wody = automatyczne wyczerpanie na końcu dnia.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🥱</span><span class="info-title">Forced March (Wymuszony marsz)</span></div>
+            <div class="info-desc">Podróż powyżej 8h/dzień: za każdą dodatkową godzinę, test KON (DC 10 +1 za każdą kolejną godzinę). Fail = 1 poziom wyczerpania.</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item-header"><span class="info-icon">🏕️</span><span class="info-title">Niespodzianki i spotkania</span></div>
+            <div class="info-desc">GM rzuca kością co X godzin (zwykle co 4-6h) aby sprawdzić losowe spotkanie. Szansa rośnie w niebezpiecznych terenach.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BOTTOM NAV (Mobile) -->
+<nav class="bottom-nav">
+  <button class="bottom-nav-btn active" data-tab="tools">
+    <span class="bottom-nav-icon">🏠</span>
+    <span class="bottom-nav-label">Narzędzia</span>
+  </button>
+  <button class="bottom-nav-btn" data-tab="spells">
+    <span class="bottom-nav-icon">🎨</span>
+    <span class="bottom-nav-label">Zaklęcia</span>
+  </button>
+  <button class="bottom-nav-btn" data-tab="party">
+    <span class="bottom-nav-icon">👥</span>
+    <span class="bottom-nav-label">Postacie</span>
+  </button>
+  <button class="bottom-nav-btn" data-tab="combat">
+    <span class="bottom-nav-icon">⚔️</span>
+    <span class="bottom-nav-label">Potyczka</span>
+  </button>
+  <button class="bottom-nav-btn" data-tab="info">
+    <span class="bottom-nav-icon">📖</span>
+    <span class="bottom-nav-label">Info</span>
+  </button>
+</nav>
+
+<script src="script.js"></script>
+</body>
+</html>
