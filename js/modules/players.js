@@ -1,5 +1,5 @@
 // ============================================================
-//  PLAYERS - NOWY WYGLĄD KART
+//  PLAYERS - NOWY UKŁAD, WYCZERPANIE
 // ============================================================
 
 var players = [];
@@ -102,6 +102,7 @@ function confirmAddPlayer() {
     ac: ac,
     role: role,
     conditions: [],
+    exhaustionLevel: 0,
     deathSaves: { passes: 0, fails: 0 },
     avatar: selectedAvatarUrl || selectedAvatar
   });
@@ -111,7 +112,7 @@ function confirmAddPlayer() {
   playSound('add');
 }
 
-// ====== RENDER - NOWY WYGLĄD ======
+// ====== RENDER ======
 function renderPlayers() {
   var container = document.getElementById('playerTracker');
   if (!container) return;
@@ -129,7 +130,19 @@ function renderPlayers() {
 
     var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
     var hpColor = hpPct < 25 ? 'var(--red)' : hpPct < 50 ? 'var(--gold)' : 'var(--green)';
-    var condTags = p.conditions.map(function(c) { return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>'; }).join('');
+    
+    // Stany po polsku
+    var condTags = p.conditions.map(function(c) { 
+      return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>'; 
+    }).join('');
+    
+    // Wyczerpanie
+    var exhaustionTag = '';
+    if (p.exhaustionLevel > 0) {
+      var exLevel = p.exhaustionLevel > 6 ? 6 : p.exhaustionLevel;
+      exhaustionTag = '<span class="tag" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.2);color:var(--red);">🥱 Wyczerpanie ' + exLevel + '/6</span>';
+    }
+    
     var ds = p.deathSaves || { passes: 0, fails: 0 };
     var avatarHtml = p.avatar && p.avatar.startsWith('http')
       ? '<img src="' + p.avatar + '" onerror="this.parentNode.innerHTML=\'' + (p.avatar && p.avatar.length <= 2 ? p.avatar : '🧙') + '\'">'
@@ -140,8 +153,8 @@ function renderPlayers() {
       ? '<div class="avatar-state-overlay" style="color:' + getStateColor(firstState) + '">' + getStateEmoji(firstState) + '</div>'
       : '';
 
-    var stateBtnClass = p.conditions.length > 0 ? 'p-state-btn has-conds' : 'p-state-btn';
-    var stateBtnText = p.conditions.length > 0 ? '⚙️ Stany (' + p.conditions.length + ')' : '⚙️ Stany';
+    var stateBtnClass = p.conditions.length > 0 || p.exhaustionLevel > 0 ? 'p-state-btn has-conds' : 'p-state-btn';
+    var stateBtnText = (p.conditions.length > 0 || p.exhaustionLevel > 0) ? '⚙️ Stany (' + (p.conditions.length + (p.exhaustionLevel > 0 ? 1 : 0)) + ')' : '⚙️ Stany';
 
     var isDead = p.hp <= 0;
     var deathSaveText = isDead ? '💀 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails : '';
@@ -151,24 +164,23 @@ function renderPlayers() {
         <div class="p-avatar">${avatarHtml}${stateOverlay}</div>
         <div class="p-main">
           <div class="p-name">${p.name}<span class="${getRoleBadge(p.role)}">${p.role}</span>${isDead ? ' 💀' : ''}</div>
+          <div class="p-stats-row">
+            <div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">${p.ac}</span></div>
+            <div class="p-maxhp-badge"><span class="hp-icon">❤️</span><span class="hp-val">${p.maxHp}</span></div>
+          </div>
         </div>
       </div>
       
-      <div class="p-stats-row">
-        <div class="p-hp-ac-wrap">
-          <div class="p-hp-wrap">
-            <div class="p-hp-bar">
-              <div class="p-hp-fill" style="width:${hpPct}%;background:${hpColor};"></div>
-            </div>
-            <div class="p-hp-text" style="color:${hpColor}">${p.hp}/${p.maxHp}</div>
-          </div>
-          ${p.ac > 0 ? '<div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">' + p.ac + '</span></div>' : ''}
+      <div class="p-hp-wrap">
+        <div class="p-hp-bar">
+          <div class="p-hp-fill" style="width:${hpPct}%;background:${hpColor};"></div>
         </div>
+        <div class="p-hp-text" style="color:${hpColor}">${p.hp}</div>
       </div>
       
       ${isDead ? '<div style="font-size:.55rem;color:var(--muted);margin:2px 0;">' + deathSaveText + '</div>' : ''}
       
-      <div class="p-cond">${condTags}</div>
+      <div class="p-cond">${condTags}${exhaustionTag}</div>
       
       <button class="${stateBtnClass}" onclick="event.stopPropagation();showPlayerCondPopup(${i})">${stateBtnText}</button>
       
@@ -234,6 +246,7 @@ function addPlayerToInitiative(index) {
     ac: p.ac,
     role: p.role,
     conditions: p.conditions.slice(),
+    exhaustionLevel: p.exhaustionLevel || 0,
     roundDamage: 0,
     avatar: p.avatar
   });
@@ -250,13 +263,20 @@ function showPlayerCondPopup(index) {
   conditionPopupTarget = { type: 'player', index: index };
   var p = players[index];
   if (!p) return;
-  showCondPopup(p.name, p.conditions || [], function(cond) {
-    var idx = p.conditions.indexOf(cond);
-    if (idx > -1) p.conditions.splice(idx, 1);
-    else { p.conditions.push(cond); addTurnLog(p.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
+  
+  // Polskie stany + wyczerpanie
+  showCondPopup(p.name, p.conditions || [], p.exhaustionLevel || 0, function(cond, exhaustionLevel) {
+    if (cond) {
+      var idx = p.conditions.indexOf(cond);
+      if (idx > -1) p.conditions.splice(idx, 1);
+      else { p.conditions.push(cond); addTurnLog(p.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
+    }
+    if (exhaustionLevel !== undefined) {
+      p.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
+    }
     renderPlayers();
     var popup = document.getElementById('condPopup');
-    if (popup) updateCondPopup(popup, p.conditions);
+    if (popup) updateCondPopup(popup, p.conditions, p.exhaustionLevel);
   });
 }
 
@@ -346,34 +366,57 @@ function applyDamage() {
 }
 
 // ====== CONDITION POPUP ======
-function showCondPopup(name, currentConds, onToggle) {
+function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
   var existing = document.getElementById('condPopup');
   if (existing) existing.remove();
-
-  var allConds = ['Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained', 'Stunned', 'Unconscious', 'Exhaustion'];
 
   var popup = document.createElement('div');
   popup.className = 'popup-overlay';
   popup.id = 'condPopup';
 
   var btns = '';
-  allConds.forEach(function(c) {
+  POLISH_STATES.forEach(function(c) {
     var active = currentConds.indexOf(c) > -1 ? 'active' : '';
     btns += '<button class="cond-popup-btn ' + active + '" data-cond="' + c + '">' + getStateEmoji(c) + ' ' + c + '</button>';
   });
 
+  // Wyczerpanie - suwak lub przyciski
+  var exLevel = exhaustionLevel || 0;
+  var exBtns = '';
+  for (var i = 0; i <= 6; i++) {
+    var active = i === exLevel ? 'active' : '';
+    exBtns += '<button class="cond-popup-btn ' + active + '" data-exhaustion="' + i + '" style="min-width:36px;justify-content:center;">' + i + '</button>';
+  }
+
   popup.innerHTML = `
     <div class="popup-content cond-popup-content">
       <div class="popup-title">🐦‍⬛ ${name} — Stany</div>
+      <div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--muted);">🥱 Wyczerpanie (0-6):</div>
+      <div class="cond-popup-grid" style="grid-template-columns:repeat(7,1fr);margin-bottom:12px;">${exBtns}</div>
+      <div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--muted);">📋 Stany:</div>
       <div class="cond-popup-grid">${btns}</div>
       <button class="popup-close" onclick="closeCondPopup()">✕ Zamknij</button>
     </div>
   `;
 
-  popup.querySelectorAll('.cond-popup-btn').forEach(function(b) {
+  var currentExhaustion = exLevel;
+
+  popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(b) {
+    b.onclick = function() {
+      var level = parseInt(b.dataset.exhaustion);
+      currentExhaustion = level;
+      popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(bb) {
+        bb.classList.toggle('active', parseInt(bb.dataset.exhaustion) === level);
+      });
+      // Wywołaj callback z poziomem wyczerpania
+      onToggle(null, level);
+    };
+  });
+
+  popup.querySelectorAll('.cond-popup-btn[data-cond]').forEach(function(b) {
     b.onclick = function() {
       var cond = b.dataset.cond;
-      onToggle(cond);
+      onToggle(cond, undefined);
       b.classList.toggle('active');
     };
   });
@@ -381,10 +424,14 @@ function showCondPopup(name, currentConds, onToggle) {
   document.body.appendChild(popup);
 }
 
-function updateCondPopup(popup, currentConds) {
-  popup.querySelectorAll('.cond-popup-btn').forEach(function(b) {
+function updateCondPopup(popup, currentConds, exhaustionLevel) {
+  popup.querySelectorAll('.cond-popup-btn[data-cond]').forEach(function(b) {
     if (currentConds.indexOf(b.dataset.cond) > -1) b.classList.add('active');
     else b.classList.remove('active');
+  });
+  popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(b) {
+    var level = parseInt(b.dataset.exhaustion);
+    b.classList.toggle('active', level === (exhaustionLevel || 0));
   });
 }
 
@@ -428,3 +475,4 @@ window.showDamagePopup = showDamagePopup;
 window.applyDamage = applyDamage;
 window.players = players;
 window.renderPlayers = renderPlayers;
+window.POLISH_STATES = POLISH_STATES;

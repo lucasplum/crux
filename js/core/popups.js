@@ -1,48 +1,75 @@
 // ============================================================
-//  POPUPY (warstwa podstawowa)
+//  POPUPY - POLSKIE NAZWY STANÓW
 // ============================================================
 
 function getStateEmoji(state) {
   var map = {
-    'Blinded': '👁️',
-    'Charmed': '💗',
-    'Deafened': '🔇',
-    'Frightened': '😨',
-    'Grappled': '🤝',
-    'Incapacitated': '💫',
-    'Invisible': '👻',
-    'Paralyzed': '🧊',
-    'Petrified': '🪨',
-    'Poisoned': '☠️',
-    'Prone': '⬇️',
-    'Restrained': '⛓️',
-    'Stunned': '💥',
-    'Unconscious': '💀',
-    'Exhaustion': '🥱'
+    'nieprzytomny': '💀',
+    'niewidzialny': '👻',
+    'obezwładniony': '💫',
+    'ogłuchły': '🔇',
+    'ogłuszony': '💥',
+    'oślepiony': '👁️',
+    'pochwycony': '🤝',
+    'powalony': '⬇️',
+    'przerażony': '😨',
+    'skamieniały': '🪨',
+    'sparaliżowany': '🧊',
+    'unieruchomiony': '⛓️',
+    'zatruty': '☠️',
+    'zauroczony': '💗',
+    'wyczerpanie': '🥱'
   };
   return map[state] || '⚡';
 }
 
 function getStateColor(state) {
   var map = {
-    'Blinded': '#aaa',
-    'Charmed': '#f0a',
-    'Deafened': '#777',
-    'Frightened': '#ff6b6b',
-    'Grappled': '#8b4',
-    'Incapacitated': '#d4a843',
-    'Invisible': '#6bb8ff',
-    'Paralyzed': '#a0f',
-    'Petrified': '#888',
-    'Poisoned': '#6bff9e',
-    'Prone': '#c84',
-    'Restrained': '#ba0',
-    'Stunned': '#a87cff',
-    'Unconscious': '#555',
-    'Exhaustion': '#f55'
+    'nieprzytomny': '#555',
+    'niewidzialny': '#6bb8ff',
+    'obezwładniony': '#d4a843',
+    'ogłuchły': '#777',
+    'ogłuszony': '#a87cff',
+    'oślepiony': '#aaa',
+    'pochwycony': '#8b4',
+    'powalony': '#c84',
+    'przerażony': '#ff6b6b',
+    'skamieniały': '#888',
+    'sparaliżowany': '#a0f',
+    'unieruchomiony': '#ba0',
+    'zatruty': '#6bff9e',
+    'zauroczony': '#f0a',
+    'wyczerpanie': '#f55'
   };
   return map[state] || '#a87cff';
 }
+
+// Mapowanie polskich nazw na angielskie dla opisu
+var STATE_EN_MAP = {
+  'nieprzytomny': 'Unconscious',
+  'niewidzialny': 'Invisible',
+  'obezwładniony': 'Incapacitated',
+  'ogłuchły': 'Deafened',
+  'ogłuszony': 'Stunned',
+  'oślepiony': 'Blinded',
+  'pochwycony': 'Grappled',
+  'powalony': 'Prone',
+  'przerażony': 'Frightened',
+  'skamieniały': 'Petrified',
+  'sparaliżowany': 'Paralyzed',
+  'unieruchomiony': 'Restrained',
+  'zatruty': 'Poisoned',
+  'zauroczony': 'Charmed',
+  'wyczerpanie': 'Exhaustion'
+};
+
+// Lista stanów po polsku (kolejność dla popupu)
+var POLISH_STATES = [
+  'nieprzytomny', 'niewidzialny', 'obezwładniony', 'ogłuchły',
+  'ogłuszony', 'oślepiony', 'pochwycony', 'powalony',
+  'przerażony', 'skamieniały', 'sparaliżowany', 'unieruchomiony',
+  'zatruty', 'zauroczony', 'wyczerpanie'
+];
 
 // ---- Obsługa ESC i kliknięć poza popupem ----
 document.addEventListener('keydown', function(e) {
@@ -96,3 +123,9 @@ if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
     }
   }, { passive: true });
 }
+
+// Eksport
+window.getStateEmoji = getStateEmoji;
+window.getStateColor = getStateColor;
+window.STATE_EN_MAP = STATE_EN_MAP;
+window.POLISH_STATES = POLISH_STATES;

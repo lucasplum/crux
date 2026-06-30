@@ -26,7 +26,6 @@ function loadSpellsForSuggestions() {
         loaded++;
         if (loaded === total) {
           isLoadingSpells = false;
-          // Posortuj po nazwie
           allSpellsData.sort(function(a, b) {
             return a.name_pl.localeCompare(b.name_pl);
           });
@@ -72,69 +71,130 @@ function showSpellSuggestions(query) {
     var div = document.createElement('div');
     div.className = 'spell-suggestion';
     var levelText = spell.level === 0 ? 'Cantrip' : 'Lvl ' + spell.level;
+    var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
     div.innerHTML = `
       <span>${spell.name_pl} <span style="color:var(--muted);font-weight:400;">(${spell.name_en})</span></span>
-      <span class="suggestion-level">${levelText} · ${spell.school}</span>
+      <span class="suggestion-level">${levelText} · ${schoolDisplay}</span>
     `;
     div.onclick = function() {
       var input = document.getElementById('spellSearch');
       if (input) {
         input.value = spell.name_pl;
-        // Ustaw kształt i zasięg na podstawie zaklęcia
+        // Automatyczne ustawianie kształtu, zasięgu i kierunku
         setSpellFromData(spell);
         container.classList.remove('active');
         container.innerHTML = '';
+        playSound('add');
       }
     };
     container.appendChild(div);
   });
 }
 
+// ====== AUTOMATYCZNE USTAWIANIE NA PODSTAWIE ZAKLĘCIA ======
 function setSpellFromData(spell) {
-  // Próbujemy dopasować kształt i zasięg
-  var shapeMap = {
-    'sphere': ['sfera', 'promień', 'kula', 'aura'],
-    'cone': ['stożek', 'stożka'],
-    'line': ['linia', 'promień', 'ściana'],
-    'cube': ['sześcian', 'kostka']
-  };
-  
   var desc = (spell.desc_pl + ' ' + spell.desc_en).toLowerCase();
-  var shapeSelect = document.getElementById('shape');
-  var sizeSelect = document.getElementById('spellSize');
   
+  // 1. Kształt
+  var shapeSelect = document.getElementById('shape');
   if (shapeSelect) {
-    var foundShape = 'sphere';
-    for (var key in shapeMap) {
-      for (var i = 0; i < shapeMap[key].length; i++) {
-        if (desc.includes(shapeMap[key][i])) {
-          foundShape = key;
-          break;
-        }
-      }
-      if (foundShape !== 'sphere') break;
-    }
-    shapeSelect.value = foundShape;
+    var shape = detectShape(desc);
+    shapeSelect.value = shape;
   }
   
-  // Próba wyciągnięcia zasięgu z opisu
+  // 2. Zasięg
+  var sizeSelect = document.getElementById('spellSize');
   if (sizeSelect) {
-    var rangeMatch = desc.match(/(\d+)\s*ft/);
-    if (rangeMatch) {
-      var r = parseInt(rangeMatch[1]);
+    var range = extractRange(spell.range + ' ' + desc);
+    if (range) {
       var options = [5, 10, 15, 20, 30, 60, 90, 120];
       var closest = options.reduce(function(prev, curr) {
-        return (Math.abs(curr - r) < Math.abs(prev - r) ? curr : prev);
+        return (Math.abs(curr - range) < Math.abs(prev - range) ? curr : prev);
       });
       sizeSelect.value = closest;
     }
   }
   
-  // Wywołaj zmianę
-  if (typeof renderSpellCanvas === 'function') {
-    setTimeout(renderSpellCanvas, 50);
+  // 3. Kierunek (tylko dla stożka, linii, sześcianu)
+  var dirSelect = document.getElementById('direction');
+  if (dirSelect) {
+    // Domyślnie 0° (↑) - nie zmieniamy, chyba że w opisie jest konkretny kierunek
+    // Można by dodać logikę, ale dla większości zaklęć kierunek nie jest określony
   }
-  playSound('add');
+  
+  // 4. Punkt startowy dla sześcianu
+  var originSelect = document.getElementById('cubeOrigin');
+  if (originSelect) {
+    // Domyślnie środek
+    originSelect.value = 'center';
+  }
+  
+  // Wywołaj zmianę
+  setTimeout(function() {
+    if (typeof renderSpellCanvas === 'function') {
+      renderSpellCanvas();
+    }
+    // Aktualizuj widoczność originRow
+    var originRow = document.getElementById('originRow');
+    if (originRow) {
+      originRow.style.display = shapeSelect && shapeSelect.value === 'cube' ? 'block' : 'none';
+    }
+  }, 50);
+}
+
+// ====== WYKRYWANIE KSZTAŁTU Z OPISU ======
+function detectShape(desc) {
+  var shapePatterns = {
+    'sphere': ['sfera', 'promień', 'kula', 'aura', 'okrąg', 'krąg', 'obszar', 'otaczający', 'wybuch', 'eksplozja'],
+    'cone': ['stożek', 'stożka', 'stożku', 'stożkiem'],
+    'line': ['linia', 'linii', 'prosta', 'ściana', 'mur', 'promień', 'wiązka', 'strumień'],
+    'cube': ['sześcian', 'kostka', 'kwadrat', 'prostokąt', 'obszar', 'sześcianu']
+  };
+  
+  // Szukamy w opisie
+  for (var key in shapePatterns) {
+    for (var i = 0; i < shapePatterns[key].length; i++) {
+      if (desc.includes(shapePatterns[key][i])) {
+        return key;
+      }
+    }
+  }
+  
+  // Jeśli nie znaleziono, sprawdź po nazwie szkoły
+  if (desc.includes('stożek') || desc.includes('stożka')) return 'cone';
+  if (desc.includes('linia') || desc.includes('promień')) return 'line';
+  if (desc.includes('ściana') || desc.includes('mur')) return 'line';
+  if (desc.includes('sześcian') || desc.includes('kostka')) return 'cube';
+  
+  // Domyślnie sfera
+  return 'sphere';
+}
+
+// ====== EKSTRAKCJA ZASIĘGU ======
+function extractRange(text) {
+  // Szukamy wzorców: "120 ft", "30 ft", "60 ft", itp.
+  var match = text.match(/(\d+)\s*ft/);
+  if (match) {
+    return parseInt(match[1]);
+  }
+  
+  // Szukamy w opisie: "zasięg 120 ft", "promień 20 ft"
+  var match2 = text.match(/zasi(?:ę|e)g\s*(\d+)\s*ft/);
+  if (match2) {
+    return parseInt(match2[1]);
+  }
+  
+  var match3 = text.match(/promie(?:ń|n)\s*(\d+)\s*ft/);
+  if (match3) {
+    return parseInt(match3[1]);
+  }
+  
+  // Dla zaklęć bez zasięgu (dotyk)
+  if (text.includes('dotyk') || text.includes('osobisty')) {
+    return 5; // domyślnie 5 ft dla dotyku
+  }
+  
+  return null;
 }
 
 // ====== RENDER CANVAS OBSZARÓW ======
@@ -306,6 +366,18 @@ function renderSpellCanvas() {
   }
 }
 
+// ====== MAPOWANIE SZKÓŁ (do wyświetlania) ======
+var SCHOOL_MAP = {
+  'wywoływanie': 'Wywoływanie',
+  'przywoływanie': 'Przywoływanie',
+  'wieszczenie': 'Wieszczenie',
+  'nekromancja': 'Nekromancja',
+  'uroki': 'Uroki',
+  'iluzje': 'Iluzje',
+  'odpychanie': 'Odpychanie',
+  'przemiany': 'Przemiany'
+};
+
 // ====== EVENTY ======
 ['shape', 'spellSize', 'direction', 'cubeOrigin'].forEach(function(id) {
   var el = document.getElementById(id);
@@ -350,3 +422,6 @@ loadSpellsForSuggestions();
 window.renderSpellCanvas = renderSpellCanvas;
 window.allSpellsData = allSpellsData;
 window.loadSpellsForSuggestions = loadSpellsForSuggestions;
+window.setSpellFromData = setSpellFromData;
+window.detectShape = detectShape;
+window.extractRange = extractRange;

@@ -1441,3 +1441,92 @@ select:focus{outline:none;border-color:var(--accent);}
     padding: 3px 8px;
   }
 }
+
+/* Dodatkowe style do style.css */
+
+/* ===== MAX HP BADGE ===== */
+.player-card .p-maxhp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(255,107,107,0.12), rgba(255,107,107,0.05));
+  border: 1px solid rgba(255,107,107,0.25);
+  border-radius: 8px;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--red);
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.player-card .p-maxhp-badge .hp-icon {
+  font-size: 0.8rem;
+}
+
+.player-card .p-maxhp-badge .hp-val {
+  font-size: var(--font-md);
+}
+
+/* ===== SPELLBOOK - WIĘKSZE FONTY NA MOBILE ===== */
+@media (max-width: 768px) {
+  .spellbook-item {
+    padding: 12px 14px;
+  }
+  
+  .spellbook-name {
+    font-size: 0.95rem;
+  }
+  
+  .spellbook-meta {
+    font-size: 0.7rem;
+    gap: 6px;
+  }
+  
+  .spellbook-meta span {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+  }
+  
+  .spellbook-desc-pl,
+  .spellbook-desc-en {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+  }
+  
+  .spellbook-desc-en {
+    font-size: 0.75rem;
+  }
+  
+  .spellbook-class {
+    font-size: 0.6rem;
+  }
+  
+  .spellbook-school-tag {
+    font-size: 0.65rem;
+  }
+  
+  .spellbook-level {
+    font-size: 0.65rem;
+  }
+  
+  .spellbook-source {
+    font-size: 0.55rem;
+  }
+}
+
+/* ===== ROUND BADGE - BEZ INFO O ŻYJĄCYCH ===== */
+.round-badge {
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: var(--font-md);
+  color: var(--gold);
+  margin-top: 6px;
+  letter-spacing: .08em;
+  min-height: 20px;
+}
+
+/* ===== KOLORY DLA TAGÓW STANÓW ===== */
+.cond-tag[data-state="nieprzytomny"] { background: rgba(85,85,85,0.15); border-color: #555; color: #555; }
+.cond-tag[data-state="niewidzialny"] { background: rgba(107,184,255,0.15); border-color: #6bb8ff; color: #6bb8ff; }
+/* itd. - stany mają swoje kolory z getStateColor */

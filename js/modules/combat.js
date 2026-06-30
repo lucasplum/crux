@@ -1,5 +1,5 @@
 // ============================================================
-//  COMBAT - Z POPRAWIONYM ATAKIEM I TIMERAMI
+//  COMBAT - Z PRZENIESIONYM PRZYCISKIEM ATAKU
 // ============================================================
 
 var combatants = [];
@@ -31,6 +31,7 @@ function addCombatant(data) {
     ac: data.ac || '—',
     role: data.role || 'Wróg',
     conditions: data.conditions || [],
+    exhaustionLevel: data.exhaustionLevel || 0,
     roundDamage: 0,
     totalDamage: 0,
     avatar: data.avatar || '⚔️',
@@ -137,6 +138,7 @@ function confirmAddFromParty() {
     ac: player.ac,
     role: player.role,
     conditions: player.conditions ? player.conditions.slice() : [],
+    exhaustionLevel: player.exhaustionLevel || 0,
     avatar: player.avatar
   });
   
@@ -210,7 +212,6 @@ function nextTurn() {
   if (currentTurn === 0) {
     round++;
     combatStats.totalRounds++;
-    // Aktualizacja timerów
     combatants.forEach(function(c) {
       if (c.timers && c.timers.length > 0) {
         c.timers = c.timers.filter(function(t) {
@@ -352,7 +353,6 @@ function addTimerToCombatant() {
   
   if (!c.timers) c.timers = [];
   
-  // Sprawdź czy już istnieje taki timer
   var existing = c.timers.find(function(t) { return t.name === name; });
   if (existing) {
     existing.remaining = duration;
@@ -399,15 +399,7 @@ function updateTimerListDisplay() {
   }).join('');
 }
 
-function removeTimerFromCombatant(combatantIdx, timerIdx) {
-  var c = combatants[combatantIdx];
-  if (!c || !c.timers) return;
-  c.timers.splice(timerIdx, 1);
-  updateTimerListDisplay();
-  renderInit();
-}
-
-// ====== SYSTEM ATAKU Z AUTOMATYCZNYM WYBOREM ======
+// ====== SYSTEM ATAKU ======
 function openAttackPopup() {
   if (combatants.length === 0) {
     alert('Brak bojowników w potyczce!');
@@ -421,14 +413,11 @@ function openAttackPopup() {
   popup.className = 'popup-overlay';
   popup.id = 'attackPopup';
   
-  // Automatyczny wybór: aktualny bojownik jako atakujący
   var defaultAttacker = currentTurn < combatants.length ? currentTurn : 0;
   
-  // Cel: pierwszy przeciwnik (inna rola niż atakujący)
   var attackerRole = combatants[defaultAttacker] ? combatants[defaultAttacker].role : '';
   var defaultTarget = -1;
   
-  // Szukamy przeciwnika (inna rola)
   for (var i = 0; i < combatants.length; i++) {
     if (i !== defaultAttacker && combatants[i].status !== 'dead') {
       var isPlayer = combatants[i].role === 'Gracz' || combatants[i].role === 'Companion';
@@ -439,7 +428,6 @@ function openAttackPopup() {
       }
     }
   }
-  // Jeśli nie znaleziono przeciwnika, weź pierwszy żywy
   if (defaultTarget === -1) {
     for (var j = 0; j < combatants.length; j++) {
       if (j !== defaultAttacker && combatants[j].status !== 'dead') {
@@ -728,7 +716,6 @@ function updateCombatStats() {
     <div class="stats-grid">
       <div class="stat-item"><span class="stat-label">⚔️ Aktywni</span><span class="stat-value">${alive.length}</span></div>
       <div class="stat-item"><span class="stat-label">💀 Martwi</span><span class="stat-value">${dead.length}</span></div>
-      <div class="stat-item"><span class="stat-label">🔄 Runda</span><span class="stat-value">${round}</span></div>
       <div class="stat-item"><span class="stat-label">💥 Krytyki</span><span class="stat-value">${combatStats.crits}</span></div>
       <div class="stat-item"><span class="stat-label">💨 Pudła</span><span class="stat-value">${combatStats.misses}</span></div>
       <div class="stat-item"><span class="stat-label">⚡ Zadane DMG</span><span class="stat-value">${combatStats.totalDamage}</span></div>
@@ -776,13 +763,18 @@ function showInitCondPopup(index) {
   var c = combatants[index];
   if (!c) return;
   if (typeof showCondPopup === 'function') {
-    showCondPopup(c.name, c.conditions || [], function(cond) {
-      var idx = c.conditions.indexOf(cond);
-      if (idx > -1) c.conditions.splice(idx, 1);
-      else { c.conditions.push(cond); addTurnLog(c.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
+    showCondPopup(c.name, c.conditions || [], c.exhaustionLevel || 0, function(cond, exhaustionLevel) {
+      if (cond) {
+        var idx = c.conditions.indexOf(cond);
+        if (idx > -1) c.conditions.splice(idx, 1);
+        else { c.conditions.push(cond); addTurnLog(c.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
+      }
+      if (exhaustionLevel !== undefined) {
+        c.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
+      }
       renderInit();
       var popup = document.getElementById('condPopup');
-      if (popup && typeof updateCondPopup === 'function') updateCondPopup(popup, c.conditions);
+      if (popup && typeof updateCondPopup === 'function') updateCondPopup(popup, c.conditions, c.exhaustionLevel);
     });
   }
 }
@@ -834,6 +826,13 @@ function renderInitEntry(div, c, i) {
     }).join('');
   }
   
+  // Wyczerpanie
+  var exhaustionTag = '';
+  if (c.exhaustionLevel > 0) {
+    var exLevel = c.exhaustionLevel > 6 ? 6 : c.exhaustionLevel;
+    exhaustionTag = '<span class="cond-tag" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.2);color:var(--red);">🥱 Wyczerpanie ' + exLevel + '/6</span>';
+  }
+  
   var effectsTags = '';
   if (c.effects && c.effects.length > 0) {
     effectsTags = c.effects.map(function(e) {
@@ -856,7 +855,7 @@ function renderInitEntry(div, c, i) {
     <div class="init-badge">${c.init}</div>
     <div class="init-name">
       ${i === currentTurn ? '▶ ' : ''} ${statusIcon}${c.name}
-      ${condTags}${effectsTags}${timerTags}${dmgCounter}
+      ${condTags}${exhaustionTag}${effectsTags}${timerTags}${dmgCounter}
       <button class="init-cond-btn ${c.conditions && c.conditions.length > 0 ? 'has-cond' : ''}" onclick="event.stopPropagation();showInitCondPopup(${i})" title="Zarządzaj stanami">${c.conditions && c.conditions.length > 0 ? '🔄' : '⚙️'}</button>
       <button class="init-cond-btn" onclick="event.stopPropagation();showInitDmg(${i})" title="Zadaj obrażenia">⚔️</button>
       ${c.status !== 'dead' ? '<button class="init-cond-btn" onclick="event.stopPropagation();addEffectPopup(' + i + ')" title="Dodaj efekt">⏱️</button>' : ''}
@@ -871,8 +870,7 @@ function renderInitEntry(div, c, i) {
 function updateRoundBadge() {
   var badge = document.getElementById('roundBadge');
   if (badge) {
-    var alive = combatants.filter(function(c) { return c.status !== 'dead'; });
-    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' — (' + alive.length + ' żyje)' : '';
+    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' —' : '';
   }
 }
 

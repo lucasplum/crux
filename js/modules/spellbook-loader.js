@@ -1,12 +1,11 @@
 // ============================================================
-//  SPELLBOOK LOADER - Z POPRAWIONYMI SZKOŁAMI I FILTRAMI
+//  SPELLBOOK LOADER - BEZ KOLOROWYCH RAMEK, WIĘKSZE FONTY
 // ============================================================
 
 var spellCache = {};
 var allSpells = [];
 var isLoading = false;
 
-// Mapowanie szkół na poprawne polskie nazwy
 var SCHOOL_MAP = {
   'wywoływanie': 'Wywoływanie',
   'przywoływanie': 'Przywoływanie',
@@ -18,7 +17,6 @@ var SCHOOL_MAP = {
   'przemiany': 'Przemiany'
 };
 
-// Kolory dla szkół (ramka i tag)
 var SCHOOL_COLORS = {
   'Wywoływanie': { bg: 'rgba(255,107,53,0.15)', border: '#ff6b35', text: '#ff6b35' },
   'Przywoływanie': { bg: 'rgba(107,255,158,0.15)', border: '#6bff9e', text: '#6bff9e' },
@@ -30,7 +28,6 @@ var SCHOOL_COLORS = {
   'Przemiany': { bg: 'rgba(74,192,176,0.15)', border: '#4ac0b0', text: '#4ac0b0' }
 };
 
-// Odwrotne mapowanie dla filtrów
 var SCHOOL_REVERSE = {};
 for (var key in SCHOOL_MAP) {
   SCHOOL_REVERSE[SCHOOL_MAP[key]] = key;
@@ -134,7 +131,7 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
     container.innerHTML = '';
 
     if (filtered.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:20px;">📖 Brak zaklęć spełniających kryteria</div>';
+      container.innerHTML = '<div style="color:var(--muted);font-size:.8rem;text-align:center;padding:20px;">📖 Brak zaklęć spełniających kryteria</div>';
       return;
     }
 
@@ -144,8 +141,6 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
       
       var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
       var color = SCHOOL_COLORS[schoolDisplay] || { bg: 'rgba(255,255,255,0.05)', border: 'var(--border)', text: 'var(--muted)' };
-      
-      div.style.borderLeftColor = color.border;
       
       var levelText = spell.level === 0 ? 'Cantrip' : 'Lvl ' + spell.level;
       
@@ -191,7 +186,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var schoolSelect = document.getElementById('spellbookSchool');
   var classSelect = document.getElementById('spellbookClass');
 
-  // Dodajemy filtr klas jeśli nie istnieje
   if (!classSelect) {
     var controls = document.querySelector('.spellbook-controls');
     if (controls) {
@@ -213,27 +207,26 @@ document.addEventListener('DOMContentLoaded', function() {
       `;
       controls.appendChild(classDiv);
     }
+    classSelect = document.getElementById('spellbookClass');
   }
-
-  var classFilter = document.getElementById('spellbookClass');
 
   if (searchInput) {
     searchInput.addEventListener('input', function() {
-      renderSpellbook(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', classFilter ? classFilter.value : 'all');
+      renderSpellbook(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all');
     });
   }
   if (levelSelect) {
     levelSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all', classFilter ? classFilter.value : 'all');
+      renderSpellbook(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all');
     });
   }
   if (schoolSelect) {
     schoolSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value, classFilter ? classFilter.value : 'all');
+      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value, classSelect ? classSelect.value : 'all');
     });
   }
-  if (classFilter) {
-    classFilter.addEventListener('change', function() {
+  if (classSelect) {
+    classSelect.addEventListener('change', function() {
       renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', this.value);
     });
   }
