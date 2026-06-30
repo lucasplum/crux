@@ -359,6 +359,25 @@ function closeCondPopup() {
   if (p) p.remove();
   conditionPopupTarget = null;
 }
+// ====== INICJALIZACJA PICKERA AWATARÓW ======
+function initCombatantAvatarPicker() {
+  // Prosta implementacja - jeśli istnieje grid avatarów dla bojowników
+  var grid = document.getElementById('combatantAvatarGrid');
+  if (!grid) return;
+  
+  var buttons = grid.querySelectorAll('.avatar-btn');
+  buttons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      buttons.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      var preview = document.getElementById('combatantAvatarPreview');
+      if (preview) preview.textContent = btn.dataset.avatar;
+    });
+  });
+}
+
+// Eksportuj
+window.initCombatantAvatarPicker = initCombatantAvatarPicker;
 
 // ====== Eksport globalny ======
 window.openAddPlayerModal = openAddPlayerModal;

@@ -1,5 +1,5 @@
 // ============================================================
-//  COMBAT
+//  COMBAT - ZAAWANSOWANY SYSTEM POTYCZKI
 // ============================================================
 
 var combatants = [];
@@ -8,68 +8,125 @@ var round = 1;
 var focusFire = [];
 var turnLog = [];
 var lastInitCount = -1;
+var combatActive = false;
+var combatStats = {
+  totalRounds: 0,
+  totalDamage: 0,
+  kills: 0,
+  crits: 0,
+  misses: 0,
+  startTime: null,
+  endTime: null
+};
 
-// ====== DODAWANIE ======
+// ====== DODAWANIE BOJOWNIKA ======
 function addCombatant(data) {
   combatants.push({
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
     name: data.name,
     init: data.init || 0,
     hp: data.hp || 0,
     maxHp: data.maxHp || data.hp || 0,
+    tempHp: 0,
     ac: data.ac || '—',
     role: data.role || 'Wróg',
     conditions: data.conditions || [],
     roundDamage: 0,
-    avatar: data.avatar || '⚔️'
+    totalDamage: 0,
+    avatar: data.avatar || '⚔️',
+    status: 'active',
+    initiativeBonus: data.initBonus || 0,
+    notes: data.notes || '',
+    effects: []
   });
   sortInit();
+  if (!combatActive && combatants.length > 0) {
+    combatActive = true;
+    combatStats.startTime = new Date();
+  }
+  updateCombatStats();
 }
 
-function openAddCombatantModal() {
-  selectedCombatantAvatar = '⚔️';
-  selectedCombatantAvatarUrl = '';
-  var nameInput = document.getElementById('cName');
-  var initInput = document.getElementById('cInit');
-  var hpInput = document.getElementById('cHp');
-  var acInput = document.getElementById('cAc');
-  var roleSelect = document.getElementById('cRole');
-  var urlInput = document.getElementById('combatantAvatarUrl');
-  if (nameInput) nameInput.value = '';
-  if (initInput) initInput.value = '';
-  if (hpInput) hpInput.value = '';
-  if (acInput) acInput.value = '';
-  if (roleSelect) roleSelect.value = 'Wróg';
-  if (urlInput) urlInput.value = '';
-  updateCombatantAvatarPreview();
-
-  document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(function(b) {
-    if (b.dataset.avatar === '⚔️') b.classList.add('active');
-    else b.classList.remove('active');
+// ====== SORTOWANIE INICJATYWY ======
+function sortInit() {
+  combatants.sort(function(a, b) { 
+    if (b.init !== a.init) return b.init - a.init;
+    return (b.initiativeBonus || 0) - (a.initiativeBonus || 0);
   });
+  currentTurn = 0;
+  round = 1;
+  renderInit();
+}
 
+// ====== USUWANIE BOJOWNIKA ======
+function removeCombatant(index) {
+  if (index < 0 || index >= combatants.length) return;
+  if (confirm('Usunąć ' + combatants[index].name + '?')) {
+    combatants.splice(index, 1);
+    if (currentTurn >= combatants.length) currentTurn = 0;
+    lastInitCount = -1;
+    renderInit();
+    updateCombatStats();
+  }
+}
+
+// ====== DODAWANIE Z DRUŻYNY ======
+function addFromParty() {
+  if (typeof players === 'undefined' || players.length === 0) {
+    alert('Dodaj najpierw postacie do "Postaci"!');
+    return;
+  }
+  var names = players.map(function(p, i) { return (i + 1) + '. ' + p.name + ' (' + p.role + ')'; }).join('\n');
+  var choice = prompt('Którą postać dodać?\n' + names + '\n\nWpisz numer lub nazwę:');
+  if (!choice) return;
+
+  var player = null;
+  var num = parseInt(choice);
+  if (!isNaN(num) && num > 0 && num <= players.length) player = players[num - 1];
+  else player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
+
+  if (!player) { alert('Nie znaleziono'); return; }
+
+  var initVal = prompt('Inicjatywa dla ' + player.name + ':') || '0';
+  addCombatant({
+    name: player.name,
+    init: parseInt(initVal) || 0,
+    hp: player.hp,
+    maxHp: player.maxHp,
+    ac: player.ac,
+    role: player.role,
+    conditions: player.conditions ? player.conditions.slice() : [],
+    avatar: player.avatar
+  });
+  playSound('add');
+}
+
+// ====== OTWÓRZ MODAL DODAWANIA ======
+function openAddCombatantModal() {
+  // Użyj istniejącego modalu z HTML
   var popup = document.getElementById('addCombatantPopup');
   if (popup) {
     popup.style.display = 'flex';
-    setTimeout(function() { if (nameInput) nameInput.focus(); }, 100);
+    var nameInput = document.getElementById('cName');
+    if (nameInput) {
+      nameInput.value = '';
+      setTimeout(function() { nameInput.focus(); }, 100);
+    }
+    // Resetuj inne pola
+    var initInput = document.getElementById('cInit');
+    var hpInput = document.getElementById('cHp');
+    var acInput = document.getElementById('cAc');
+    var roleSelect = document.getElementById('cRole');
+    if (initInput) initInput.value = '';
+    if (hpInput) hpInput.value = '';
+    if (acInput) acInput.value = '';
+    if (roleSelect) roleSelect.value = 'Wróg';
   }
 }
 
 function closeAddCombatantModal() {
   var popup = document.getElementById('addCombatantPopup');
   if (popup) popup.style.display = 'none';
-}
-
-var selectedCombatantAvatar = '⚔️';
-var selectedCombatantAvatarUrl = '';
-
-function updateCombatantAvatarPreview() {
-  var preview = document.getElementById('combatantAvatarPreview');
-  if (!preview) return;
-  if (selectedCombatantAvatarUrl) {
-    preview.innerHTML = '<img src="' + selectedCombatantAvatarUrl + '" onerror="this.parentNode.textContent=\'⚔️\'">';
-  } else {
-    preview.textContent = selectedCombatantAvatar;
-  }
 }
 
 function confirmAddCombatant() {
@@ -94,382 +151,264 @@ function confirmAddCombatant() {
     maxHp: hp || null,
     ac: ac || '—',
     role: role,
-    avatar: selectedCombatantAvatarUrl || selectedCombatantAvatar
+    avatar: '⚔️'
   });
 
   closeAddCombatantModal();
   playSound('add');
 }
 
-function initCombatantAvatarPicker() {
-  document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      selectedCombatantAvatar = btn.dataset.avatar;
-      selectedCombatantAvatarUrl = '';
-      var urlInput = document.getElementById('combatantAvatarUrl');
-      if (urlInput) urlInput.value = '';
-      updateCombatantAvatarPreview();
-    });
-  });
-
-  var urlInput = document.getElementById('combatantAvatarUrl');
-  if (urlInput) {
-    urlInput.addEventListener('input', function() {
-      var url = this.value.trim();
-      if (url) {
-        selectedCombatantAvatarUrl = url;
-        selectedCombatantAvatar = '';
-        document.querySelectorAll('#combatantAvatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
-      } else {
-        selectedCombatantAvatarUrl = '';
-        selectedCombatantAvatar = '⚔️';
-      }
-      updateCombatantAvatarPreview();
-    });
-  }
-}
-
-// ====== SORT ======
-function sortInit() {
-  combatants.sort(function(a, b) { return b.init - a.init; });
-  currentTurn = 0;
-  round = 1;
-  renderInit();
-}
-
-// ====== ADD FROM PARTY ======
-function addFromParty() {
-  if (players.length === 0) {
-    alert('Dodaj najpierw postacie do "Postaci"!');
-    return;
-  }
-  var names = players.map(function(p, i) { return (i + 1) + '. ' + p.name + ' (' + p.role + ')'; }).join('\n');
-  var choice = prompt('Którą postać dodać?\n' + names + '\n\nWpisz numer lub nazwę:');
-  if (!choice) return;
-
-  var player = null;
-  var num = parseInt(choice);
-  if (!isNaN(num) && num > 0 && num <= players.length) player = players[num - 1];
-  else player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
-
-  if (!player) { alert('Nie znaleziono'); return; }
-
-  var initVal = prompt('Inicjatywa dla ' + player.name + ':') || '0';
-  addCombatant({
-    name: player.name,
-    init: parseInt(initVal) || 0,
-    hp: player.hp,
-    maxHp: player.maxHp,
-    ac: player.ac,
-    role: player.role,
-    conditions: player.conditions.slice(),
-    roundDamage: 0,
-    avatar: player.avatar
-  });
-  playSound('add');
-}
-
-// ====== TURN ======
+// ====== SYSTEM TUR ======
 function nextTurn() {
   if (combatants.length === 0) return;
+  
+  // Reset obrażeń rundy
   combatants.forEach(function(c) { c.roundDamage = 0; });
+  
+  // Przejście do następnej tury
   currentTurn = (currentTurn + 1) % combatants.length;
+  
+  // Nowa runda
   if (currentTurn === 0) {
     round++;
-    advanceTimers();
+    combatStats.totalRounds++;
+    if (typeof advanceTimers === 'function') advanceTimers();
     focusFire = [];
     turnLog = [];
+    addTurnLog('⚔️', '🔄 Rozpoczęcie rundy ' + round);
   }
+  
+  // Sprawdź czy obecny bojownik żyje
+  var current = combatants[currentTurn];
+  if (current && current.status === 'dead') {
+    nextTurn();
+    return;
+  }
+  
+  // Efekty na początku tury
+  if (current) {
+    processTurnStartEffects(current);
+  }
+  
   playSound('turn');
   renderInit();
   updateFocusFire();
+  updateCombatStats();
 }
 
-function resetInit() {
-  combatants = [];
-  currentTurn = 0;
-  round = 1;
-  focusFire = [];
-  turnLog = [];
-  renderInit();
-  updateFocusFire();
-}
-
-function removeCombatant(index) {
-  if (confirm('Usunąć ' + (combatants[index] ? combatants[index].name : '') + '?')) {
-    combatants.splice(index, 1);
-    if (currentTurn >= combatants.length) currentTurn = 0;
-    lastInitCount = -1;
-    renderInit();
-  }
-}
-
-// ====== RENDER ======
-function renderInit() {
-  var list = document.getElementById('initList');
-  if (!list) return;
-
-  if (lastInitCount === combatants.length && list.children.length === combatants.length && combatants.length > 0) {
-    var entries = list.querySelectorAll('.init-entry');
-    combatants.forEach(function(c, i) {
-      if (entries[i]) {
-        entries[i].className = 'init-entry' + (i === currentTurn ? ' current' : '');
-        updateInitEntry(entries[i], c, i);
+function processTurnStartEffects(combatant) {
+  if (combatant.effects && combatant.effects.length > 0) {
+    var toRemove = [];
+    combatant.effects.forEach(function(effect, index) {
+      if (effect.remaining > 0 && effect.remaining < 999) {
+        effect.remaining--;
+        if (effect.remaining <= 0) {
+          toRemove.push(index);
+          addTurnLog(combatant.name, '⏱️ ' + effect.name + ' wygasł');
+          playSound('state');
+        }
       }
     });
-    updateRoundBadge();
-    scrollToCurrentTurn();
-    return;
-  }
-
-  lastInitCount = combatants.length;
-  list.innerHTML = '';
-
-  if (combatants.length === 0) {
-    var badge = document.getElementById('roundBadge');
-    if (badge) badge.textContent = '';
-    var turnBtns = document.getElementById('turnBtns');
-    if (turnBtns) turnBtns.style.display = 'none';
-    updateFocusFire();
-    return;
-  }
-
-  updateRoundBadge();
-  var turnBtns = document.getElementById('turnBtns');
-  if (turnBtns) turnBtns.style.display = 'flex';
-
-  combatants.forEach(function(c, i) {
-    var div = document.createElement('div');
-    div.className = 'init-entry' + (i === currentTurn ? ' current' : '');
-    if (i === combatants.length - 1) div.classList.add('slide-in');
-    renderInitEntry(div, c, i);
-    list.appendChild(div);
-  });
-
-  updateFocusFire();
-  scrollToCurrentTurn();
-}
-
-function renderInitEntry(div, c, i) {
-  var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
-  var hpClass = typeof c.hp === 'number' && c.maxHp && c.hp / c.maxHp < 0.33 ? ' low' : '';
-  var condTags = '';
-  if (c.conditions && c.conditions.length > 0) {
-    condTags = c.conditions.map(function(cond) { return '<span class="cond-tag">' + getStateEmoji(cond) + ' ' + cond + '</span>'; }).join('');
-  }
-  var dmgCounter = c.roundDamage > 0 ? '<span class="init-dmg-counter">⚔️' + c.roundDamage + '</span>' : '';
-
-  div.innerHTML = `
-    <div class="init-badge">${c.init}</div>
-    <div class="init-name">
-      ${i === currentTurn ? '▶ ' : ''} ${c.name}
-      ${condTags}${dmgCounter}
-      <button class="init-cond-btn ${c.conditions && c.conditions.length > 0 ? 'has-cond' : ''}" onclick="event.stopPropagation();showInitCondPopup(${i})" title="Zarządzaj stanami">${c.conditions && c.conditions.length > 0 ? '🔄' : '⚙️'}</button>
-      <button class="init-cond-btn" onclick="event.stopPropagation();showInitDmg(${i})" title="Zadaj obrażenia">⚔️</button>
-    </div>
-    ${c.ac && c.ac !== '—' ? '<div class="init-ac" title="Klasa Pancerza">🛡 ' + c.ac + '</div>' : ''}
-    ${typeof c.hp === 'number' ? '<div class="init-hp ' + hpClass + '" onclick="event.stopPropagation();showInitDmg(' + i + ')">' + hpText + '</div>' : ''}
-    <div class="init-remove" onclick="event.stopPropagation();removeCombatant(${i})">✕</div>
-  `;
-}
-
-function updateInitEntry(div, c, i) {
-  var nameDiv = div.querySelector('.init-name');
-  if (nameDiv) {
-    var textNode = nameDiv.childNodes[0];
-    if (textNode) textNode.textContent = (i === currentTurn ? '▶ ' : '') + ' ' + c.name + ' ';
-
-    nameDiv.querySelectorAll('.cond-tag').forEach(function(el) { el.remove(); });
-    var dmgCounter = nameDiv.querySelector('.init-dmg-counter');
-    if (dmgCounter) {
-      if (c.roundDamage > 0) {
-        dmgCounter.textContent = '⚔️' + c.roundDamage;
-        dmgCounter.style.display = '';
-      } else {
-        dmgCounter.style.display = 'none';
-      }
-    }
-
-    var condBtn = nameDiv.querySelector('.init-cond-btn:first-of-type');
-    if (condBtn) {
-      condBtn.className = 'init-cond-btn ' + (c.conditions && c.conditions.length > 0 ? 'has-cond' : '');
-      condBtn.innerHTML = c.conditions && c.conditions.length > 0 ? '🔄' : '⚙️';
-    }
-
-    var frag = document.createDocumentFragment();
-    if (c.conditions && c.conditions.length > 0) {
-      c.conditions.forEach(function(cond) {
-        var tag = document.createElement('span');
-        tag.className = 'cond-tag';
-        tag.textContent = getStateEmoji(cond) + ' ' + cond;
-        frag.appendChild(tag);
-      });
-    }
-    nameDiv.appendChild(frag);
-  }
-
-  var hpDiv = div.querySelector('.init-hp');
-  if (hpDiv && typeof c.hp === 'number') {
-    hpDiv.textContent = c.hp + '/' + c.maxHp + ' HP';
-    hpDiv.className = 'init-hp ' + (c.hp / c.maxHp < 0.33 ? 'low' : '');
+    toRemove.sort(function(a, b) { return b - a; });
+    toRemove.forEach(function(idx) {
+      combatant.effects.splice(idx, 1);
+    });
   }
 }
 
-function updateRoundBadge() {
-  var badge = document.getElementById('roundBadge');
-  if (badge) {
-    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' —' : '';
-  }
-}
-
-function scrollToCurrentTurn() {
-  var isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-  if (isMobile) {
-    var current = document.querySelector('.init-entry.current');
-    if (current) {
-      setTimeout(function() {
-        current.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-      }, 150);
-    }
-  }
-}
-
-// ====== FOCUS FIRE ======
-function updateFocusFire() {
-  var container = document.getElementById('focusFireList');
-  if (!container) return;
-  var logHtml = getTurnLogDisplay();
-  container.innerHTML = logHtml || '<div style="color:var(--muted);font-size:.6rem;text-align:center;padding:3px;">Brak akcji w tej rundzie</div>';
-}
-
-function resetFocusFire() {
-  focusFire = [];
-  turnLog = [];
-  updateFocusFire();
-}
-
-function addTurnLog(name, action) {
-  turnLog.push({ name: name, action: action, turn: round });
-  if (turnLog.length > 20) turnLog.shift();
-  updateFocusFire();
-}
-
-function getTurnLogDisplay() {
-  return turnLog.slice(-5).map(function(e) {
-    return '<div class="ff-target"><span class="ff-name">' + e.name + '</span><span class="ff-status">' + e.action + '</span></div>';
-  }).join('');
-}
-
-// ====== DEATH ======
-function triggerDeath(index) {
-  var entries = document.querySelectorAll('.init-entry');
-  if (entries[index]) {
-    entries[index].classList.add('death');
-    var flash = document.createElement('div');
-    flash.style.cssText = 'position:fixed;inset:0;background:rgba(255,107,107,.2);z-index:999;pointer-events:none;animation:fadeOut .7s ease forwards;';
-    document.body.appendChild(flash);
-    setTimeout(function() { flash.remove(); }, 700);
-    setTimeout(function() {
-      combatants.splice(index, 1);
-      if (currentTurn >= combatants.length) currentTurn = 0;
-      lastInitCount = -1;
-      renderInit();
-    }, 700);
-  } else {
-    combatants.splice(index, 1);
-    if (currentTurn >= combatants.length) currentTurn = 0;
-    lastInitCount = -1;
-    renderInit();
-  }
-}
-
-// ====== INIT COND / DMG ======
-function showInitCondPopup(index) {
-  var c = combatants[index];
+// ====== SYSTEM EFEKTÓW ======
+function addEffect(combatantIndex, effectName, duration) {
+  var c = combatants[combatantIndex];
   if (!c) return;
-  showCondPopup(c.name, c.conditions || [], function(cond) {
-    var idx = c.conditions.indexOf(cond);
-    if (idx > -1) c.conditions.splice(idx, 1);
-    else { c.conditions.push(cond); addTurnLog(c.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
-    renderInit();
-    var popup = document.getElementById('condPopup');
-    if (popup) updateCondPopup(popup, c.conditions);
-  });
+  
+  var existing = c.effects.find(function(e) { return e.name === effectName; });
+  if (existing) {
+    existing.remaining = duration;
+    existing.active = true;
+  } else {
+    c.effects.push({
+      name: effectName,
+      duration: duration,
+      remaining: duration,
+      active: true
+    });
+  }
+  addTurnLog(c.name, '✨ ' + effectName + ' (' + duration + ' tur)');
+  renderInit();
+  playSound('state');
 }
 
-function showInitDmg(index) {
-  dmgPopupTarget = { type: 'init', index: index };
-  showDamagePopup(combatants[index] ? combatants[index].name : 'Bojownik');
+function removeEffect(combatantIndex, effectName) {
+  var c = combatants[combatantIndex];
+  if (!c) return;
+  c.effects = c.effects.filter(function(e) { return e.name !== effectName; });
+  renderInit();
 }
 
-// ====== APPLY DAMAGE ======
-function applyDamage() {
-  var amountInput = document.getElementById('dmgAmount');
-  var critInput = document.getElementById('dmgCrit');
-  var amount = parseInt(amountInput ? amountInput.value : 0) || 0;
-  var crit = critInput ? critInput.checked : false;
-  var finalDmg = crit ? amount * 2 : amount;
+function addEffectPopup(index) {
+  var c = combatants[index];
+  if (!c || c.status === 'dead') return;
+  
+  var duration = prompt('Czas trwania efektu (w turach):', '3');
+  if (duration === null) return;
+  var dur = parseInt(duration);
+  if (isNaN(dur) || dur < 1) { alert('Podaj poprawną liczbę tur'); return; }
+  
+  var effectName = prompt('Nazwa efektu (np. Oślepienie, Trucizna, Prędkość):', '');
+  if (!effectName) return;
+  
+  addEffect(index, effectName, dur);
+}
 
-  if (dmgPopupTarget) {
-    var type = dmgPopupTarget.type;
-    var index = dmgPopupTarget.index;
-    if (type === 'player' && players[index]) {
-      players[index].hp = Math.max(0, players[index].hp - finalDmg);
-      var name = players[index].name;
-      var existing = focusFire.find(function(f) { return f.name === name; });
-      if (existing) existing.dmg += finalDmg;
-      else focusFire.push({ name: name, dmg: finalDmg, status: '⚔️ ' + finalDmg + ' dmg' });
-      addTurnLog(name, '⚔️ ' + finalDmg + ' obrażeń');
-
-      if (players[index].hp <= 0) {
-        playSound('death');
-        addTurnLog(name, '💀 ŚMIERĆ!');
-        setTimeout(function() { renderPlayers(); updateFocusFire(); }, 200);
-      } else {
-        playSound(finalDmg > 10 ? 'crit' : 'hit');
-        renderPlayers();
-        triggerHpHitAnimation(index);
-        updateFocusFire();
+// ====== SYSTEM OBRAŻEŃ ======
+function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
+  var attacker = attackerIndex !== null && attackerIndex !== undefined ? combatants[attackerIndex] : null;
+  var target = combatants[targetIndex];
+  if (!target) return;
+  
+  var actualDamage = damage;
+  var targetName = target.name;
+  
+  // Sprawdź czy cel ma tymczasowe HP
+  if (target.tempHp > 0) {
+    var tempDamage = Math.min(target.tempHp, actualDamage);
+    target.tempHp -= tempDamage;
+    actualDamage -= tempDamage;
+    addTurnLog(targetName, '🛡️ Tymczasowe HP zablokowało ' + tempDamage + ' obrażeń');
+  }
+  
+  // Zadaj obrażenia
+  if (actualDamage > 0) {
+    target.hp = Math.max(0, target.hp - actualDamage);
+    target.roundDamage = (target.roundDamage || 0) + actualDamage;
+    target.totalDamage = (target.totalDamage || 0) + actualDamage;
+    combatStats.totalDamage += actualDamage;
+    
+    if (isCrit) {
+      combatStats.crits++;
+      addTurnLog(targetName, '💥 Krytyk! +' + actualDamage + ' ' + damageType);
+    } else {
+      addTurnLog(targetName, '⚔️ ' + actualDamage + ' ' + damageType + ' obrażeń');
+    }
+    
+    if (target.hp <= 0) {
+      target.status = 'dead';
+      combatStats.kills++;
+      addTurnLog(targetName, '💀 ŚMIERĆ!');
+      playSound('death');
+      if (attacker) {
+        addTurnLog(attacker.name, '🏆 Zabił ' + targetName + '!');
       }
-    } else if (type === 'init' && combatants[index]) {
-      combatants[index].hp = Math.max(0, combatants[index].hp - finalDmg);
-      combatants[index].roundDamage = (combatants[index].roundDamage || 0) + finalDmg;
-      var name = combatants[index].name;
-      var existing = focusFire.find(function(f) { return f.name === name; });
-      if (existing) existing.dmg += finalDmg;
-      else focusFire.push({ name: name, dmg: finalDmg, status: '⚔️ ' + finalDmg + ' dmg' });
-      addTurnLog(name, '⚔️ ' + finalDmg + ' obrażeń');
-
-      if (combatants[index].hp <= 0) {
-        playSound('death');
-        addTurnLog(name, '💀 ŚMIERĆ!');
-        setTimeout(function() {
-          if (confirm('💀 ' + combatants[index].name + ' zabity! Usunąć?')) {
-            triggerDeath(index);
-          } else {
-            renderInit();
-            updateFocusFire();
-          }
-        }, 200);
-      } else {
-        playSound(finalDmg > 10 ? 'crit' : 'hit');
-        renderInit();
-        updateFocusFire();
-      }
+    } else {
+      playSound(isCrit ? 'crit' : 'hit');
     }
   }
-  closeDmgPopup();
+  
+  // Dodaj do focus fire
+  var existing = focusFire.find(function(f) { return f.name === targetName; });
+  if (existing) {
+    existing.dmg += actualDamage;
+    existing.status = '⚔️ ' + existing.dmg + ' ' + damageType;
+  } else {
+    focusFire.push({ 
+      name: targetName, 
+      dmg: actualDamage, 
+      status: '⚔️ ' + actualDamage + ' ' + damageType 
+    });
+  }
+  
+  renderInit();
+  updateFocusFire();
+  updateCombatStats();
 }
-
-// ====== STYL (death flash) ======
-var style = document.createElement('style');
-style.textContent = '@keyframes fadeOut{0%{opacity:1;}100%{opacity:0;}}';
-document.head.appendChild(style);
 
 // ====== SYSTEM ATAKU ======
+function performAttack(attackerIndex, targetIndex, attackBonus, damageDice, damageType, advantage, disadvantage) {
+  var attacker = combatants[attackerIndex];
+  var target = combatants[targetIndex];
+  if (!attacker || !target) return null;
+  
+  if (attackerIndex === targetIndex) {
+    alert('Nie możesz atakować samego siebie!');
+    return null;
+  }
+  
+  if (target.status === 'dead') {
+    alert('Cel już nie żyje!');
+    return null;
+  }
+  
+  var roll1 = rollDice(20);
+  var roll2 = rollDice(20);
+  var attackRoll;
+  var rollText = '';
+  
+  if (advantage && !disadvantage) {
+    attackRoll = Math.max(roll1, roll2);
+    rollText = 'Przewaga: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
+  } else if (disadvantage && !advantage) {
+    attackRoll = Math.min(roll1, roll2);
+    rollText = 'Utrudnienie: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
+  } else {
+    attackRoll = roll1;
+    rollText = 'Rzut: ' + attackRoll;
+  }
+  
+  var totalAttack = attackRoll + attackBonus;
+  var isCrit = attackRoll === 20;
+  var isMiss = attackRoll === 1;
+  
+  if (isMiss) {
+    combatStats.misses++;
+    addTurnLog(attacker.name, '💨 Pudło (krytyczne) na ' + target.name);
+    playSound('hit');
+    return { hit: false, crit: false, miss: true };
+  }
+  
+  if (totalAttack < target.ac) {
+    combatStats.misses++;
+    addTurnLog(attacker.name, '💨 Pudło na ' + target.name + ' (' + totalAttack + ' vs AC ' + target.ac + ')');
+    playSound('hit');
+    return { hit: false, crit: false, miss: false };
+  }
+  
+  // Trafienie - oblicz obrażenia
+  var dmgMatch = damageDice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  var damage = 0;
+  var damageRolls = [];
+  
+  if (dmgMatch) {
+    var count = parseInt(dmgMatch[1]);
+    var sides = parseInt(dmgMatch[2]);
+    var bonus = dmgMatch[3] ? parseInt(dmgMatch[3]) : 0;
+    var rollCount = isCrit ? count * 2 : count;
+    
+    for (var i = 0; i < rollCount; i++) {
+      var r = rollDice(sides);
+      damageRolls.push(r);
+      damage += r;
+    }
+    damage += bonus;
+  } else {
+    damage = rollDice(8);
+    damageRolls.push(damage);
+  }
+  
+  dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit);
+  
+  return {
+    hit: true,
+    crit: isCrit,
+    miss: false,
+    attackRoll: attackRoll,
+    totalAttack: totalAttack,
+    damage: damage,
+    damageRolls: damageRolls,
+    target: target.name
+  };
+}
 
+// ====== OTWÓRZ POPUP ATAKU ======
 function openAttackPopup() {
   if (combatants.length === 0) {
     alert('Brak bojowników w potyczce!');
@@ -483,35 +422,32 @@ function openAttackPopup() {
   popup.className = 'popup-overlay';
   popup.id = 'attackPopup';
   
-  // Lista celów do wyboru
   var targetOptions = combatants.map(function(c, i) {
+    var statusIcon = c.status === 'dead' ? '💀 ' : '';
     var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
     var condText = c.conditions && c.conditions.length > 0 ? ' ⚡' + c.conditions.length : '';
-    return '<option value="' + i + '">' + c.name + ' (' + hpText + ')' + condText + '</option>';
+    var effectsText = c.effects && c.effects.length > 0 ? ' 🕐' + c.effects.length : '';
+    return '<option value="' + i + '" ' + (c.status === 'dead' ? 'disabled' : '') + '>' + statusIcon + c.name + ' (' + hpText + ')' + condText + effectsText + '</option>';
   }).join('');
 
   popup.innerHTML = `
     <div class="popup-content attack-popup-content">
-      <div class="popup-title">⚔️ Atak</div>
+      <div class="popup-title">⚔️ Zaawansowany atak</div>
       <div class="attack-form">
         <div class="attack-row">
           <label>Atakujący</label>
-          <select id="attackerSelect">
-            ${targetOptions}
-          </select>
+          <select id="attackerSelect">${targetOptions}</select>
         </div>
         <div class="attack-row">
           <label>Cel</label>
-          <select id="targetSelect">
-            ${targetOptions}
-          </select>
+          <select id="targetSelect">${targetOptions}</select>
         </div>
         <div class="attack-row">
           <label>Bonus do trafienia</label>
           <input type="number" id="attackBonus" value="0" step="1" />
         </div>
         <div class="attack-row">
-          <label>Kości obrażeń</label>
+          <label>Kości obrażeń (np. 2d6+3)</label>
           <input type="text" id="damageDice" placeholder="np. 2d6+3" value="1d8" />
         </div>
         <div class="attack-row">
@@ -541,6 +477,7 @@ function openAttackPopup() {
           <button class="btn" onclick="executeAttack()">⚔️ Rzuć atak</button>
           <button class="btn outline" onclick="closeAttackPopup()">Anuluj</button>
         </div>
+        <div id="attackResultContainer"></div>
       </div>
     </div>
   `;
@@ -560,152 +497,267 @@ function executeAttack() {
   var damageType = document.getElementById('damageType').value;
   var advantage = document.getElementById('attackAdvantage').checked;
   var disadvantage = document.getElementById('attackDisadvantage').checked;
-
+  
   if (attackerIdx === targetIdx) {
     alert('Nie możesz atakować samego siebie!');
     return;
   }
-
-  var attacker = combatants[attackerIdx];
-  var target = combatants[targetIdx];
-
-  // Rzut na trafienie
-  var roll1 = rollDice(20);
-  var roll2 = rollDice(20);
-  var attackRoll;
-  var rollText = '';
-
-  if (advantage && !disadvantage) {
-    attackRoll = Math.max(roll1, roll2);
-    rollText = 'Przewaga: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
-  } else if (disadvantage && !advantage) {
-    attackRoll = Math.min(roll1, roll2);
-    rollText = 'Utrudnienie: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
-  } else {
-    attackRoll = roll1;
-    rollText = 'Rzut: ' + attackRoll;
-  }
-
-  var totalAttack = attackRoll + attackBonus;
-  var isCrit = attackRoll === 20;
-  var isMiss = attackRoll === 1;
-
-  // Wynik
-  var resultDiv = document.createElement('div');
-  resultDiv.className = 'attack-result';
-
-  if (isMiss) {
-    resultDiv.innerHTML = `
-      <div class="attack-result-header">💨 PUDŁO!</div>
-      <div class="attack-result-detail">${attacker.name} chybił ${target.name} (krytyczne pudło)</div>
-    `;
-    playSound('death');
-  } else if (totalAttack >= target.ac) {
-    // Oblicz obrażenia
-    var dmgMatch = damageDice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-    var damage = 0;
-    var damageRolls = [];
-
-    if (dmgMatch) {
-      var count = parseInt(dmgMatch[1]);
-      var sides = parseInt(dmgMatch[2]);
-      var bonus = dmgMatch[3] ? parseInt(dmgMatch[3]) : 0;
-      
-      // Krytyk - podwójna liczba kości
-      var rollCount = isCrit ? count * 2 : count;
-      
-      for (var i = 0; i < rollCount; i++) {
-        var r = rollDice(sides);
-        damageRolls.push(r);
-        damage += r;
-      }
-      damage += bonus;
-    } else {
-      // Fallback - pojedyncza kość
-      damage = rollDice(8);
-      damageRolls.push(damage);
-    }
-
-    var critText = isCrit ? ' 💥 KRYTYK!' : '';
-    var targetName = target.name;
-    
-    // Zadaj obrażenia
-    target.hp = Math.max(0, target.hp - damage);
-    target.roundDamage = (target.roundDamage || 0) + damage;
-    
-    // Log
-    addTurnLog(attacker.name, '⚔️ Atak na ' + targetName + ' (' + damage + ' ' + damageType + ')' + critText);
-    
-    // Dodaj do focus fire
-    var existing = focusFire.find(function(f) { return f.name === targetName; });
-    if (existing) existing.dmg += damage;
-    else focusFire.push({ name: targetName, dmg: damage, status: '⚔️ ' + damage + ' ' + damageType });
-    
-    // Wynik
-    resultDiv.innerHTML = `
-      <div class="attack-result-header">${isCrit ? '💥' : '🎯'} TRAFIONY! ${critText}</div>
-      <div class="attack-result-detail">
-        ${rollText} + ${attackBonus} = ${totalAttack} (AC ${target.ac})<br>
-        🎲 ${damageDice} → ${damageRolls.join(' + ')} = ${damage} ${damageType}
-      </div>
-      <div class="attack-result-damage">${targetName} traci ${damage} HP (${target.hp}/${target.maxHp})</div>
-    `;
-    
-    playSound(isCrit ? 'crit' : 'hit');
-    
-    // Sprawdź czy cel zginął
-    if (target.hp <= 0) {
-      resultDiv.innerHTML += `<div class="attack-result-death">💀 ${targetName} PADA! (${target.hp}/${target.maxHp})</div>`;
-      playSound('death');
-      addTurnLog(targetName, '💀 ŚMIERĆ!');
-    }
-    
-    renderInit();
-    updateFocusFire();
-    
-  } else {
-    resultDiv.innerHTML = `
-      <div class="attack-result-header">🛡️ PUDŁO!</div>
-      <div class="attack-result-detail">
-        ${rollText} + ${attackBonus} = ${totalAttack} (wymagane: ${target.ac})
-      </div>
-    `;
-    playSound('hit');
-  }
-
-  // Dodaj wynik do popupu
-  var container = document.getElementById('attackPopup');
-  if (container) {
-    var content = container.querySelector('.popup-content');
-    var existingResult = content.querySelector('.attack-result');
-    if (existingResult) existingResult.remove();
-    content.appendChild(resultDiv);
-    
-    // Przewiń na dół
-    content.scrollTop = content.scrollHeight;
-  }
   
-  // Wyłącz przyciski na chwilę
-  var btns = document.querySelectorAll('.attack-actions .btn');
-  btns.forEach(function(b) { b.disabled = true; });
-  setTimeout(function() {
-    btns.forEach(function(b) { b.disabled = false; });
-  }, 1000);
+  var result = performAttack(attackerIdx, targetIdx, attackBonus, damageDice, damageType, advantage, disadvantage);
+  
+  if (result) {
+    var container = document.getElementById('attackResultContainer');
+    if (container) {
+      var resultHtml = '';
+      if (result.miss) {
+        resultHtml = `
+          <div class="attack-result">
+            <div class="attack-result-header">💨 PUDŁO!</div>
+            <div class="attack-result-detail">Atak chybił celu</div>
+          </div>
+        `;
+      } else if (!result.hit) {
+        resultHtml = `
+          <div class="attack-result">
+            <div class="attack-result-header">🛡️ NIETRAFIONY!</div>
+            <div class="attack-result-detail">${result.totalAttack || '?'} vs AC ${combatants[targetIdx].ac}</div>
+          </div>
+        `;
+      } else {
+        var critText = result.crit ? ' 💥 KRYTYK!' : '';
+        resultHtml = `
+          <div class="attack-result">
+            <div class="attack-result-header">🎯 TRAFIONY!${critText}</div>
+            <div class="attack-result-detail">
+              ${result.attackRoll} + ${attackBonus} = ${result.totalAttack} (AC ${combatants[targetIdx].ac})<br>
+              🎲 ${damageDice} → ${result.damageRolls.join(' + ')} = ${result.damage} ${damageType}
+            </div>
+            <div class="attack-result-damage">${combatants[targetIdx].name} ma ${combatants[targetIdx].hp}/${combatants[targetIdx].maxHp} HP</div>
+            ${combatants[targetIdx].hp <= 0 ? '<div class="attack-result-death">💀 CEL PADA!</div>' : ''}
+          </div>
+        `;
+      }
+      container.innerHTML = resultHtml;
+      container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
 }
 
-// ====== EKSPORT ======
+// ====== STATYSTYKI ======
+function updateCombatStats() {
+  var statsContainer = document.getElementById('combatStats');
+  if (!statsContainer) return;
+  
+  var alive = combatants.filter(function(c) { return c.status === 'active' || c.status === 'down'; });
+  var dead = combatants.filter(function(c) { return c.status === 'dead'; });
+  
+  statsContainer.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-label">⚔️ Aktywni</span><span class="stat-value">${alive.length}</span></div>
+      <div class="stat-item"><span class="stat-label">💀 Martwi</span><span class="stat-value">${dead.length}</span></div>
+      <div class="stat-item"><span class="stat-label">🔄 Runda</span><span class="stat-value">${round}</span></div>
+      <div class="stat-item"><span class="stat-label">💥 Krytyki</span><span class="stat-value">${combatStats.crits}</span></div>
+      <div class="stat-item"><span class="stat-label">💨 Pudła</span><span class="stat-value">${combatStats.misses}</span></div>
+      <div class="stat-item"><span class="stat-label">⚡ Zadane DMG</span><span class="stat-value">${combatStats.totalDamage}</span></div>
+    </div>
+  `;
+}
+
+// ====== FOCUS FIRE ======
+function updateFocusFire() {
+  var container = document.getElementById('focusFireList');
+  if (!container) return;
+  var logHtml = getTurnLogDisplay();
+  container.innerHTML = logHtml || '<div style="color:var(--muted);font-size:.6rem;text-align:center;padding:3px;">Brak akcji w tej rundzie</div>';
+}
+
+function resetFocusFire() {
+  focusFire = [];
+  turnLog = [];
+  updateFocusFire();
+}
+
+function addTurnLog(name, action) {
+  turnLog.push({ name: name, action: action, turn: round });
+  if (turnLog.length > 20) turnLog.shift();
+  updateFocusFire();
+}
+
+function getTurnLogDisplay() {
+  return turnLog.slice(-5).map(function(e) {
+    return '<div class="ff-target"><span class="ff-name">' + e.name + '</span><span class="ff-status">' + e.action + '</span></div>';
+  }).join('');
+}
+
+// ====== SHOW INIT DMG / COND ======
+function showInitDmg(index) {
+  if (typeof dmgPopupTarget !== 'undefined') {
+    dmgPopupTarget = { type: 'init', index: index };
+  }
+  if (typeof showDamagePopup === 'function') {
+    showDamagePopup(combatants[index] ? combatants[index].name : 'Bojownik');
+  }
+}
+
+function showInitCondPopup(index) {
+  var c = combatants[index];
+  if (!c) return;
+  if (typeof showCondPopup === 'function') {
+    showCondPopup(c.name, c.conditions || [], function(cond) {
+      var idx = c.conditions.indexOf(cond);
+      if (idx > -1) c.conditions.splice(idx, 1);
+      else { c.conditions.push(cond); addTurnLog(c.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
+      renderInit();
+      var popup = document.getElementById('condPopup');
+      if (popup && typeof updateCondPopup === 'function') updateCondPopup(popup, c.conditions);
+    });
+  }
+}
+
+// ====== RENDER INICJATYWY ======
+function renderInit() {
+  var list = document.getElementById('initList');
+  if (!list) return;
+
+  lastInitCount = combatants.length;
+  list.innerHTML = '';
+
+  if (combatants.length === 0) {
+    var badge = document.getElementById('roundBadge');
+    if (badge) badge.textContent = '';
+    var turnBtns = document.getElementById('turnBtns');
+    if (turnBtns) turnBtns.style.display = 'none';
+    updateFocusFire();
+    updateCombatStats();
+    return;
+  }
+
+  updateRoundBadge();
+  var turnBtns = document.getElementById('turnBtns');
+  if (turnBtns) turnBtns.style.display = 'flex';
+
+  combatants.forEach(function(c, i) {
+    var div = document.createElement('div');
+    div.className = 'init-entry' + (i === currentTurn ? ' current' : '') + (c.status === 'dead' ? ' dead' : '');
+    if (i === combatants.length - 1) div.classList.add('slide-in');
+    renderInitEntry(div, c, i);
+    list.appendChild(div);
+  });
+
+  updateFocusFire();
+  scrollToCurrentTurn();
+  updateCombatStats();
+}
+
+function renderInitEntry(div, c, i) {
+  var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
+  var hpClass = typeof c.hp === 'number' && c.maxHp && c.hp / c.maxHp < 0.33 ? ' low' : '';
+  if (c.status === 'dead') hpClass += ' dead';
+  
+  var condTags = '';
+  if (c.conditions && c.conditions.length > 0) {
+    condTags = c.conditions.map(function(cond) { 
+      return '<span class="cond-tag">' + getStateEmoji(cond) + ' ' + cond + '</span>'; 
+    }).join('');
+  }
+  
+  var effectsTags = '';
+  if (c.effects && c.effects.length > 0) {
+    effectsTags = c.effects.map(function(e) {
+      var timeStr = e.remaining >= 999 ? '∞' : e.remaining;
+      return '<span class="effect-tag">⏱️ ' + e.name + ' (' + timeStr + ')</span>';
+    }).join('');
+  }
+  
+  var dmgCounter = c.roundDamage > 0 ? '<span class="init-dmg-counter">⚔️' + c.roundDamage + '</span>' : '';
+  var statusIcon = c.status === 'dead' ? '💀 ' : '';
+
+  div.innerHTML = `
+    <div class="init-badge">${c.init}</div>
+    <div class="init-name">
+      ${i === currentTurn ? '▶ ' : ''} ${statusIcon}${c.name}
+      ${condTags}${effectsTags}${dmgCounter}
+      <button class="init-cond-btn ${c.conditions && c.conditions.length > 0 ? 'has-cond' : ''}" onclick="event.stopPropagation();showInitCondPopup(${i})" title="Zarządzaj stanami">${c.conditions && c.conditions.length > 0 ? '🔄' : '⚙️'}</button>
+      <button class="init-cond-btn" onclick="event.stopPropagation();showInitDmg(${i})" title="Zadaj obrażenia">⚔️</button>
+      ${c.status !== 'dead' ? '<button class="init-cond-btn" onclick="event.stopPropagation();addEffectPopup(' + i + ')" title="Dodaj efekt">⏱️</button>' : ''}
+    </div>
+    ${c.ac && c.ac !== '—' ? '<div class="init-ac" title="Klasa Pancerza">🛡 ' + c.ac + '</div>' : ''}
+    ${typeof c.hp === 'number' ? '<div class="init-hp ' + hpClass + '" onclick="event.stopPropagation();showInitDmg(' + i + ')">' + hpText + '</div>' : ''}
+    ${c.tempHp > 0 ? '<div class="init-temp" title="Tymczasowe HP">🛡️+' + c.tempHp + '</div>' : ''}
+    <div class="init-remove" onclick="event.stopPropagation();removeCombatant(${i})">✕</div>
+  `;
+}
+
+function updateRoundBadge() {
+  var badge = document.getElementById('roundBadge');
+  if (badge) {
+    var alive = combatants.filter(function(c) { return c.status !== 'dead'; });
+    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' — (' + alive.length + ' żyje)' : '';
+  }
+}
+
+function scrollToCurrentTurn() {
+  var isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+  if (isMobile) {
+    var current = document.querySelector('.init-entry.current');
+    if (current) {
+      setTimeout(function() {
+        current.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }, 150);
+    }
+  }
+}
+
+// ====== RESET ======
+function resetInit() {
+  if (combatants.length > 0 && !confirm('Wyczyścić potyczkę? Wszystkie dane zostaną usunięte!')) return;
+  
+  combatants = [];
+  currentTurn = 0;
+  round = 1;
+  focusFire = [];
+  turnLog = [];
+  combatActive = false;
+  combatStats = {
+    totalRounds: 0,
+    totalDamage: 0,
+    kills: 0,
+    crits: 0,
+    misses: 0,
+    startTime: null,
+    endTime: null
+  };
+  renderInit();
+  updateFocusFire();
+  updateCombatStats();
+}
+
+// ====== EKSPORT GLOBALNY ======
+window.combatants = combatants;
+window.currentTurn = currentTurn;
+window.round = round;
+window.focusFire = focusFire;
+window.turnLog = turnLog;
+
+window.addCombatant = addCombatant;
+window.removeCombatant = removeCombatant;
+window.sortInit = sortInit;
+window.nextTurn = nextTurn;
+window.resetInit = resetInit;
+window.renderInit = renderInit;
+window.updateFocusFire = updateFocusFire;
+window.updateCombatStats = updateCombatStats;
+window.addTurnLog = addTurnLog;
+window.addEffect = addEffect;
+window.addEffectPopup = addEffectPopup;
+window.dealDamage = dealDamage;
+window.performAttack = performAttack;
 window.openAttackPopup = openAttackPopup;
 window.closeAttackPopup = closeAttackPopup;
 window.executeAttack = executeAttack;
-
-// ====== Eksport globalny ======
 window.openAddCombatantModal = openAddCombatantModal;
 window.closeAddCombatantModal = closeAddCombatantModal;
 window.confirmAddCombatant = confirmAddCombatant;
 window.addFromParty = addFromParty;
-window.nextTurn = nextTurn;
-window.resetInit = resetInit;
-window.removeCombatant = removeCombatant;
-window.showInitCondPopup = showInitCondPopup;
 window.showInitDmg = showInitDmg;
-window.applyDamage = applyDamage;
+window.showInitCondPopup = showInitCondPopup;

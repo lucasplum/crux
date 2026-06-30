@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "source": "D&D 5e - Complete Spell List",
+  "lastUpdated": "2024-01-01",
+  "totalSpells": 510,
+  "sources": ["PHB", "XGtE", "TCoE", "SCAG", "AI"],
+  "levels": {
+    "0": "level-0.json",
+    "1": "level-1.json",
+    "2": "level-2.json",
+    "3": "level-3.json",
+    "4": "level-4.json",
+    "5": "level-5.json",
+    "6": "level-6.json",
+    "7": "level-7.json",
+    "8": "level-8.json",
+    "9": "level-9.json"
+  },
+  "schools": {
+    "wywoływanie": "Evocation",
+    "przywoływanie": "Conjuration",
+    "wieszczenie": "Divination",
+    "nekromancja": "Necromancy",
+    "uroki": "Enchantment",
+    "iluzje": "Illusion",
+    "odpychanie": "Abjuration",
+    "przemiany": "Transmutation"
+  }
+}
