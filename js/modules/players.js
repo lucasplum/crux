@@ -1,5 +1,5 @@
 // ============================================================
-//  PLAYERS - NOWY UKŁAD, WYCZERPANIE
+//  PLAYERS - Z SYNCHRONIZACJĄ Z POTYCZKĄ
 // ============================================================
 
 var players = [];
@@ -7,6 +7,35 @@ var selectedAvatar = '🧙';
 var selectedAvatarUrl = '';
 var conditionPopupTarget = null;
 var dmgPopupTarget = null;
+
+// ====== SYNCHRONIZACJA Z POTYCZKĄ ======
+function syncToCombat() {
+  if (typeof combatants === 'undefined' || !combatants) return;
+  
+  players.forEach(function(p) {
+    // Znajdź odpowiadającego bojownika w potyczce
+    var combatant = combatants.find(function(c) { 
+      return c.name === p.name && c.role === p.role; 
+    });
+    if (combatant) {
+      // Synchronizuj HP z potyczki do postaci
+      if (combatant.hp !== p.hp) {
+        p.hp = combatant.hp;
+      }
+      // Synchronizuj stany
+      if (JSON.stringify(combatant.conditions) !== JSON.stringify(p.conditions)) {
+        p.conditions = combatant.conditions.slice();
+      }
+      // Synchronizuj wyczerpanie
+      if (combatant.exhaustionLevel !== p.exhaustionLevel) {
+        p.exhaustionLevel = combatant.exhaustionLevel;
+      }
+    }
+  });
+  
+  // Odśwież listę postaci
+  renderPlayers();
+}
 
 // ====== AVATAR PICKER ======
 function initAvatarPicker() {
@@ -131,12 +160,10 @@ function renderPlayers() {
     var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
     var hpColor = hpPct < 25 ? 'var(--red)' : hpPct < 50 ? 'var(--gold)' : 'var(--green)';
     
-    // Stany po polsku
     var condTags = p.conditions.map(function(c) { 
       return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>'; 
     }).join('');
     
-    // Wyczerpanie
     var exhaustionTag = '';
     if (p.exhaustionLevel > 0) {
       var exLevel = p.exhaustionLevel > 6 ? 6 : p.exhaustionLevel;
@@ -203,6 +230,17 @@ function getRoleBadge(role) {
 // ====== AKCJE ======
 function removePlayer(index) {
   if (confirm('Usunąć ' + players[index]?.name + '?')) {
+    // Usuń również z potyczki
+    if (typeof combatants !== 'undefined') {
+      var idx = combatants.findIndex(function(c) { 
+        return c.name === players[index].name && c.role === players[index].role; 
+      });
+      if (idx > -1) {
+        combatants.splice(idx, 1);
+        if (typeof renderInit === 'function') renderInit();
+        if (typeof updateCombatStats === 'function') updateCombatStats();
+      }
+    }
     players.splice(index, 1);
     renderPlayers();
   }
@@ -213,15 +251,14 @@ function deathSave(index) {
   if (!p) return;
   var roll = rollDice(20);
   if (roll === 1) { p.deathSaves.fails += 2; playSound('death'); }
-  else if (roll === 20) { p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0; playSound('crit'); renderPlayers(); return; }
+  else if (roll === 20) { p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0; playSound('crit'); renderPlayers(); syncToCombat(); return; }
   else if (roll >= 10) p.deathSaves.passes++;
   else p.deathSaves.fails++;
 
   if (p.deathSaves.fails >= 3) {
     playSound('death');
     if (confirm('💀 ' + p.name + ' umiera! Usunąć?')) {
-      players.splice(index, 1);
-      renderPlayers();
+      removePlayer(index);
       return;
     }
   }
@@ -232,25 +269,39 @@ function deathSave(index) {
     playSound('add');
   }
   renderPlayers();
+  syncToCombat();
 }
 
 function addPlayerToInitiative(index) {
   var p = players[index];
   if (!p) return;
+  
+  // Sprawdź czy już jest w potyczce
+  if (typeof combatants !== 'undefined') {
+    var exists = combatants.some(function(c) { 
+      return c.name === p.name && c.role === p.role; 
+    });
+    if (exists) {
+      alert('Ta postać jest już w potyczce!');
+      return;
+    }
+  }
+  
   var initVal = prompt('Inicjatywa dla ' + p.name + ':') || '0';
-  addCombatant({
-    name: p.name,
-    init: parseInt(initVal) || 0,
-    hp: p.hp,
-    maxHp: p.maxHp,
-    ac: p.ac,
-    role: p.role,
-    conditions: p.conditions.slice(),
-    exhaustionLevel: p.exhaustionLevel || 0,
-    roundDamage: 0,
-    avatar: p.avatar
-  });
-  renderInit();
+  if (typeof addCombatant === 'function') {
+    addCombatant({
+      name: p.name,
+      init: parseInt(initVal) || 0,
+      hp: p.hp,
+      maxHp: p.maxHp,
+      ac: p.ac,
+      role: p.role,
+      conditions: p.conditions.slice(),
+      exhaustionLevel: p.exhaustionLevel || 0,
+      roundDamage: 0,
+      avatar: p.avatar
+    });
+  }
   playSound('add');
 }
 
@@ -264,19 +315,19 @@ function showPlayerCondPopup(index) {
   var p = players[index];
   if (!p) return;
   
-  // Polskie stany + wyczerpanie
   showCondPopup(p.name, p.conditions || [], p.exhaustionLevel || 0, function(cond, exhaustionLevel) {
     if (cond) {
       var idx = p.conditions.indexOf(cond);
       if (idx > -1) p.conditions.splice(idx, 1);
-      else { p.conditions.push(cond); addTurnLog(p.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
+      else { p.conditions.push(cond); if (typeof addTurnLog === 'function') addTurnLog(p.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
     }
     if (exhaustionLevel !== undefined) {
       p.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
     }
     renderPlayers();
+    syncToCombat();
     var popup = document.getElementById('condPopup');
-    if (popup) updateCondPopup(popup, p.conditions, p.exhaustionLevel);
+    if (popup && typeof updateCondPopup === 'function') updateCondPopup(popup, p.conditions, p.exhaustionLevel);
   });
 }
 
@@ -353,12 +404,15 @@ function applyDamage() {
         p.hp = Math.max(0, p.hp - dmg);
         triggerHpHitAnimation(dmgPopupTarget.index);
         renderPlayers();
+        syncToCombat();
         playSound('hit');
       }
     } else if (dmgPopupTarget.type === 'init') {
       var c = combatants[dmgPopupTarget.index];
       if (c) {
-        dealDamage(null, dmgPopupTarget.index, dmg, 'obrażenia', false);
+        if (typeof dealDamage === 'function') {
+          dealDamage(null, dmgPopupTarget.index, dmg, 'obrażenia', false);
+        }
       }
     }
   }
@@ -380,7 +434,6 @@ function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
     btns += '<button class="cond-popup-btn ' + active + '" data-cond="' + c + '">' + getStateEmoji(c) + ' ' + c + '</button>';
   });
 
-  // Wyczerpanie - suwak lub przyciski
   var exLevel = exhaustionLevel || 0;
   var exBtns = '';
   for (var i = 0; i <= 6; i++) {
@@ -408,7 +461,6 @@ function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
       popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(bb) {
         bb.classList.toggle('active', parseInt(bb.dataset.exhaustion) === level);
       });
-      // Wywołaj callback z poziomem wyczerpania
       onToggle(null, level);
     };
   });
@@ -475,4 +527,4 @@ window.showDamagePopup = showDamagePopup;
 window.applyDamage = applyDamage;
 window.players = players;
 window.renderPlayers = renderPlayers;
-window.POLISH_STATES = POLISH_STATES;
+window.syncToCombat = syncToCombat;

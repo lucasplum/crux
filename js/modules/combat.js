@@ -1,5 +1,5 @@
 // ============================================================
-//  COMBAT - Z PRZENIESIONYM PRZYCISKIEM ATAKU
+//  COMBAT - Z SYNCHRONIZACJĄ DANYCH I NOWYM POPUPEM
 // ============================================================
 
 var combatants = [];
@@ -18,6 +18,41 @@ var combatStats = {
   startTime: null,
   endTime: null
 };
+
+// ====== SYNCHRONIZACJA Z LISTĄ POSTACI ======
+function syncPlayerData() {
+  if (typeof players === 'undefined' || !players) return;
+  
+  combatants.forEach(function(c) {
+    // Znajdź odpowiadającą postać w liście graczy (po nazwie)
+    var player = players.find(function(p) { 
+      return p.name === c.name && p.role === c.role; 
+    });
+    if (player) {
+      // Synchronizuj HP
+      if (player.hp !== c.hp) {
+        player.hp = c.hp;
+      }
+      // Synchronizuj stany
+      if (JSON.stringify(player.conditions) !== JSON.stringify(c.conditions)) {
+        player.conditions = c.conditions.slice();
+      }
+      // Synchronizuj wyczerpanie
+      if (player.exhaustionLevel !== c.exhaustionLevel) {
+        player.exhaustionLevel = c.exhaustionLevel;
+      }
+      // Synchronizuj status śmierci
+      if (player.hp <= 0 && !player.deathSaves) {
+        player.deathSaves = { passes: 0, fails: 0 };
+      }
+    }
+  });
+  
+  // Odśwież listę postaci
+  if (typeof renderPlayers === 'function') {
+    renderPlayers();
+  }
+}
 
 // ====== DODAWANIE BOJOWNIKA ======
 function addCombatant(data) {
@@ -47,6 +82,7 @@ function addCombatant(data) {
     combatStats.startTime = new Date();
   }
   updateCombatStats();
+  syncPlayerData();
 }
 
 // ====== SORTOWANIE INICJATYWY ======
@@ -72,7 +108,7 @@ function removeCombatant(index) {
   }
 }
 
-// ====== OTWÓRZ POPUP DODAWANIA Z BAZY ======
+// ====== OTWÓRZ POPUP DODAWANIA Z BAZY (WIELOKROTNY) ======
 function openAddFromPartyPopup() {
   if (typeof players === 'undefined' || players.length === 0) {
     alert('Dodaj najpierw postacie do "Postaci"!');
@@ -86,32 +122,52 @@ function openAddFromPartyPopup() {
   popup.className = 'popup-overlay';
   popup.id = 'addFromPartyPopup';
   
-  var playerOptions = players.map(function(p, i) {
+  var listItems = players.map(function(p, i) {
     var statusIcon = p.hp <= 0 ? '💀 ' : '';
-    var hpText = p.hp + '/' + p.maxHp + ' HP';
-    return '<option value="' + i + '">' + statusIcon + p.name + ' (' + hpText + ')</option>';
+    var roleClass = p.role ? p.role.toLowerCase() : 'npc';
+    var checked = p.hp > 0 ? 'checked' : '';
+    return `
+      <div class="party-list-item">
+        <input type="checkbox" class="party-checkbox" data-index="${i}" ${checked}>
+        <span class="party-name">${statusIcon}${p.name}</span>
+        <span class="party-hp">❤️ ${p.hp}/${p.maxHp}</span>
+        <span class="party-role ${roleClass}">${p.role || 'NPC'}</span>
+      </div>
+    `;
   }).join('');
 
   popup.innerHTML = `
-    <div class="popup-content">
+    <div class="popup-content" style="max-width:480px;">
       <div class="popup-title">👥 Dodaj z bazy</div>
-      <div class="attack-form">
-        <div class="attack-row">
-          <label>Wybierz postać</label>
-          <select id="partyPlayerSelect">${playerOptions}</select>
-        </div>
-        <div class="attack-row">
-          <label>Inicjatywa</label>
-          <input type="number" id="partyInit" value="0" step="1" />
-        </div>
-        <div class="attack-actions">
-          <button class="btn" onclick="confirmAddFromParty()">✓ Dodaj do potyczki</button>
-          <button class="btn outline" onclick="closeAddFromPartyPopup()">Anuluj</button>
-        </div>
+      <div class="party-select-all">
+        <input type="checkbox" id="partySelectAll" checked>
+        <label for="partySelectAll">Zaznacz wszystkich</label>
+        <span style="flex:1;"></span>
+        <span style="font-size:0.7rem;color:var(--muted);">Tylko żywi będą dodani</span>
+      </div>
+      <div style="max-height:300px;overflow-y:auto;">
+        ${listItems}
+      </div>
+      <div class="party-bulk-init">
+        <label>Inicjatywa:</label>
+        <input type="number" id="partyBulkInit" value="0" step="1" />
+        <span style="flex:1;"></span>
+        <button class="btn" onclick="confirmAddFromPartyBulk()" style="padding:6px 16px;min-height:36px;">✓ Dodaj zaznaczonych</button>
+        <button class="btn outline" onclick="closeAddFromPartyPopup()" style="padding:6px 16px;min-height:36px;">Anuluj</button>
       </div>
     </div>
   `;
   document.body.appendChild(popup);
+
+  // Zaznacz/odznacz wszystkich
+  var selectAll = document.getElementById('partySelectAll');
+  if (selectAll) {
+    selectAll.addEventListener('change', function() {
+      document.querySelectorAll('.party-checkbox').forEach(function(cb) {
+        cb.checked = selectAll.checked;
+      });
+    });
+  }
 }
 
 function closeAddFromPartyPopup() {
@@ -119,31 +175,54 @@ function closeAddFromPartyPopup() {
   if (p) p.remove();
 }
 
-function confirmAddFromParty() {
-  var select = document.getElementById('partyPlayerSelect');
-  var initInput = document.getElementById('partyInit');
-  if (!select || !initInput) return;
+function confirmAddFromPartyBulk() {
+  var checkboxes = document.querySelectorAll('.party-checkbox:checked');
+  var initInput = document.getElementById('partyBulkInit');
+  var initVal = parseInt(initInput ? initInput.value : 0) || 0;
   
-  var idx = parseInt(select.value);
-  var player = players[idx];
-  if (!player) return;
+  if (checkboxes.length === 0) {
+    alert('Zaznacz co najmniej jedną postać!');
+    return;
+  }
   
-  var initVal = parseInt(initInput.value) || 0;
-  
-  addCombatant({
-    name: player.name,
-    init: initVal,
-    hp: player.hp,
-    maxHp: player.maxHp,
-    ac: player.ac,
-    role: player.role,
-    conditions: player.conditions ? player.conditions.slice() : [],
-    exhaustionLevel: player.exhaustionLevel || 0,
-    avatar: player.avatar
+  var added = 0;
+  checkboxes.forEach(function(cb) {
+    var idx = parseInt(cb.dataset.index);
+    var player = players[idx];
+    if (!player) return;
+    if (player.hp <= 0) {
+      // Pomijamy martwych
+      return;
+    }
+    
+    // Sprawdź czy już jest w potyczce
+    var exists = combatants.some(function(c) { 
+      return c.name === player.name && c.role === player.role; 
+    });
+    if (exists) return;
+    
+    addCombatant({
+      name: player.name,
+      init: initVal + Math.floor(Math.random() * 5) - 2, // mała losowość
+      hp: player.hp,
+      maxHp: player.maxHp,
+      ac: player.ac,
+      role: player.role,
+      conditions: player.conditions ? player.conditions.slice() : [],
+      exhaustionLevel: player.exhaustionLevel || 0,
+      avatar: player.avatar
+    });
+    added++;
   });
   
   closeAddFromPartyPopup();
-  playSound('add');
+  if (added > 0) {
+    playSound('add');
+    renderInit();
+    updateCombatStats();
+  } else {
+    alert('Nie dodano żadnej nowej postaci. Sprawdź czy są żywe i czy nie są już w potyczce.');
+  }
 }
 
 // ====== OTWÓRZ MODAL DODAWANIA ======
@@ -239,6 +318,7 @@ function nextTurn() {
   renderInit();
   updateFocusFire();
   updateCombatStats();
+  syncPlayerData();
 }
 
 function processTurnStartEffects(combatant) {
@@ -562,6 +642,8 @@ function executeAttack() {
       container.innerHTML = resultHtml;
       container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    // Synchronizuj po ataku
+    syncPlayerData();
   }
 }
 
@@ -702,6 +784,7 @@ function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
   renderInit();
   updateFocusFire();
   updateCombatStats();
+  syncPlayerData();
 }
 
 // ====== STATYSTYKI ======
@@ -773,6 +856,7 @@ function showInitCondPopup(index) {
         c.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
       }
       renderInit();
+      syncPlayerData();
       var popup = document.getElementById('condPopup');
       if (popup && typeof updateCondPopup === 'function') updateCondPopup(popup, c.conditions, c.exhaustionLevel);
     });
@@ -789,7 +873,7 @@ function renderInit() {
 
   if (combatants.length === 0) {
     var badge = document.getElementById('roundBadge');
-    if (badge) badge.textContent = '';
+    if (badge) badge.textContent = '— Runda 1 —';
     var turnBtns = document.getElementById('turnBtns');
     if (turnBtns) turnBtns.style.display = 'none';
     updateFocusFire();
@@ -826,7 +910,6 @@ function renderInitEntry(div, c, i) {
     }).join('');
   }
   
-  // Wyczerpanie
   var exhaustionTag = '';
   if (c.exhaustionLevel > 0) {
     var exLevel = c.exhaustionLevel > 6 ? 6 : c.exhaustionLevel;
@@ -870,7 +953,7 @@ function renderInitEntry(div, c, i) {
 function updateRoundBadge() {
   var badge = document.getElementById('roundBadge');
   if (badge) {
-    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' —' : '';
+    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' —' : '— Runda 1 —';
   }
 }
 
@@ -908,6 +991,7 @@ function resetInit() {
   renderInit();
   updateFocusFire();
   updateCombatStats();
+  syncPlayerData();
 }
 
 // ====== EKSPORT GLOBALNY ======
@@ -938,9 +1022,10 @@ window.closeAddCombatantModal = closeAddCombatantModal;
 window.confirmAddCombatant = confirmAddCombatant;
 window.openAddFromPartyPopup = openAddFromPartyPopup;
 window.closeAddFromPartyPopup = closeAddFromPartyPopup;
-window.confirmAddFromParty = confirmAddFromParty;
+window.confirmAddFromPartyBulk = confirmAddFromPartyBulk;
 window.showInitDmg = showInitDmg;
 window.showInitCondPopup = showInitCondPopup;
 window.openTimerPopup = openTimerPopup;
 window.closeTimerPopup = closeTimerPopup;
 window.addTimerToCombatant = addTimerToCombatant;
+window.syncPlayerData = syncPlayerData;

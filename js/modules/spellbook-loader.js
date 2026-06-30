@@ -1,5 +1,5 @@
 // ============================================================
-//  SPELLBOOK LOADER - BEZ KOLOROWYCH RAMEK, WIĘKSZE FONTY
+//  SPELLBOOK LOADER - Z KOLOROWYMI RAMKAMI WOKÓŁ ZAKLĘCIA
 // ============================================================
 
 var spellCache = {};
@@ -18,14 +18,14 @@ var SCHOOL_MAP = {
 };
 
 var SCHOOL_COLORS = {
-  'Wywoływanie': { bg: 'rgba(255,107,53,0.15)', border: '#ff6b35', text: '#ff6b35' },
-  'Przywoływanie': { bg: 'rgba(107,255,158,0.15)', border: '#6bff9e', text: '#6bff9e' },
-  'Wieszczenie': { bg: 'rgba(107,184,255,0.15)', border: '#6bb8ff', text: '#6bb8ff' },
-  'Nekromancja': { bg: 'rgba(184,74,143,0.15)', border: '#b84a8f', text: '#b84a8f' },
-  'Uroki': { bg: 'rgba(255,107,196,0.15)', border: '#ff6bc4', text: '#ff6bc4' },
-  'Iluzje': { bg: 'rgba(168,124,255,0.15)', border: '#a87cff', text: '#a87cff' },
-  'Odpychanie': { bg: 'rgba(212,168,67,0.15)', border: '#d4a843', text: '#d4a843' },
-  'Przemiany': { bg: 'rgba(74,192,176,0.15)', border: '#4ac0b0', text: '#4ac0b0' }
+  'Wywoływanie': { bg: 'rgba(255,107,53,0.12)', border: '#ff6b35', text: '#ff6b35', glow: 'rgba(255,107,53,0.08)' },
+  'Przywoływanie': { bg: 'rgba(107,255,158,0.12)', border: '#6bff9e', text: '#6bff9e', glow: 'rgba(107,255,158,0.08)' },
+  'Wieszczenie': { bg: 'rgba(107,184,255,0.12)', border: '#6bb8ff', text: '#6bb8ff', glow: 'rgba(107,184,255,0.08)' },
+  'Nekromancja': { bg: 'rgba(184,74,143,0.12)', border: '#b84a8f', text: '#b84a8f', glow: 'rgba(184,74,143,0.08)' },
+  'Uroki': { bg: 'rgba(255,107,196,0.12)', border: '#ff6bc4', text: '#ff6bc4', glow: 'rgba(255,107,196,0.08)' },
+  'Iluzje': { bg: 'rgba(168,124,255,0.12)', border: '#a87cff', text: '#a87cff', glow: 'rgba(168,124,255,0.08)' },
+  'Odpychanie': { bg: 'rgba(212,168,67,0.12)', border: '#d4a843', text: '#d4a843', glow: 'rgba(212,168,67,0.08)' },
+  'Przemiany': { bg: 'rgba(74,192,176,0.12)', border: '#4ac0b0', text: '#4ac0b0', glow: 'rgba(74,192,176,0.08)' }
 };
 
 var SCHOOL_REVERSE = {};
@@ -137,10 +137,13 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
 
     filtered.forEach(function(spell) {
       var div = document.createElement('div');
-      div.className = 'spellbook-item';
-      
       var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
-      var color = SCHOOL_COLORS[schoolDisplay] || { bg: 'rgba(255,255,255,0.05)', border: 'var(--border)', text: 'var(--muted)' };
+      var color = SCHOOL_COLORS[schoolDisplay] || { bg: 'rgba(255,255,255,0.05)', border: 'var(--border)', text: 'var(--muted)', glow: 'transparent' };
+      
+      div.className = 'spellbook-item';
+      div.dataset.school = spell.school;
+      div.style.borderColor = color.border;
+      div.style.boxShadow = '0 0 30px ' + color.glow + ', 0 2px 10px rgba(0,0,0,0.2)';
       
       var levelText = spell.level === 0 ? 'Cantrip' : 'Lvl ' + spell.level;
       

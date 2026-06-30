@@ -178,15 +178,18 @@
       <div class="combat-header-btns">
         <button class="btn outline" onclick="openAddCombatantModal()" title="Dodaj bojownika">➕ Dodaj</button>
         <button class="btn outline" onclick="openAddFromPartyPopup()" title="Dodaj z listy postaci">👥 Z bazy</button>
-        <button class="btn outline" onclick="openAttackPopup()" title="Atak">⚔️ Atak</button>
       </div>
     </div>
+    
+    <!-- Runda na górze, bardziej widoczna -->
+    <div class="round-badge" id="roundBadge">— Runda 1 —</div>
+    
     <div id="combatStats" class="combat-stats"></div>
     <div class="init-list" id="initList"></div>
-    <div class="round-badge" id="roundBadge"></div>
 
     <div class="turn-btn" id="turnBtns" style="display:none;">
       <button class="btn" onclick="nextTurn()">▶ Następna tura</button>
+      <button class="btn" onclick="openAttackPopup()" title="Atak z wyborem celu">⚔️ Atak</button>
       <button class="btn outline" onclick="openDice()" title="Rzut kośćmi">🎲 Kości</button>
       <button class="btn outline" onclick="openTimerPopup()" title="Efekty czasowe">⏱️ Timer</button>
       <button class="btn danger" onclick="resetInit()" title="Wyczyść potyczkę">✕ Reset</button>
