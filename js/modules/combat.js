@@ -732,6 +732,168 @@ function resetInit() {
   updateCombatStats();
 }
 
+// ============================================================
+//  COMBAT - DODATKOWE FUNKCJE DO POPUPÓW
+//  (DODAJ NA KONIEC PLIKU combat.js)
+// ============================================================
+
+// ====== DODAWANIE Z DRUŻYNY (popup) ======
+function addFromParty() {
+  if (typeof players === 'undefined' || players.length === 0) {
+    alert('Dodaj najpierw postacie do "Postaci"!');
+    return;
+  }
+
+  var existing = document.getElementById('partySelectPopup');
+  if (existing) existing.remove();
+
+  var popup = document.createElement('div');
+  popup.className = 'popup-overlay';
+  popup.id = 'partySelectPopup';
+
+  var options = players.map(function(p, i) {
+    var status = p.hp <= 0 ? '💀 ' : '';
+    return '<option value="' + i + '">' + status + p.name + ' (' + p.role + ') HP: ' + p.hp + '/' + p.maxHp + '</option>';
+  }).join('');
+
+  popup.innerHTML = `
+    <div class="popup-content">
+      <div class="popup-title">👥 Dodaj z drużyny</div>
+      <div class="attack-row">
+        <label>Wybierz postać</label>
+        <select id="partyMemberSelect">${options}</select>
+      </div>
+      <div class="attack-row">
+        <label>Inicjatywa</label>
+        <input type="number" id="partyInitValue" value="0" step="1" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="confirmAddFromParty()">✓ Dodaj</button>
+        <button class="btn outline" onclick="closePartySelectPopup()">Anuluj</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function closePartySelectPopup() {
+  var p = document.getElementById('partySelectPopup');
+  if (p) p.remove();
+}
+
+function confirmAddFromParty() {
+  var select = document.getElementById('partyMemberSelect');
+  var initInput = document.getElementById('partyInitValue');
+  if (!select || !initInput) return;
+
+  var index = parseInt(select.value);
+  var initVal = parseInt(initInput.value) || 0;
+  var player = players[index];
+  if (!player) return;
+
+  addCombatant({
+    name: player.name,
+    init: initVal,
+    hp: player.hp,
+    maxHp: player.maxHp,
+    ac: player.ac,
+    role: player.role,
+    conditions: player.conditions ? player.conditions.slice() : [],
+    avatar: player.avatar
+  });
+
+  closePartySelectPopup();
+  playSound('add');
+}
+
+// ====== OTWÓRZ POPUP ATAKU ======
+function openAttackPopup() {
+  if (combatants.length === 0) {
+    alert('Brak bojowników w potyczce!');
+    return;
+  }
+
+  var existing = document.getElementById('attackPopup');
+  if (existing) existing.remove();
+
+  var popup = document.createElement('div');
+  popup.className = 'popup-overlay';
+  popup.id = 'attackPopup';
+
+  var targetOptions = combatants.map(function(c, i) {
+    var statusIcon = c.status === 'dead' ? '💀 ' : '';
+    var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
+    var condText = c.conditions && c.conditions.length > 0 ? ' ⚡' + c.conditions.length : '';
+    var effectsText = c.effects && c.effects.length > 0 ? ' 🕐' + c.effects.length : '';
+    return '<option value="' + i + '" ' + (c.status === 'dead' ? 'disabled' : '') + '>' + statusIcon + c.name + ' (' + hpText + ')' + condText + effectsText + '</option>';
+  }).join('');
+
+  popup.innerHTML = `
+    <div class="popup-content attack-popup-content">
+      <div class="popup-title">⚔️ Atak</div>
+      <div class="attack-form">
+        <div class="attack-row">
+          <label>Atakujący</label>
+          <select id="attackerSelect">${targetOptions}</select>
+        </div>
+        <div class="attack-row">
+          <label>Cel</label>
+          <select id="targetSelect">${targetOptions}</select>
+        </div>
+        <div class="attack-row">
+          <label>Bonus do trafienia</label>
+          <input type="number" id="attackBonus" value="0" step="1" />
+        </div>
+        <div class="attack-row">
+          <label>Kości obrażeń (np. 2d6+3)</label>
+          <input type="text" id="damageDice" placeholder="np. 2d6+3" value="1d8" />
+        </div>
+        <div class="attack-row">
+          <label>Typ obrażeń</label>
+          <select id="damageType">
+            <option value="obuchowe">⚡ Obuchowe</option>
+            <option value="cięte">🗡️ Cięte</option>
+            <option value="kłute">🏹 Kłute</option>
+            <option value="ogniste">🔥 Ogniste</option>
+            <option value="zimne">❄️ Zimne</option>
+            <option value="elektryczne">⚡ Elektryczne</option>
+            <option value="trucizna">☠️ Trucizna</option>
+            <option value="nekrotyczne">💀 Nekrotyczne</option>
+            <option value="kwas">🧪 Kwas</option>
+            <option value="psychiczne">🧠 Psychiczne</option>
+            <option value="promieniowanie">☀️ Promieniowanie</option>
+            <option value="grzmot">🔊 Grzmot</option>
+          </select>
+        </div>
+        <div class="attack-check">
+          <input type="checkbox" id="attackAdvantage" />
+          <label for="attackAdvantage">⚡ Przewaga</label>
+          <input type="checkbox" id="attackDisadvantage" />
+          <label for="attackDisadvantage">🌑 Utrudnienie</label>
+        </div>
+        <div class="attack-actions">
+          <button class="btn" onclick="executeAttack()">⚔️ Rzuć atak</button>
+          <button class="btn outline" onclick="closeAttackPopup()">Anuluj</button>
+        </div>
+        <div id="attackResultContainer"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function closeAttackPopup() {
+  var p = document.getElementById('attackPopup');
+  if (p) p.remove();
+}
+
+// ====== EKSPORT ======
+window.addFromParty = addFromParty;
+window.confirmAddFromParty = confirmAddFromParty;
+window.closePartySelectPopup = closePartySelectPopup;
+window.openAttackPopup = openAttackPopup;
+window.closeAttackPopup = closeAttackPopup;
+
 // ====== EKSPORT GLOBALNY ======
 window.combatants = combatants;
 window.currentTurn = currentTurn;

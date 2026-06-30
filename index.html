@@ -33,11 +33,10 @@
   <!-- ===== NAWIGACJA ===== -->
   <nav class="top-nav">
     <button class="nav-btn active" data-tab="tools">🏠 Narzędzia</button>
-    <button class="nav-btn" data-tab="spells">🎨 Zaklęcia</button>
+    <button class="nav-btn" data-tab="spells">📐 Obszary</button>
     <button class="nav-btn" data-tab="players">👥 Postacie</button>
     <button class="nav-btn" data-tab="combat">⚔️ Potyczka</button>
     <button class="nav-btn" data-tab="info">📖 Info</button>
-    <button class="nav-btn" data-tab="spellbook">📖 Księga</button>
   </nav>
 
   <!-- ===== TAB: NARZĘDZIA ===== -->
@@ -88,35 +87,11 @@
     </div>
   </section>
 
-  <!-- ===== TAB: ZAKLĘCIA ===== -->
+  <!-- ===== TAB: OBSZARY ===== -->
   <section class="tab-section" data-tab="spells">
     <div class="card">
-      <div class="card-title">🔮 Obszary zaklęć</div>
-      <div class="spell-controls">
-        <div class="ctrl-group">
-          <label>Poziom</label>
-          <select id="spellLevel">
-            <option value="all">Wszystkie</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          </select>
-        </div>
-        <div class="ctrl-group">
-          <label>Szkoła</label>
-          <select id="spellSchool">
-            <option value="all">Wszystkie</option>
-            <option value="Ewokacja">🔥 Ewokacja</option>
-            <option value="Nekromancja">💀 Nekromancja</option>
-            <option value="Oczarowanie">✨ Oczarowanie</option>
-            <option value="Ochrona">🛡️ Ochrona</option>
-            <option value="Czarowanie">🔮 Czarowanie</option>
-            <option value="Iluzja">🎭 Iluzja</option>
-            <option value="Przyzywanie">📯 Przyzywanie</option>
-          </select>
-        </div>
-      </div>
-      <input type="text" class="spell-search" id="spellSearch" placeholder="🔍 Szukaj zaklęcia...">
+      <div class="card-title">📐 Obszary zaklęć</div>
+      <input type="text" class="spell-search" id="spellSearch" placeholder="🔍 Szukaj obszaru...">
       <div class="spell-list" id="spellList"></div>
 
       <div class="spell-controls">
@@ -201,7 +176,6 @@
           <button class="btn outline" onclick="openAttackPopup()" title="Atak z wyborem celu">⚔️ Atak</button>
         </div>
       </div>
-      <!-- W sekcji combat, przed init-list -->
       <div id="combatStats" class="combat-stats"></div>
       <div class="init-list" id="initList"></div>
       <div class="round-badge" id="roundBadge"></div>
@@ -211,7 +185,6 @@
         <button class="btn outline" onclick="openDice()" title="Rzut kośćmi">🎲 Kości</button>
         <button class="btn outline" onclick="openTimers()" title="Efekty czasowe">⏱️ Timery</button>
         <button class="btn danger" onclick="resetInit()" title="Wyczyść potyczkę">✕ Reset</button>
-        <button class="btn outline" onclick="openAttackPopup()" title="Atak z wyborem celu">⚔️ Atak</button>
       </div>
 
       <div class="focus-fire">
@@ -326,44 +299,13 @@
     </div>
   </section>
 
-  <!-- ===== TAB: KSIĘGA ZAKLĘĆ ===== -->
-<section class="tab-section" data-tab="spellbook">
-  <div class="card">
-    <div class="card-title">📖 Księga zaklęć</div>
-    <div class="spellbook-controls">
-      <input type="text" class="spell-search" id="spellbookSearch" placeholder="🔍 Szukaj zaklęcia...">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-        <select id="spellbookLevel">
-          <option value="all">Wszystkie poziomy</option>
-          <option value="0">Cantrip</option>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-        </select>
-        <select id="spellbookSchool">
-          <option value="all">Wszystkie szkoły</option>
-          <option value="Ewokacja">🔥 Ewokacja</option>
-          <option value="Nekromancja">💀 Nekromancja</option>
-          <option value="Oczarowanie">✨ Oczarowanie</option>
-          <option value="Ochrona">🛡️ Ochrona</option>
-          <option value="Czarowanie">🔮 Czarowanie</option>
-          <option value="Iluzja">🎭 Iluzja</option>
-          <option value="Przyzywanie">📯 Przyzywanie</option>
-        </select>
-      </div>
-    </div>
-    <div class="spellbook-list" id="spellbookList"></div>
-  </div>
-</section>
-
   <!-- ===== BOTTOM NAV ===== -->
   <nav class="bottom-nav">
     <button class="bottom-nav-btn active" data-tab="tools"><span class="bottom-nav-icon">🏠</span><span class="bottom-nav-label">Narzędzia</span></button>
-    <button class="bottom-nav-btn" data-tab="spells"><span class="bottom-nav-icon">🎨</span><span class="bottom-nav-label">Zaklęcia</span></button>
+    <button class="bottom-nav-btn" data-tab="spells"><span class="bottom-nav-icon">📐</span><span class="bottom-nav-label">Obszary</span></button>
     <button class="bottom-nav-btn" data-tab="players"><span class="bottom-nav-icon">👥</span><span class="bottom-nav-label">Postacie</span></button>
     <button class="bottom-nav-btn" data-tab="combat"><span class="bottom-nav-icon">⚔️</span><span class="bottom-nav-label">Potyczka</span></button>
     <button class="bottom-nav-btn" data-tab="info"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Info</span></button>
-    <button class="bottom-nav-btn" data-tab="spellbook"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Księga</span></button>
   </nav>
 </div>
 
@@ -474,9 +416,6 @@
   </div>
 </div>
 
-
-<!-- Skrypty -->
-<!-- W head - skrypty (kolejność ma znaczenie) -->
 <script src="js/config/data.js"></script>
 <script src="js/core/navigation.js"></script>
 <script src="js/core/audio.js"></script>
@@ -494,7 +433,6 @@
 <script src="js/modules/info.js"></script>
 <script src="js/ui/canvas.js"></script>
 <script src="js/ui/render.js"></script>
-<script src="js/modules/spellbook-loader.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // ============================================================
-//  SPELLS
+//  SPELLS - OBSZARY ZAKLĘĆ (tylko wyszukiwanie)
 // ============================================================
 
 var selectedSpell = null;
@@ -7,8 +7,8 @@ var selectedSpell = null;
 var spellCanvas = document.getElementById('spellCanvas');
 var pctx = spellCanvas ? spellCanvas.getContext('2d') : null;
 
-// ---- LISTA ZAKLĘĆ ----
-var SPELLS = [
+// ---- LISTA OBSZARÓW ZAKLĘĆ ----
+var AREA_TEMPLATES = [
   { name: 'Kula Ognia (Fireball)', shape: 'sphere', size: 20, desc: '🔥 8k6, promień 20 ft', school: 'Ewokacja', level: 3 },
   { name: 'Kula Lodu (Ice Storm)', shape: 'sphere', size: 20, desc: '❄️ 8k6, promień 20 ft', school: 'Ewokacja', level: 3 },
   { name: 'Meteor (Meteor Swarm)', shape: 'sphere', size: 40, desc: '☄️ 20k6, promień 40 ft', school: 'Ewokacja', level: 9 },
@@ -30,49 +30,36 @@ var SPELLS = [
   { name: 'Tarcza Światła (Sunburst)', shape: 'sphere', size: 15, desc: '✨ Oślepia, promień 15 ft', school: 'Ewokacja', level: 2 },
 ];
 
-// ====== RENDER LISTY ZAKLĘĆ ======
-function renderSpellList(filter, levelFilter, schoolFilter) {
+// ====== RENDER LISTY OBSZARÓW (tylko wyszukiwanie) ======
+function renderAreaList(filter) {
   filter = filter || '';
-  levelFilter = levelFilter || 'all';
-  schoolFilter = schoolFilter || 'all';
 
   var container = document.getElementById('spellList');
   if (!container) return;
   container.innerHTML = '';
 
-  var filtered = SPELLS.filter(function(s) {
+  var filtered = AREA_TEMPLATES.filter(function(s) {
     return s.name.toLowerCase().includes(filter.toLowerCase()) ||
            s.desc.toLowerCase().includes(filter.toLowerCase());
   });
 
-  if (levelFilter !== 'all') {
-    filtered = filtered.filter(function(s) { return s.level === parseInt(levelFilter); });
-  }
-  if (schoolFilter !== 'all') {
-    filtered = filtered.filter(function(s) { return s.school === schoolFilter; });
-  }
-
   if (filtered.length === 0) {
-    container.innerHTML = '<span style="font-size:.6rem;color:var(--muted);">Brak zaklęć</span>';
+    container.innerHTML = '<span style="font-size:.6rem;color:var(--muted);">Brak obszarów</span>';
     return;
   }
 
-  filtered.forEach(function(spell) {
+  filtered.forEach(function(area) {
     var tag = document.createElement('span');
-    tag.className = 'spell-tag' + (selectedSpell === spell ? ' selected' : '');
-    tag.textContent = spell.name + ' (Lvl ' + spell.level + ')';
-    tag.title = spell.desc + ' | ' + spell.school;
+    tag.className = 'spell-tag' + (selectedSpell === area ? ' selected' : '');
+    tag.textContent = area.name + ' (Lvl ' + area.level + ')';
+    tag.title = area.desc + ' | ' + area.school;
     tag.onclick = function() {
-      selectedSpell = spell;
+      selectedSpell = area;
       var shapeSelect = document.getElementById('shape');
       var sizeSelect = document.getElementById('spellSize');
-      if (shapeSelect) shapeSelect.value = spell.shape;
-      if (sizeSelect) sizeSelect.value = spell.size;
-      renderSpellList(
-        document.getElementById('spellSearch') ? document.getElementById('spellSearch').value : '',
-        document.getElementById('spellLevel') ? document.getElementById('spellLevel').value : 'all',
-        document.getElementById('spellSchool') ? document.getElementById('spellSchool').value : 'all'
-      );
+      if (shapeSelect) shapeSelect.value = area.shape;
+      if (sizeSelect) sizeSelect.value = area.size;
+      renderAreaList(document.getElementById('spellSearch') ? document.getElementById('spellSearch').value : '');
       renderSpellCanvas();
       playSound('add');
     };
@@ -80,7 +67,7 @@ function renderSpellList(filter, levelFilter, schoolFilter) {
   });
 }
 
-// ====== RENDER CANVAS ZAKLĘĆ ======
+// ====== RENDER CANVAS ======
 function renderSpellCanvas() {
   var container = document.getElementById('spellCanvasContainer');
   if (!container || container.offsetWidth === 0 || !spellCanvas || !pctx) return;
@@ -100,15 +87,14 @@ function renderSpellCanvas() {
   var canvasW = dims.width;
   var canvasH = dims.height;
 
-  // Ustawiamy canvas na stałe wymiary - NIE ZMIENIAMY STYLE.width/height przy każdym renderowaniu
   var displayW = Math.round(canvasW);
   var displayH = Math.round(canvasH);
-  
+
   if (spellCanvas.style.width !== displayW + 'px' || spellCanvas.style.height !== displayH + 'px') {
     spellCanvas.style.width = displayW + 'px';
     spellCanvas.style.height = displayH + 'px';
   }
-  
+
   spellCanvas.width = Math.round(canvasW * state.zoom * dpr);
   spellCanvas.height = Math.round(canvasH * state.zoom * dpr);
 
@@ -116,6 +102,8 @@ function renderSpellCanvas() {
   pctx.scale(dpr * state.zoom, dpr * state.zoom);
 
   var w = canvasW, h = canvasH;
+
+  // Czyszczenie z uwzględnieniem przesunięcia
   pctx.clearRect(
     -state.panX / state.zoom - 50,
     -state.panY / state.zoom - 50,
@@ -131,8 +119,15 @@ function renderSpellCanvas() {
   var baseR = isMobile() ? 12 : 14;
   var R = baseR;
   var HexW = R * 1.73205;
+
+  // L - ograniczenie do widocznego obszaru
   var L = Math.min(radiusHexes * HexW, Math.min(w, h) / 2 - 10);
-  var O = { x: w / 2 + state.panX / state.zoom, y: h / 2 + state.panY / state.zoom };
+
+  // Punkt centralny - uwzględniamy przesunięcie
+  var O = {
+    x: w / 2 + state.panX / state.zoom,
+    y: h / 2 + state.panY / state.zoom
+  };
 
   var showDir = shape === 'cone' || shape === 'line' || shape === 'cube';
   var dirParent = document.getElementById('direction') ? document.getElementById('direction').parentElement : null;
@@ -197,7 +192,9 @@ function renderSpellCanvas() {
     for (var rr = -12; rr <= 12; rr++) {
       var cx = O.x + HexW * (q + rr * 0.5);
       var cy = O.y + 1.5 * R * rr;
-      if (cx < -hexR || cx > w + hexR || cy < -hexR || cy > h + hexR) continue;
+
+      // Sprawdzanie czy hex jest w widocznym obszarze
+      if (cx < -hexR - 20 || cx > w + hexR + 20 || cy < -hexR - 20 || cy > h + hexR + 20) continue;
 
       var active = false;
       pctx.save();
@@ -255,29 +252,16 @@ if (showCount) showCount.addEventListener('change', renderSpellCanvas);
 
 // ====== INICJALIZACJA ======
 var searchInput = document.getElementById('spellSearch');
-var levelSelect = document.getElementById('spellLevel');
-var schoolSelect = document.getElementById('spellSchool');
 
 if (searchInput) {
   searchInput.addEventListener('input', function() {
-    renderSpellList(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all');
-  });
-}
-if (levelSelect) {
-  levelSelect.addEventListener('change', function() {
-    renderSpellList(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all');
-  });
-}
-if (schoolSelect) {
-  schoolSelect.addEventListener('change', function() {
-    renderSpellList(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value);
+    renderAreaList(this.value);
   });
 }
 
 // Render initial
-renderSpellList();
+renderAreaList();
 
 // ====== EKSPORT GLOBALNY ======
-window.renderSpellList = renderSpellList;
+window.renderAreaList = renderAreaList;
 window.renderSpellCanvas = renderSpellCanvas;
-window.SPELLS = SPELLS;
