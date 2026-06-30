@@ -1,5 +1,5 @@
 // ============================================================
-//  PLAYERS - Z SYNCHRONIZACJĄ Z POTYCZKĄ
+//  PLAYERS - Z KRÓTKIM I DŁUGIM ODPOCZYNKEM
 // ============================================================
 
 var players = [];
@@ -13,27 +13,20 @@ function syncToCombat() {
   if (typeof combatants === 'undefined' || !combatants) return;
   
   players.forEach(function(p) {
-    // Znajdź odpowiadającego bojownika w potyczce
     var combatant = combatants.find(function(c) { 
       return c.name === p.name && c.role === p.role; 
     });
     if (combatant) {
-      // Synchronizuj HP z potyczki do postaci
-      if (combatant.hp !== p.hp) {
-        p.hp = combatant.hp;
-      }
-      // Synchronizuj stany
+      if (combatant.hp !== p.hp) p.hp = combatant.hp;
       if (JSON.stringify(combatant.conditions) !== JSON.stringify(p.conditions)) {
         p.conditions = combatant.conditions.slice();
       }
-      // Synchronizuj wyczerpanie
       if (combatant.exhaustionLevel !== p.exhaustionLevel) {
         p.exhaustionLevel = combatant.exhaustionLevel;
       }
     }
   });
   
-  // Odśwież listę postaci
   renderPlayers();
 }
 
@@ -212,8 +205,9 @@ function renderPlayers() {
       <button class="${stateBtnClass}" onclick="event.stopPropagation();showPlayerCondPopup(${i})">${stateBtnText}</button>
       
       <div class="p-controls">
-        <button class="primary" onclick="event.stopPropagation();showPlayerDmg(${i})">⚔️ DMG</button>
         <button class="primary" onclick="event.stopPropagation();addPlayerToInitiative(${i})">⚡ Do walki</button>
+        <button class="success" onclick="event.stopPropagation();shortRestPlayer(${i})">☕ Krótki</button>
+        <button class="success" onclick="event.stopPropagation();longRestPlayer(${i})">🛏️ Długi</button>
         ${isDead ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : ''}
         <button class="danger" onclick="event.stopPropagation();removePlayer(${i})">✕ Usuń</button>
       </div>
@@ -227,10 +221,73 @@ function getRoleBadge(role) {
   return 'p-role-badge ' + (map[role] || 'npc');
 }
 
+// ====== KRÓTKI ODPOCZYNEK ======
+function shortRestPlayer(index) {
+  var p = players[index];
+  if (!p) return;
+  
+  var healAmount = Math.ceil(p.maxHp / 4);
+  var newHp = Math.min(p.maxHp, p.hp + healAmount);
+  var exhaustionReduction = p.exhaustionLevel > 0 ? 1 : 0;
+  
+  var msg = '☕ Krótki odpoczynek dla ' + p.name + '\n\n';
+  msg += '• Leczenie: +' + healAmount + ' HP (' + p.hp + ' → ' + newHp + ')\n';
+  msg += '• Wyczerpanie: -' + exhaustionReduction + ' poziom' + (exhaustionReduction > 0 ? ' (' + p.exhaustionLevel + ' → ' + (p.exhaustionLevel - 1) + ')' : ' (brak)');
+  
+  if (!confirm(msg)) return;
+  
+  p.hp = newHp;
+  p.exhaustionLevel = Math.max(0, p.exhaustionLevel - exhaustionReduction);
+  
+  syncPlayerAfterRest(p);
+  renderPlayers();
+  playSound('add');
+}
+
+// ====== DŁUGI ODPOCZYNEK ======
+function longRestPlayer(index) {
+  var p = players[index];
+  if (!p) return;
+  
+  if (p.hp >= p.maxHp && p.conditions.length === 0 && p.exhaustionLevel === 0) {
+    alert(p.name + ' jest już w pełni wypoczęty!');
+    return;
+  }
+  
+  if (!confirm('🛏️ Długi odpoczynek dla ' + p.name + '?\n\n• Przywraca pełne HP (' + p.maxHp + ')\n• Usuwa wszystkie stany\n• Resetuje wyczerpanie\n• Resetuje Death Saves')) return;
+  
+  p.hp = p.maxHp;
+  p.conditions = [];
+  p.exhaustionLevel = 0;
+  p.deathSaves = { passes: 0, fails: 0 };
+  
+  syncPlayerAfterRest(p);
+  renderPlayers();
+  playSound('add');
+}
+
+// ====== SYNCHRONIZACJA PO ODPOCZYNKU ======
+function syncPlayerAfterRest(player) {
+  if (typeof combatants === 'undefined') return;
+  
+  var combatant = combatants.find(function(c) { 
+    return c.name === player.name && c.role === player.role; 
+  });
+  if (combatant) {
+    combatant.hp = player.hp;
+    combatant.conditions = player.conditions.slice();
+    combatant.exhaustionLevel = player.exhaustionLevel;
+    if (player.hp > 0) {
+      combatant.status = 'active';
+    }
+    if (typeof renderInit === 'function') renderInit();
+    if (typeof updateCombatStats === 'function') updateCombatStats();
+  }
+}
+
 // ====== AKCJE ======
 function removePlayer(index) {
   if (confirm('Usunąć ' + players[index]?.name + '?')) {
-    // Usuń również z potyczki
     if (typeof combatants !== 'undefined') {
       var idx = combatants.findIndex(function(c) { 
         return c.name === players[index].name && c.role === players[index].role; 
@@ -276,7 +333,6 @@ function addPlayerToInitiative(index) {
   var p = players[index];
   if (!p) return;
   
-  // Sprawdź czy już jest w potyczce
   if (typeof combatants !== 'undefined') {
     var exists = combatants.some(function(c) { 
       return c.name === p.name && c.role === p.role; 
@@ -303,11 +359,6 @@ function addPlayerToInitiative(index) {
     });
   }
   playSound('add');
-}
-
-function showPlayerDmg(index) {
-  dmgPopupTarget = { type: 'player', index: index };
-  showDamagePopup(players[index] ? players[index].name : 'Postać');
 }
 
 function showPlayerCondPopup(index) {
@@ -518,7 +569,6 @@ window.confirmAddPlayer = confirmAddPlayer;
 window.removePlayer = removePlayer;
 window.deathSave = deathSave;
 window.addPlayerToInitiative = addPlayerToInitiative;
-window.showPlayerDmg = showPlayerDmg;
 window.showPlayerCondPopup = showPlayerCondPopup;
 window.closeDmgPopup = closeDmgPopup;
 window.closeCondPopup = closeCondPopup;
@@ -528,3 +578,6 @@ window.applyDamage = applyDamage;
 window.players = players;
 window.renderPlayers = renderPlayers;
 window.syncToCombat = syncToCombat;
+window.shortRestPlayer = shortRestPlayer;
+window.longRestPlayer = longRestPlayer;
+window.syncPlayerAfterRest = syncPlayerAfterRest;

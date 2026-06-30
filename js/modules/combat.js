@@ -290,7 +290,6 @@ function nextTurn() {
   var oldTurn = currentTurn;
   currentTurn = (currentTurn + 1) % combatants.length;
   
-  // Sprawdź czy to nowa runda (currentTurn wróciło do 0)
   var isNewRound = currentTurn === 0;
   
   if (isNewRound) {
@@ -309,10 +308,8 @@ function nextTurn() {
     addTurnLog('⚔️', '🔄 Rozpoczęcie rundy ' + round);
     playSound('turn');
     
-    // TYLKO przy nowej rundzie - animacja fali
     animateRoundChange();
   } else {
-    // Zwykła zmiana tury - tylko dźwięk
     playSound('turn');
   }
   
@@ -360,10 +357,8 @@ function animateRoundChange() {
   entries.forEach(function(el, i) {
     setTimeout(function() {
       el.classList.remove('round-change', 'round-change-current');
-      // Wymuś reflow
       void el.offsetWidth;
       
-      // Aktualny bojownik (pierwszy w nowej rundzie) dostaje specjalną animację
       var currentEntry = document.querySelector('.init-entry.current');
       if (currentEntry && el === currentEntry) {
         el.classList.add('round-change-current');
@@ -924,7 +919,6 @@ function renderInit() {
   combatants.forEach(function(c, i) {
     var div = document.createElement('div');
     div.className = 'init-entry' + (i === currentTurn ? ' current' : '') + (c.status === 'dead' ? ' dead' : '');
-    // slide-in tylko przy pierwszym dodaniu (nie przy każdym odświeżeniu)
     if (i === combatants.length - 1 && lastInitCount !== combatants.length) {
       div.classList.add('slide-in');
     }
@@ -989,21 +983,23 @@ function renderInitEntry(div, c, i) {
   `;
 }
 
-// ====== UPDATE ROUND BADGE Z ANIMACJĄ ======
+// ====== UPDATE ROUND BADGE ======
 function updateRoundBadge() {
   var badge = document.getElementById('roundBadge');
-  if (badge) {
-    var oldHtml = badge.innerHTML;
-    var newHtml = combatants.length > 0 
-      ? '— Runda <span class="round-number">' + round + '</span> —' 
-      : '— Runda 1 —';
-    
-    badge.innerHTML = newHtml;
-    
-    // Animacja tylko jeśli zmieniła się runda (i to nie pierwszy raz)
-    if (oldHtml !== newHtml && round > 1) {
-      animateRoundNumber();
-    }
+  if (!badge) return;
+  
+  var newHtml = combatants.length > 0 
+    ? '— Runda <span class="round-number">' + round + '</span> —' 
+    : '— Runda 1 —';
+  
+  var oldRound = badge.dataset.round || '1';
+  var isNewRound = parseInt(oldRound) !== round;
+  
+  badge.innerHTML = newHtml;
+  badge.dataset.round = round;
+  
+  if (isNewRound && round > 1) {
+    animateRoundNumber();
   }
 }
 

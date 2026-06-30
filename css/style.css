@@ -2152,3 +2152,178 @@ header p.subtitle .highlight {
     font-size: var(--font-lg) !important;
   }
 }
+/* ===== MONSTER TARGET POPUP ===== */
+#monsterTargetPopup .popup-content {
+  text-align: center;
+}
+
+#monsterTargetPopup .btn {
+  min-height: 44px;
+  font-size: var(--font-md);
+}
+/* ===== MONSTER - WIĘKSZE FONTY I TAGI ===== */
+.monster-card {
+  padding: 18px 20px;
+}
+
+.monster-card .m-name {
+  font-size: var(--font-lg);
+  font-weight: 700;
+}
+
+.monster-card .m-type {
+  font-size: var(--font-sm);
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.monster-card .m-stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: var(--font-sm);
+  margin: 8px 0;
+}
+
+.monster-card .m-stats span {
+  background: rgba(255,255,255,.05);
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.monster-card .m-desc {
+  font-size: var(--font-sm);
+  color: var(--muted);
+  margin-top: 8px;
+  line-height: 1.6;
+}
+
+.monster-card .m-actions .m-action {
+  font-size: var(--font-sm);
+  color: var(--text);
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+.monster-card .m-actions .m-action strong {
+  color: var(--accent2);
+  font-size: var(--font-sm);
+}
+
+.monster-card .m-add-btn {
+  margin-top: 12px;
+  padding: 10px;
+  font-size: var(--font-sm);
+  font-weight: 600;
+}
+
+.monster-card .m-cr {
+  font-size: var(--font-sm);
+  padding: 4px 14px;
+}
+
+/* ===== MONSTER DETAIL - WIĘKSZE NA TELEFONIE ===== */
+@media (max-width: 768px) {
+  .monster-card .m-name {
+    font-size: var(--font-lg);
+  }
+  
+  .monster-card .m-stats {
+    font-size: var(--font-sm);
+    gap: 6px;
+  }
+  
+  .monster-card .m-stats span {
+    padding: 3px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .monster-card .m-desc {
+    font-size: var(--font-sm);
+  }
+  
+  .monster-card .m-actions .m-action {
+    font-size: var(--font-sm);
+  }
+  
+  .monster-detail-content .m-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .monster-detail-content .m-stat-item .value {
+    font-size: var(--font-md);
+  }
+  
+  .monster-detail-content .m-attr-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  
+  .monster-detail-content .m-attr-item .value {
+    font-size: var(--font-sm);
+  }
+  
+  .monster-detail-content .m-action-item .action-name {
+    font-size: var(--font-sm);
+  }
+  
+  .monster-detail-content .m-action-item .action-desc {
+    font-size: var(--font-sm);
+  }
+  
+  .monster-detail-content .m-tag {
+    font-size: 0.7rem;
+    padding: 4px 12px;
+  }
+  
+  .monster-detail-content .m-desc-text {
+    font-size: var(--font-sm);
+  }
+}
+
+/* ===== MONSTER DETAIL - OGÓLNE ===== */
+.monster-detail-content .m-cr-badge {
+  font-size: var(--font-md);
+  padding: 6px 16px;
+}
+
+.monster-detail-content .m-stat-item .label {
+  font-size: 0.6rem;
+}
+
+.monster-detail-content .m-stat-item .value {
+  font-size: var(--font-md);
+  font-weight: 700;
+}
+
+.monster-detail-content .m-attr-item .label {
+  font-size: 0.55rem;
+}
+
+.monster-detail-content .m-attr-item .value {
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.monster-detail-content .m-action-item {
+  padding: 10px 14px;
+}
+
+.monster-detail-content .m-action-item .action-name {
+  font-size: var(--font-sm);
+}
+
+.monster-detail-content .m-action-item .action-desc {
+  font-size: var(--font-sm);
+}
+
+.monster-detail-content .m-tag {
+  font-size: 0.7rem;
+  padding: 4px 12px;
+}
+
+.monster-detail-content .m-desc-text {
+  font-size: var(--font-sm);
+}

@@ -1,5 +1,5 @@
 // ============================================================
-//  SPELLBOOK LOADER - KOLOROWA NAZWA CZARU
+//  SPELLBOOK LOADER - Z SORTOWANIEM I POPRAWIONYMI SZKOŁAMI
 // ============================================================
 
 var spellCache = {};
@@ -12,8 +12,8 @@ var SCHOOL_MAP = {
   'wieszczenie': 'Wieszczenie',
   'nekromancja': 'Nekromancja',
   'uroki': 'Uroki',
-  'iluzje': 'Iluzje',
-  'odpychanie': 'Odpychanie',
+  'iluzje': 'Iluzja',
+  'odpychanie': 'Ochrona',
   'przemiany': 'Przemiany'
 };
 
@@ -23,8 +23,8 @@ var SCHOOL_COLORS = {
   'Wieszczenie': { bg: 'rgba(107,184,255,0.12)', border: '#6bb8ff', text: '#6bb8ff', glow: 'rgba(107,184,255,0.08)' },
   'Nekromancja': { bg: 'rgba(184,74,143,0.12)', border: '#b84a8f', text: '#b84a8f', glow: 'rgba(184,74,143,0.08)' },
   'Uroki': { bg: 'rgba(255,107,196,0.12)', border: '#ff6bc4', text: '#ff6bc4', glow: 'rgba(255,107,196,0.08)' },
-  'Iluzje': { bg: 'rgba(168,124,255,0.12)', border: '#a87cff', text: '#a87cff', glow: 'rgba(168,124,255,0.08)' },
-  'Odpychanie': { bg: 'rgba(212,168,67,0.12)', border: '#d4a843', text: '#d4a843', glow: 'rgba(212,168,67,0.08)' },
+  'Iluzja': { bg: 'rgba(168,124,255,0.12)', border: '#a87cff', text: '#a87cff', glow: 'rgba(168,124,255,0.08)' },
+  'Ochrona': { bg: 'rgba(212,168,67,0.12)', border: '#d4a843', text: '#d4a843', glow: 'rgba(212,168,67,0.08)' },
   'Przemiany': { bg: 'rgba(74,192,176,0.12)', border: '#4ac0b0', text: '#4ac0b0', glow: 'rgba(74,192,176,0.08)' }
 };
 
@@ -105,12 +105,13 @@ function filterSpells(level, school, classFilter, callback) {
   });
 }
 
-// ====== RENDER LISTY ZAKLĘĆ ======
-function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
+// ====== RENDER LISTY ZAKLĘĆ Z SORTOWANIEM ======
+function renderSpellbook(filter, levelFilter, schoolFilter, classFilter, sortBy) {
   filter = filter || '';
   levelFilter = levelFilter || 'all';
   schoolFilter = schoolFilter || 'all';
   classFilter = classFilter || 'all';
+  sortBy = sortBy || 'level';
 
   var container = document.getElementById('spellbookList');
   if (!container) return;
@@ -125,6 +126,17 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
                s.name_en.toLowerCase().includes(filter.toLowerCase()) ||
                s.desc_pl.toLowerCase().includes(filter.toLowerCase()) ||
                s.desc_en.toLowerCase().includes(filter.toLowerCase());
+      });
+    }
+
+    if (sortBy === 'level') {
+      filtered.sort(function(a, b) {
+        if (a.level !== b.level) return a.level - b.level;
+        return a.name_pl.localeCompare(b.name_pl);
+      });
+    } else if (sortBy === 'name') {
+      filtered.sort(function(a, b) {
+        return a.name_pl.localeCompare(b.name_pl);
       });
     }
 
@@ -189,53 +201,39 @@ document.addEventListener('DOMContentLoaded', function() {
   var levelSelect = document.getElementById('spellbookLevel');
   var schoolSelect = document.getElementById('spellbookSchool');
   var classSelect = document.getElementById('spellbookClass');
+  var sortSelect = document.getElementById('spellbookSort');
 
-  if (!classSelect) {
-    var controls = document.querySelector('.spellbook-controls');
-    if (controls) {
-      var classDiv = document.createElement('div');
-      classDiv.style.cssText = 'margin-top:8px;';
-      classDiv.innerHTML = `
-        <select id="spellbookClass" style="width:100%;padding:10px;background:var(--card3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:Inter,sans-serif;font-size:var(--font-sm);min-height:44px;">
-          <option value="all">Wszystkie klasy</option>
-          <option value="Czarodziej">🧙 Czarodziej</option>
-          <option value="Czarownik">🔥 Czarownik</option>
-          <option value="Mag">📖 Mag</option>
-          <option value="Kapłan">⛪ Kapłan</option>
-          <option value="Druid">🌿 Druid</option>
-          <option value="Bard">🎵 Bard</option>
-          <option value="Paladyn">⚔️ Paladyn</option>
-          <option value="Łowca">🏹 Łowca</option>
-          <option value="Łotrzyk">🗡️ Łotrzyk</option>
-        </select>
-      `;
-      controls.appendChild(classDiv);
-    }
-    classSelect = document.getElementById('spellbookClass');
+  function getSortValue() {
+    return sortSelect ? sortSelect.value : 'level';
   }
 
   if (searchInput) {
     searchInput.addEventListener('input', function() {
-      renderSpellbook(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all');
+      renderSpellbook(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all', getSortValue());
     });
   }
   if (levelSelect) {
     levelSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all');
+      renderSpellbook(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all', getSortValue());
     });
   }
   if (schoolSelect) {
     schoolSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value, classSelect ? classSelect.value : 'all');
+      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value, classSelect ? classSelect.value : 'all', getSortValue());
     });
   }
   if (classSelect) {
     classSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', this.value);
+      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', this.value, getSortValue());
+    });
+  }
+  if (sortSelect) {
+    sortSelect.addEventListener('change', function() {
+      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', classSelect ? classSelect.value : 'all', this.value);
     });
   }
 
-  renderSpellbook();
+  renderSpellbook('', 'all', 'all', 'all', 'level');
 });
 
 window.renderSpellbook = renderSpellbook;

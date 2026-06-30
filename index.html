@@ -15,215 +15,214 @@
 
 <div class="app">
   <!-- ===== HEADER ===== -->
-<header>
-  <div class="raven-stage">
-    <div class="raven-orbit"></div>
-    <div class="raven-orbit orbit-2"></div>
-    <div class="raven-glow"></div>
-    <div class="raven-feather f1"></div>
-    <div class="raven-feather f2"></div>
-    <div class="raven-feather f3"></div>
-    <div class="raven">🐦‍⬛</div>
-  </div>
-  <h1>CRUX Toolkit</h1>
-  <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY</span></p>
-  <div class="hex-deco"><span></span><span></span><span></span></div>
-</header>
+  <header>
+    <div class="raven-stage">
+      <div class="raven-orbit"></div>
+      <div class="raven-orbit orbit-2"></div>
+      <div class="raven-glow"></div>
+      <div class="raven-feather f1"></div>
+      <div class="raven-feather f2"></div>
+      <div class="raven-feather f3"></div>
+      <div class="raven">🐦‍⬛</div>
+    </div>
+    <h1>CRUX Toolkit</h1>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY</span></p>
+    <div class="hex-deco"><span></span><span></span><span></span></div>
+  </header>
 
   <!-- ===== NAWIGACJA ===== -->
-<nav class="top-nav">
-  <button class="nav-btn active" data-tab="tools">🧮 Kalkulatory</button>
-  <button class="nav-btn" data-tab="spells">🎨 Obszary</button>
-  <button class="nav-btn" data-tab="players">👥 Postacie</button>
-  <button class="nav-btn" data-tab="combat">⚔️ Potyczka</button>
-  <button class="nav-btn" data-tab="monsters">🐉 Potwory</button>
-  <button class="nav-btn" data-tab="info">📖 Info</button>
-  <button class="nav-btn" data-tab="spellbook">📖 Księga</button>
-</nav>
+  <nav class="top-nav">
+    <button class="nav-btn active" data-tab="tools">🧮 Kalkulatory</button>
+    <button class="nav-btn" data-tab="spells">🎨 Obszary</button>
+    <button class="nav-btn" data-tab="players">👥 Postacie</button>
+    <button class="nav-btn" data-tab="combat">⚔️ Potyczka</button>
+    <button class="nav-btn" data-tab="monsters">🐉 Potwory</button>
+    <button class="nav-btn" data-tab="info">📖 Info</button>
+    <button class="nav-btn" data-tab="spellbook">📖 Księga</button>
+  </nav>
 
-<!-- ===== TAB: KALKULATORY ===== -->
-<section class="tab-section active" data-tab="tools">
-  <div class="card">
-    <div class="card-title">📏 Przelicznik odległości</div>
-    <div class="converter">
-      <div class="field"><label>Stopy (ft)</label><input type="number" id="feet" placeholder="0"></div>
-      <div class="field"><label>Metry (m)</label><input type="number" id="meters" placeholder="0"></div>
-      <div class="field"><label>Hexy</label><input type="number" id="hexes" placeholder="0"></div>
-    </div>
-    <div class="conv-note">1 hex = 5 ft = 1.5 m</div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🗺️ Tabela odległości</div>
-    <div class="tabs">
-      <button class="active" data-unit="ft">Stopy</button>
-      <button data-unit="m">Metry</button>
-      <button data-unit="hex">Hexy</button>
-    </div>
-    <div class="dist-grid" id="distanceGrid"></div>
-    <div class="dist-result" id="distanceResult">
-      <div class="unit"><div class="val">0</div><div class="lbl">stóp</div></div>
-      <div class="sep"></div>
-      <div class="unit"><div class="val">0.0</div><div class="lbl">metrów</div></div>
-      <div class="sep"></div>
-      <div class="unit"><div class="val">0</div><div class="lbl">hexów</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== TAB: OBSZARY ===== -->
-<section class="tab-section" data-tab="spells">
-  <div class="card">
-    <div class="card-title">🔮 Obszary</div>
-    <input type="text" class="spell-search" id="spellSearch" placeholder="🔍 Szukaj zaklęcia... (np. Kula Ognia)" autocomplete="off">
-    <div id="spellSuggestions" class="spell-suggestions"></div>
-
-    <div class="spell-controls">
-      <div class="ctrl-group">
-        <label>Kształt</label>
-        <select id="shape">
-          <option value="sphere">● Sfera</option>
-          <option value="cone">▲ Stożek</option>
-          <option value="line">━ Linia</option>
-          <option value="cube">■ Sześcian</option>
-        </select>
+  <!-- ===== TAB: KALKULATORY ===== -->
+  <section class="tab-section active" data-tab="tools">
+    <div class="card">
+      <div class="card-title">📏 Przelicznik odległości</div>
+      <div class="converter">
+        <div class="field"><label>Stopy (ft)</label><input type="number" id="feet" placeholder="0"></div>
+        <div class="field"><label>Metry (m)</label><input type="number" id="meters" placeholder="0"></div>
+        <div class="field"><label>Hexy</label><input type="number" id="hexes" placeholder="0"></div>
       </div>
-      <div class="ctrl-group">
-        <label>Zasięg (ft)</label>
-        <select id="spellSize">
-          <option value="5">5</option><option value="10">10</option><option value="15">15</option>
-          <option value="20" selected>20</option><option value="30">30</option><option value="60">60</option>
-          <option value="90">90</option><option value="120">120</option>
-        </select>
-      </div>
-    </div>
-    <div class="spell-controls">
-      <div class="ctrl-group">
-        <label>Kierunek</label>
-        <select id="direction">
-          <option value="0">0° (↑)</option><option value="1">30° (↗)</option><option value="2">60° (↗)</option>
-          <option value="3">90° (→)</option><option value="4">120° (↘)</option><option value="5">150° (↘)</option>
-          <option value="6">180° (↓)</option><option value="7">210° (↙)</option><option value="8">240° (↙)</option>
-          <option value="9">270° (←)</option><option value="10">300° (↖)</option><option value="11">330° (↖)</option>
-        </select>
-      </div>
-      <div class="ctrl-group" id="originRow" style="display:none;">
-        <label>Punkt startowy</label>
-        <select id="cubeOrigin">
-          <option value="center">Środek</option>
-          <option value="edge">Krawędź</option>
-          <option value="corner_l">Lewy róg</option>
-          <option value="corner_r">Prawy róg</option>
-        </select>
-      </div>
-    </div>
-    <div class="facing-row">
-      <label class="toggle-label">Pokaż hexcount</label>
-      <label class="toggle"><input type="checkbox" id="showCount" checked><span class="toggle-slider"></span></label>
-    </div>
-    <div class="canvas-wrapper">
-      <div class="canvas-controls">
-        <button class="canvas-ctrl-btn" onclick="zoomCanvas('spell',-1)">−</button>
-        <span class="canvas-zoom-level" id="spellZoomLevel">100%</span>
-        <button class="canvas-ctrl-btn" onclick="zoomCanvas('spell',1)">+</button>
-        <button class="canvas-ctrl-btn" onclick="resetCanvas('spell')">↺</button>
-      </div>
-      <div class="canvas-container" id="spellCanvasContainer"><canvas id="spellCanvas"></canvas></div>
-    </div>
-  </div>
-
-  <!-- Rozmiar stworzeń przeniesiony tutaj -->
-  <div class="card">
-    <div class="card-title">🐉 Rozmiar stworzeń</div>
-    <div class="size-grid">
-      <button class="size-btn active" data-size="sm">Mały<span>Small</span></button>
-      <button class="size-btn" data-size="med">Średni<span>Medium</span></button>
-      <button class="size-btn" data-size="lg">Duży<span>Large</span></button>
-      <button class="size-btn" data-size="huge">Ogromny<span>Huge</span></button>
-      <button class="size-btn" data-size="garg">Gargantuiczny<span>Gargantuan</span></button>
-      <button class="size-btn" data-size="col">Kolosalny<span>Colossal</span></button>
-    </div>
-    <div class="size-info" id="sizeInfo">1 × 1 hex · Mały (Small)</div>
-    <div class="canvas-wrapper">
-      <div class="canvas-controls">
-        <button class="canvas-ctrl-btn" onclick="zoomCanvas('size',-1)">−</button>
-        <span class="canvas-zoom-level" id="sizeZoomLevel">100%</span>
-        <button class="canvas-ctrl-btn" onclick="zoomCanvas('size',1)">+</button>
-        <button class="canvas-ctrl-btn" onclick="resetCanvas('size')">↺</button>
-      </div>
-      <div class="canvas-container" id="sizeCanvasContainer"><canvas id="sizeCanvas"></canvas></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== TAB: POSTACIE ===== -->
-<section class="tab-section" data-tab="players">
-  <div class="card players-card">
-    <div class="card-header-row">
-      <div class="card-title">👥 Postacie</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn add-player-btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
-        <button class="btn outline" onclick="exportState()" title="Eksport danych">📤 Eksport</button>
-        <button class="btn outline" onclick="importState()" title="Import danych">📥 Import</button>
-      </div>
-    </div>
-    <div class="player-grid" id="playerTracker"></div>
-  </div>
-</section>
-
-<!-- ===== TAB: POTYCZKA ===== -->
-<section class="tab-section" data-tab="combat">
-  <div class="card combat-card">
-    <div class="card-header-row">
-      <div class="card-title">⚔️ Potyczka</div>
-      <div class="combat-header-btns">
-        <button class="btn outline" onclick="openAddCombatantModal()" title="Dodaj bojownika">➕ Dodaj</button>
-        <button class="btn outline" onclick="openAddFromPartyPopup()" title="Dodaj z listy postaci">👥 Z bazy</button>
-      </div>
-    </div>
-    
-    <!-- Runda na górze, bardziej widoczna -->
-    <div class="round-badge" id="roundBadge">— Runda 1 —</div>
-    
-    <div id="combatStats" class="combat-stats"></div>
-    <div class="init-list" id="initList"></div>
-
-    <div class="turn-btn" id="turnBtns" style="display:none;">
-      <button class="btn" onclick="nextTurn()">▶ Następna tura</button>
-      <button class="btn" onclick="openAttackPopup()" title="Atak z wyborem celu">⚔️ Atak</button>
-      <button class="btn outline" onclick="openDice()" title="Rzut kośćmi">🎲 Kości</button>
-      <button class="btn outline" onclick="openTimerPopup()" title="Efekty czasowe">⏱️ Timer</button>
-      <button class="btn danger" onclick="resetInit()" title="Wyczyść potyczkę">✕ Reset</button>
+      <div class="conv-note">1 hex = 5 ft = 1.5 m</div>
     </div>
 
-    <div class="focus-fire">
-      <div class="ff-header">
-        <div class="ff-title">🎯 Przebieg rundy</div>
-        <span class="ff-reset" onclick="resetFocusFire()" title="Wyczyść log rundy">✕ Wyczyść</span>
+    <div class="card">
+      <div class="card-title">🗺️ Tabela odległości</div>
+      <div class="tabs">
+        <button class="active" data-unit="ft">Stopy</button>
+        <button data-unit="m">Metry</button>
+        <button data-unit="hex">Hexy</button>
       </div>
-      <div id="focusFireList">
-        <div style="color:var(--muted);font-size:.6rem;text-align:center;padding:3px;">Brak akcji w tej rundzie</div>
+      <div class="dist-grid" id="distanceGrid"></div>
+      <div class="dist-result" id="distanceResult">
+        <div class="unit"><div class="val">0</div><div class="lbl">stóp</div></div>
+        <div class="sep"></div>
+        <div class="unit"><div class="val">0.0</div><div class="lbl">metrów</div></div>
+        <div class="sep"></div>
+        <div class="unit"><div class="val">0</div><div class="lbl">hexów</div></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== TAB: POTWORY ===== -->
-<section class="tab-section" data-tab="monsters">
-  <div class="card">
-    <div class="card-header-row">
-      <div class="card-title">🐉 Bestiariusz (CR 6-8)</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn outline" onclick="filterMonsters('all')" id="filterAll">Wszystkie</button>
-        <button class="btn outline" onclick="filterMonsters(6)" id="filter6">CR 6</button>
-        <button class="btn outline" onclick="filterMonsters(7)" id="filter7">CR 7</button>
-        <button class="btn outline" onclick="filterMonsters(8)" id="filter8">CR 8</button>
+  <!-- ===== TAB: OBSZARY ===== -->
+  <section class="tab-section" data-tab="spells">
+    <div class="card">
+      <div class="card-title">🔮 Obszary</div>
+      <input type="text" class="spell-search" id="spellSearch" placeholder="🔍 Szukaj zaklęcia... (np. Kula Ognia)" autocomplete="off">
+      <div id="spellSuggestions" class="spell-suggestions"></div>
+
+      <div class="spell-controls">
+        <div class="ctrl-group">
+          <label>Kształt</label>
+          <select id="shape">
+            <option value="sphere">● Sfera</option>
+            <option value="cone">▲ Stożek</option>
+            <option value="line">━ Linia</option>
+            <option value="cube">■ Sześcian</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label>Zasięg (ft)</label>
+          <select id="spellSize">
+            <option value="5">5</option><option value="10">10</option><option value="15">15</option>
+            <option value="20" selected>20</option><option value="30">30</option><option value="60">60</option>
+            <option value="90">90</option><option value="120">120</option>
+          </select>
+        </div>
+      </div>
+      <div class="spell-controls">
+        <div class="ctrl-group">
+          <label>Kierunek</label>
+          <select id="direction">
+            <option value="0">0° (↑)</option><option value="1">30° (↗)</option><option value="2">60° (↗)</option>
+            <option value="3">90° (→)</option><option value="4">120° (↘)</option><option value="5">150° (↘)</option>
+            <option value="6">180° (↓)</option><option value="7">210° (↙)</option><option value="8">240° (↙)</option>
+            <option value="9">270° (←)</option><option value="10">300° (↖)</option><option value="11">330° (↖)</option>
+          </select>
+        </div>
+        <div class="ctrl-group" id="originRow" style="display:none;">
+          <label>Punkt startowy</label>
+          <select id="cubeOrigin">
+            <option value="center">Środek</option>
+            <option value="edge">Krawędź</option>
+            <option value="corner_l">Lewy róg</option>
+            <option value="corner_r">Prawy róg</option>
+          </select>
+        </div>
+      </div>
+      <div class="facing-row">
+        <label class="toggle-label">Pokaż hexcount</label>
+        <label class="toggle"><input type="checkbox" id="showCount" checked><span class="toggle-slider"></span></label>
+      </div>
+      <div class="canvas-wrapper">
+        <div class="canvas-controls">
+          <button class="canvas-ctrl-btn" onclick="zoomCanvas('spell',-1)">−</button>
+          <span class="canvas-zoom-level" id="spellZoomLevel">100%</span>
+          <button class="canvas-ctrl-btn" onclick="zoomCanvas('spell',1)">+</button>
+          <button class="canvas-ctrl-btn" onclick="resetCanvas('spell')">↺</button>
+        </div>
+        <div class="canvas-container" id="spellCanvasContainer"><canvas id="spellCanvas"></canvas></div>
       </div>
     </div>
-    <input type="text" class="spell-search" id="monsterSearch" placeholder="🔍 Szukaj potwora...">
-    <div class="monster-grid" id="monsterGrid"></div>
-  </div>
-</section>
+
+    <!-- Rozmiar stworzeń -->
+    <div class="card">
+      <div class="card-title">🐉 Rozmiar stworzeń</div>
+      <div class="size-grid">
+        <button class="size-btn active" data-size="sm">Mały<span>Small</span></button>
+        <button class="size-btn" data-size="med">Średni<span>Medium</span></button>
+        <button class="size-btn" data-size="lg">Duży<span>Large</span></button>
+        <button class="size-btn" data-size="huge">Ogromny<span>Huge</span></button>
+        <button class="size-btn" data-size="garg">Gargantuiczny<span>Gargantuan</span></button>
+        <button class="size-btn" data-size="col">Kolosalny<span>Colossal</span></button>
+      </div>
+      <div class="size-info" id="sizeInfo">1 × 1 hex · Mały (Small)</div>
+      <div class="canvas-wrapper">
+        <div class="canvas-controls">
+          <button class="canvas-ctrl-btn" onclick="zoomCanvas('size',-1)">−</button>
+          <span class="canvas-zoom-level" id="sizeZoomLevel">100%</span>
+          <button class="canvas-ctrl-btn" onclick="zoomCanvas('size',1)">+</button>
+          <button class="canvas-ctrl-btn" onclick="resetCanvas('size')">↺</button>
+        </div>
+        <div class="canvas-container" id="sizeCanvasContainer"><canvas id="sizeCanvas"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: POSTACIE ===== -->
+  <section class="tab-section" data-tab="players">
+    <div class="card players-card">
+      <div class="card-header-row">
+        <div class="card-title">👥 Postacie</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn add-player-btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
+          <button class="btn outline" onclick="exportState()" title="Eksport danych">📤 Eksport</button>
+          <button class="btn outline" onclick="importState()" title="Import danych">📥 Import</button>
+        </div>
+      </div>
+      <div class="player-grid" id="playerTracker"></div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: POTYCZKA ===== -->
+  <section class="tab-section" data-tab="combat">
+    <div class="card combat-card">
+      <div class="card-header-row">
+        <div class="card-title">⚔️ Potyczka</div>
+        <div class="combat-header-btns">
+          <button class="btn outline" onclick="openAddCombatantModal()" title="Dodaj bojownika">➕ Dodaj</button>
+          <button class="btn outline" onclick="openAddFromPartyPopup()" title="Dodaj z listy postaci">👥 Z bazy</button>
+        </div>
+      </div>
+      
+      <div class="round-badge" id="roundBadge">— Runda 1 —</div>
+      
+      <div id="combatStats" class="combat-stats"></div>
+      <div class="init-list" id="initList"></div>
+
+      <div class="turn-btn" id="turnBtns" style="display:none;">
+        <button class="btn" onclick="nextTurn()">▶ Następna tura</button>
+        <button class="btn" onclick="openAttackPopup()" title="Atak z wyborem celu">⚔️ Atak</button>
+        <button class="btn outline" onclick="openDice()" title="Rzut kośćmi">🎲 Kości</button>
+        <button class="btn outline" onclick="openTimerPopup()" title="Efekty czasowe">⏱️ Timer</button>
+        <button class="btn danger" onclick="resetInit()" title="Wyczyść potyczkę">✕ Reset</button>
+      </div>
+
+      <div class="focus-fire">
+        <div class="ff-header">
+          <div class="ff-title">🎯 Przebieg rundy</div>
+          <span class="ff-reset" onclick="resetFocusFire()" title="Wyczyść log rundy">✕ Wyczyść</span>
+        </div>
+        <div id="focusFireList">
+          <div style="color:var(--muted);font-size:.6rem;text-align:center;padding:3px;">Brak akcji w tej rundzie</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TAB: POTWORY ===== -->
+  <section class="tab-section" data-tab="monsters">
+    <div class="card">
+      <div class="card-header-row">
+        <div class="card-title">🐉 Bestiariusz (CR 6-8)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn outline" onclick="filterMonsters('all')" id="filterAll">Wszystkie</button>
+          <button class="btn outline" onclick="filterMonsters(6)" id="filter6">CR 6</button>
+          <button class="btn outline" onclick="filterMonsters(7)" id="filter7">CR 7</button>
+          <button class="btn outline" onclick="filterMonsters(8)" id="filter8">CR 8</button>
+        </div>
+      </div>
+      <input type="text" class="spell-search" id="monsterSearch" placeholder="🔍 Szukaj potwora...">
+      <div class="monster-grid" id="monsterGrid"></div>
+    </div>
+  </section>
 
   <!-- ===== TAB: INFO ===== -->
   <section class="tab-section" data-tab="info">
@@ -326,45 +325,64 @@
   </section>
 
   <!-- ===== TAB: KSIĘGA ZAKLĘĆ ===== -->
-<section class="tab-section" data-tab="spellbook">
-  <div class="card">
-    <div class="card-title">📖 Księga zaklęć</div>
-    <div class="spellbook-controls">
-      <input type="text" class="spell-search" id="spellbookSearch" placeholder="🔍 Szukaj zaklęcia...">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-        <select id="spellbookLevel">
-          <option value="all">Wszystkie poziomy</option>
-          <option value="0">Cantrip</option>
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-        </select>
-        <select id="spellbookSchool">
-          <option value="all">Wszystkie szkoły</option>
-          <option value="Ewokacja">🔥 Ewokacja</option>
-          <option value="Nekromancja">💀 Nekromancja</option>
-          <option value="Oczarowanie">✨ Oczarowanie</option>
-          <option value="Ochrona">🛡️ Ochrona</option>
-          <option value="Czarowanie">🔮 Czarowanie</option>
-          <option value="Iluzja">🎭 Iluzja</option>
-          <option value="Przyzywanie">📯 Przyzywanie</option>
-        </select>
+  <section class="tab-section" data-tab="spellbook">
+    <div class="card">
+      <div class="card-title">📖 Księga zaklęć</div>
+      <div class="spellbook-controls">
+        <input type="text" class="spell-search" id="spellbookSearch" placeholder="🔍 Szukaj zaklęcia...">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <select id="spellbookLevel">
+            <option value="all">Wszystkie poziomy</option>
+            <option value="0">Cantrip</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          </select>
+          <select id="spellbookSchool">
+            <option value="all">Wszystkie szkoły</option>
+            <option value="Wywoływanie">🔥 Wywoływanie</option>
+            <option value="Przywoływanie">📯 Przywoływanie</option>
+            <option value="Wieszczenie">🔮 Wieszczenie</option>
+            <option value="Nekromancja">💀 Nekromancja</option>
+            <option value="Uroki">✨ Uroki</option>
+            <option value="Iluzja">🎭 Iluzja</option>
+            <option value="Ochrona">🛡️ Ochrona</option>
+            <option value="Przemiany">🌀 Przemiany</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <select id="spellbookClass">
+            <option value="all">Wszystkie klasy</option>
+            <option value="Czarodziej">🧙 Czarodziej</option>
+            <option value="Czarownik">🔥 Czarownik</option>
+            <option value="Mag">📖 Mag</option>
+            <option value="Kapłan">⛪ Kapłan</option>
+            <option value="Druid">🌿 Druid</option>
+            <option value="Bard">🎵 Bard</option>
+            <option value="Paladyn">⚔️ Paladyn</option>
+            <option value="Łowca">🏹 Łowca</option>
+            <option value="Łotrzyk">🗡️ Łotrzyk</option>
+          </select>
+          <select id="spellbookSort">
+            <option value="level">📊 Sortuj: Poziom → Alfabetycznie</option>
+            <option value="name">🔤 Sortuj: Alfabetycznie</option>
+          </select>
+        </div>
       </div>
+      <div class="spellbook-list" id="spellbookList"></div>
     </div>
-    <div class="spellbook-list" id="spellbookList"></div>
-  </div>
-</section>
+  </section>
 
   <!-- ===== BOTTOM NAV ===== -->
-<nav class="bottom-nav">
-  <button class="bottom-nav-btn active" data-tab="tools"><span class="bottom-nav-icon">🧮</span><span class="bottom-nav-label">Kalkulatory</span></button>
-  <button class="bottom-nav-btn" data-tab="spells"><span class="bottom-nav-icon">🎨</span><span class="bottom-nav-label">Obszary</span></button>
-  <button class="bottom-nav-btn" data-tab="players"><span class="bottom-nav-icon">👥</span><span class="bottom-nav-label">Postacie</span></button>
-  <button class="bottom-nav-btn" data-tab="combat"><span class="bottom-nav-icon">⚔️</span><span class="bottom-nav-label">Potyczka</span></button>
-  <button class="bottom-nav-btn" data-tab="monsters"><span class="bottom-nav-icon">🐉</span><span class="bottom-nav-label">Potwory</span></button>
-  <button class="bottom-nav-btn" data-tab="info"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Info</span></button>
-  <button class="bottom-nav-btn" data-tab="spellbook"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Księga</span></button>
-</nav>
+  <nav class="bottom-nav">
+    <button class="bottom-nav-btn active" data-tab="tools"><span class="bottom-nav-icon">🧮</span><span class="bottom-nav-label">Kalkulatory</span></button>
+    <button class="bottom-nav-btn" data-tab="spells"><span class="bottom-nav-icon">🎨</span><span class="bottom-nav-label">Obszary</span></button>
+    <button class="bottom-nav-btn" data-tab="players"><span class="bottom-nav-icon">👥</span><span class="bottom-nav-label">Postacie</span></button>
+    <button class="bottom-nav-btn" data-tab="combat"><span class="bottom-nav-icon">⚔️</span><span class="bottom-nav-label">Potyczka</span></button>
+    <button class="bottom-nav-btn" data-tab="monsters"><span class="bottom-nav-icon">🐉</span><span class="bottom-nav-label">Potwory</span></button>
+    <button class="bottom-nav-btn" data-tab="info"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Info</span></button>
+    <button class="bottom-nav-btn" data-tab="spellbook"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Księga</span></button>
+  </nav>
 </div>
 
 <!-- ===== MODAL: DODAWANIE POSTACI ===== -->
@@ -474,8 +492,7 @@
   </div>
 </div>
 
-
-<!-- ===== MONSTER DETAIL MODAL ===== -->
+<!-- ===== MODAL: SZCZEGÓŁY POTWORA ===== -->
 <div class="popup-overlay" id="monsterDetailPopup" style="display:none;">
   <div class="popup-content monster-detail-content">
     <div class="popup-title" id="monsterDetailName">🐉 Potwór</div>
@@ -484,6 +501,19 @@
       <button class="btn" onclick="addMonsterDetailToCombat()">⚔️ Dodaj do potyczki</button>
       <button class="btn outline" onclick="addMonsterDetailAsCompanion()">🐾 Dodaj jako kompana</button>
       <button class="btn outline" onclick="closeMonsterDetail()">✕ Zamknij</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== POPUP: WYBÓR CELU DLA POTWORA ===== -->
+<div class="popup-overlay" id="monsterTargetPopup" style="display:none;">
+  <div class="popup-content" style="max-width:400px;">
+    <div class="popup-title">🐉 Dodaj potwora</div>
+    <div id="monsterTargetName" style="font-size:var(--font-md);color:var(--text);margin-bottom:12px;"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn" onclick="confirmMonsterTarget('combat')" style="width:100%;">⚔️ Do potyczki (wróg)</button>
+      <button class="btn outline" onclick="confirmMonsterTarget('players')" style="width:100%;">👥 Do postaci (NPC)</button>
+      <button class="btn outline" onclick="closeMonsterTargetPopup()" style="width:100%;">✕ Anuluj</button>
     </div>
   </div>
 </div>

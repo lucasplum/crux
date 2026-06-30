@@ -1,13 +1,14 @@
 // ============================================================
-//  MONSTERS - PEŁNE STATYSTYKI, KARTA NA CAŁY EKRAN
+//  MONSTERS - BESTIARIUSZ CR 6-8 Z POPUPEM WYBORU CELU
 // ============================================================
 
 var monstersData = [];
 var currentMonsterFilter = 'all';
 var monsterSearchQuery = '';
 var selectedMonster = null;
+var pendingMonster = null;
 
-// ====== BESTIE CR 6-8 Z PEŁNYMI STATYSTYKAMI ======
+// ====== BESTIE CR 6-8 ======
 var MONSTERS = [
   // ===== CR 6 =====
   {
@@ -19,7 +20,7 @@ var MONSTERS = [
     speed: '30 ft, latanie 60 ft',
     stats: { str: 19, dex: 12, con: 18, int: 3, wis: 14, cha: 10 },
     saves: { dex: 4, con: 7, wis: 5 },
-    skills: { percep: 6 },
+    skills: { percepcja: 6 },
     resistances: ['ogień', 'kwas', 'zimno', 'elektryczność'],
     immunities: ['strach'],
     languages: ['rozumie Draconic, nie mówi'],
@@ -61,7 +62,7 @@ var MONSTERS = [
     speed: '20 ft',
     stats: { str: 16, dex: 10, con: 16, int: 12, wis: 18, cha: 14 },
     saves: { wis: 7, cha: 5 },
-    skills: { rel: 6, hist: 4 },
+    skills: { religia: 6, historia: 4 },
     resistances: ['ogień', 'zimno'],
     immunities: ['trucizna', 'strach', 'czary'],
     languages: ['rozumie Common, mówi Common'],
@@ -342,6 +343,132 @@ var MONSTERS = [
   }
 ];
 
+// ====== OTWÓRZ POPUP WYBORU CELU ======
+function openMonsterTargetPopup(monster) {
+  pendingMonster = monster;
+  var popup = document.getElementById('monsterTargetPopup');
+  var nameEl = document.getElementById('monsterTargetName');
+  if (popup && nameEl) {
+    nameEl.textContent = '🐉 ' + monster.name + ' (CR ' + monster.cr + ')\n' + monster.type;
+    popup.style.display = 'flex';
+  }
+}
+
+function closeMonsterTargetPopup() {
+  var popup = document.getElementById('monsterTargetPopup');
+  if (popup) popup.style.display = 'none';
+  pendingMonster = null;
+}
+
+function confirmMonsterTarget(target) {
+  if (!pendingMonster) return;
+  
+  var monster = pendingMonster;
+  var name = monster.name;
+  var cr = monster.cr;
+  var hp = monster.hp;
+  var ac = monster.ac;
+  var type = monster.type;
+  
+  if (target === 'combat') {
+    if (typeof addCombatant !== 'function') {
+      alert('Moduł potyczki nie jest dostępny!');
+      closeMonsterTargetPopup();
+      return;
+    }
+    var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(cr / 2);
+    addCombatant({
+      name: name,
+      init: initVal,
+      hp: hp,
+      maxHp: hp,
+      ac: ac,
+      role: 'Wróg',
+      avatar: '🐉',
+      conditions: [],
+      exhaustionLevel: 0
+    });
+    playSound('add');
+    closeMonsterTargetPopup();
+    var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
+    if (combatTab) combatTab.click();
+  } else if (target === 'players') {
+    if (typeof players === 'undefined') {
+      alert('Lista postaci nie jest dostępna!');
+      closeMonsterTargetPopup();
+      return;
+    }
+    players.push({
+      name: name,
+      hp: hp,
+      maxHp: hp,
+      ac: ac,
+      role: 'NPC',
+      conditions: [],
+      exhaustionLevel: 0,
+      deathSaves: { passes: 0, fails: 0 },
+      avatar: '🐉'
+    });
+    if (typeof renderPlayers === 'function') renderPlayers();
+    playSound('add');
+    closeMonsterTargetPopup();
+    var playersTab = document.querySelector('.nav-btn[data-tab="players"]');
+    if (playersTab) playersTab.click();
+  }
+}
+
+// ====== DODAWANIE DO POTYCZKI (Z KARTY GŁÓWNEJ) ======
+function addMonsterToCombat(name, cr, hp, ac, type) {
+  var monster = MONSTERS.find(function(m) { return m.name === name; });
+  if (!monster) {
+    monster = { name: name, cr: cr, hp: hp, ac: ac, type: type };
+  }
+  openMonsterTargetPopup(monster);
+}
+
+// ====== DODAWANIE Z KARTY SZCZEGÓŁÓW ======
+function addMonsterDetailToCombat() {
+  if (!selectedMonster) return;
+  openMonsterTargetPopup(selectedMonster);
+}
+
+// ====== DODAWANIE JAKO KOMPAN ======
+function addMonsterDetailAsCompanion() {
+  if (!selectedMonster) return;
+  if (typeof players === 'undefined' || players.length === 0) {
+    alert('Dodaj najpierw gracza, do którego chcesz przypisać kompana!');
+    return;
+  }
+  
+  var names = players.map(function(p, i) {
+    return (i + 1) + '. ' + p.name + ' (' + p.role + ')';
+  }).join('\n');
+  
+  var choice = prompt('Wybierz gracza dla kompana:\n' + names + '\n\nWpisz numer lub nazwę:');
+  if (!choice) return;
+  
+  var player = null;
+  var num = parseInt(choice);
+  if (!isNaN(num) && num > 0 && num <= players.length) {
+    player = players[num - 1];
+  } else {
+    player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
+  }
+  
+  if (!player) { alert('Nie znaleziono gracza'); return; }
+  
+  var companionName = selectedMonster.name + ' (kompan ' + player.name + ')';
+  var monster = {
+    name: companionName,
+    cr: selectedMonster.cr,
+    hp: selectedMonster.hp,
+    ac: selectedMonster.ac,
+    type: selectedMonster.type + ' (kompan)'
+  };
+  
+  openMonsterTargetPopup(monster);
+}
+
 // ====== RENDER ======
 function renderMonsters(filter, query) {
   filter = filter || 'all';
@@ -412,7 +539,6 @@ function getCRColor(cr) {
   return colors[cr] || 'var(--border)';
 }
 
-// ====== FILTRY ======
 function filterMonsters(cr) {
   currentMonsterFilter = cr;
   var searchInput = document.getElementById('monsterSearch');
@@ -431,7 +557,6 @@ function filterMonsters(cr) {
   }
 }
 
-// ====== OTWÓRZ SZCZEGÓŁY POTWORA ======
 function openMonsterDetail(name) {
   var monster = MONSTERS.find(function(m) { return m.name === name; });
   if (!monster) return;
@@ -448,14 +573,12 @@ function openMonsterDetail(name) {
   var attrLabels = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
   var attrIcons = { str: '💪', dex: '🏃', con: '❤️‍🔥', int: '🧠', wis: '👁️', cha: '💬' };
   
-  // Atrybuty
   var attrHtml = Object.keys(monster.stats).map(function(k) {
     var mod = Math.floor((monster.stats[k] - 10) / 2);
     var modStr = mod >= 0 ? '+' + mod : '' + mod;
     return '<div class="m-attr-item"><div class="label">' + attrIcons[k] + ' ' + attrLabels[k] + '</div><div class="value">' + monster.stats[k] + ' (' + modStr + ')</div></div>';
   }).join('');
   
-  // Rzuty obronne
   var savesHtml = '';
   if (monster.saves && Object.keys(monster.saves).length > 0) {
     var saveLabels = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
@@ -466,12 +589,11 @@ function openMonsterDetail(name) {
     }).join('');
   }
   
-  // Skille
   var skillsHtml = '';
   if (monster.skills && Object.keys(monster.skills).length > 0) {
     var skillLabels = { 
       percepcja: 'Percepcja', skradanie: 'Skradanie', atletyka: 'Atletyka', 
-      religia: 'Religia', historia: 'Historia', rel: 'Religia'
+      religia: 'Religia', historia: 'Historia'
     };
     skillsHtml = Object.keys(monster.skills).map(function(k) {
       var val = monster.skills[k];
@@ -481,7 +603,6 @@ function openMonsterDetail(name) {
     }).join('');
   }
   
-  // Odporności
   var resistancesHtml = '';
   if (monster.resistances && monster.resistances.length > 0) {
     resistancesHtml = monster.resistances.map(function(r) {
@@ -489,7 +610,6 @@ function openMonsterDetail(name) {
     }).join('');
   }
   
-  // Immunitety
   var immunitiesHtml = '';
   if (monster.immunities && monster.immunities.length > 0) {
     immunitiesHtml = monster.immunities.map(function(i) {
@@ -497,13 +617,11 @@ function openMonsterDetail(name) {
     }).join('');
   }
   
-  // Języki
   var languagesHtml = '';
   if (monster.languages) {
     languagesHtml = '<span class="m-tag language">🗣️ ' + monster.languages + '</span>';
   }
   
-  // Akcje
   var actionsHtml = monster.actions.map(function(a) {
     return '<div class="m-action-item"><div class="action-name">⚔️ ' + a.name + '</div><div class="action-desc">' + a.desc + '</div></div>';
   }).join('');
@@ -545,91 +663,6 @@ function closeMonsterDetail() {
   selectedMonster = null;
 }
 
-// ====== DODAWANIE DO POTYCZKI Z KARTY ======
-function addMonsterDetailToCombat() {
-  if (!selectedMonster) return;
-  addMonsterToCombat(selectedMonster.name, selectedMonster.cr, selectedMonster.hp, selectedMonster.ac, selectedMonster.type);
-  closeMonsterDetail();
-}
-
-// ====== DODAWANIE JAKO KOMPAN ======
-function addMonsterDetailAsCompanion() {
-  if (!selectedMonster) return;
-  if (typeof players === 'undefined' || players.length === 0) {
-    alert('Dodaj najpierw gracza, do którego chcesz przypisać kompana!');
-    return;
-  }
-  
-  var names = players.map(function(p, i) {
-    return (i + 1) + '. ' + p.name + ' (' + p.role + ')';
-  }).join('\n');
-  
-  var choice = prompt('Wybierz gracza dla kompana:\n' + names + '\n\nWpisz numer lub nazwę:');
-  if (!choice) return;
-  
-  var player = null;
-  var num = parseInt(choice);
-  if (!isNaN(num) && num > 0 && num <= players.length) {
-    player = players[num - 1];
-  } else {
-    player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
-  }
-  
-  if (!player) { alert('Nie znaleziono gracza'); return; }
-  
-  if (typeof addCombatant !== 'function') {
-    alert('Moduł potyczki nie jest dostępny!');
-    return;
-  }
-  
-  var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(selectedMonster.cr / 2);
-  
-  addCombatant({
-    name: selectedMonster.name + ' (kompan ' + player.name + ')',
-    init: initVal,
-    hp: selectedMonster.hp,
-    maxHp: selectedMonster.hp,
-    ac: selectedMonster.ac,
-    role: 'Companion',
-    avatar: '🐾',
-    conditions: [],
-    exhaustionLevel: 0
-  });
-  
-  playSound('add');
-  closeMonsterDetail();
-  
-  var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
-  if (combatTab) combatTab.click();
-}
-
-// ====== DODAWANIE DO POTYCZKI (Z KARTY GŁÓWNEJ) ======
-function addMonsterToCombat(name, cr, hp, ac, type) {
-  if (typeof addCombatant !== 'function') {
-    alert('Moduł potyczki nie jest dostępny!');
-    return;
-  }
-
-  var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(cr / 2);
-
-  addCombatant({
-    name: name,
-    init: initVal,
-    hp: hp,
-    maxHp: hp,
-    ac: ac,
-    role: 'Wróg',
-    avatar: '🐉',
-    conditions: [],
-    exhaustionLevel: 0
-  });
-
-  playSound('add');
-
-  var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
-  if (combatTab) combatTab.click();
-}
-
 // ====== EVENTY ======
 document.addEventListener('DOMContentLoaded', function() {
   var searchInput = document.getElementById('monsterSearch');
@@ -645,187 +678,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
   renderMonsters('all', '');
   
-  // Zamknij szczegóły kliknięciem poza popupem
   var popup = document.getElementById('monsterDetailPopup');
   if (popup) {
     popup.addEventListener('click', function(e) {
       if (e.target === popup) closeMonsterDetail();
     });
   }
+  
+  var targetPopup = document.getElementById('monsterTargetPopup');
+  if (targetPopup) {
+    targetPopup.addEventListener('click', function(e) {
+      if (e.target === targetPopup) closeMonsterTargetPopup();
+    });
+  }
 });
 
-// ====== DODAWANIE DO POTYCZKI (Z KARTY GŁÓWNEJ) ======
-function addMonsterToCombat(name, cr, hp, ac, type) {
-  if (typeof addCombatant !== 'function') {
-    alert('Moduł potyczki nie jest dostępny!');
-    return;
-  }
-
-  // Zapytaj gdzie dodać
-  var choice = confirm('🐉 ' + name + '\n\nDodać do POTYCZKI jako wróg?\n• OK → Potyczka (wróg)\n• Anuluj → Postacie (NPC)');
-  
-  if (choice) {
-    // Dodaj do potyczki jako wróg
-    var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(cr / 2);
-    addCombatant({
-      name: name,
-      init: initVal,
-      hp: hp,
-      maxHp: hp,
-      ac: ac,
-      role: 'Wróg',
-      avatar: '🐉',
-      conditions: [],
-      exhaustionLevel: 0
-    });
-    playSound('add');
-    var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
-    if (combatTab) combatTab.click();
-  } else {
-    // Dodaj do postaci jako NPC
-    if (typeof players === 'undefined') {
-      alert('Lista postaci nie jest dostępna!');
-      return;
-    }
-    
-    if (typeof addPlayer === 'function') {
-      // Jeśli mamy funkcję dodawania postaci
-      addPlayer({
-        name: name,
-        hp: hp,
-        maxHp: hp,
-        ac: ac,
-        role: 'NPC',
-        avatar: '🐉',
-        conditions: [],
-        exhaustionLevel: 0
-      });
-    } else {
-      // Bezpośrednie dodanie do listy
-      players.push({
-        name: name,
-        hp: hp,
-        maxHp: hp,
-        ac: ac,
-        role: 'NPC',
-        conditions: [],
-        exhaustionLevel: 0,
-        deathSaves: { passes: 0, fails: 0 },
-        avatar: '🐉'
-      });
-      if (typeof renderPlayers === 'function') renderPlayers();
-    }
-    playSound('add');
-    var playersTab = document.querySelector('.nav-btn[data-tab="players"]');
-    if (playersTab) playersTab.click();
-  }
-}
-
-// ====== DODAWANIE Z KARTY SZCZEGÓŁÓW ======
-function addMonsterDetailToCombat() {
-  if (!selectedMonster) return;
-  addMonsterToCombat(selectedMonster.name, selectedMonster.cr, selectedMonster.hp, selectedMonster.ac, selectedMonster.type);
-  closeMonsterDetail();
-}
-
-// ====== DODAWANIE JAKO KOMPAN ======
-function addMonsterDetailAsCompanion() {
-  if (!selectedMonster) return;
-  if (typeof players === 'undefined' || players.length === 0) {
-    alert('Dodaj najpierw gracza, do którego chcesz przypisać kompana!');
-    return;
-  }
-  
-  var names = players.map(function(p, i) {
-    return (i + 1) + '. ' + p.name + ' (' + p.role + ')';
-  }).join('\n');
-  
-  var choice = prompt('Wybierz gracza dla kompana:\n' + names + '\n\nWpisz numer lub nazwę:');
-  if (!choice) return;
-  
-  var player = null;
-  var num = parseInt(choice);
-  if (!isNaN(num) && num > 0 && num <= players.length) {
-    player = players[num - 1];
-  } else {
-    player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
-  }
-  
-  if (!player) { alert('Nie znaleziono gracza'); return; }
-  
-  // Zapytaj gdzie dodać kompana
-  var choice2 = confirm('🐾 ' + selectedMonster.name + ' jako kompan ' + player.name + '\n\nDodać do POTYCZKI?\n• OK → Potyczka\n• Anuluj → Postacie (jako NPC)');
-  
-  var companionName = selectedMonster.name + ' (kompan ' + player.name + ')';
-  
-  if (choice2) {
-    // Dodaj do potyczki jako Companion
-    if (typeof addCombatant !== 'function') {
-      alert('Moduł potyczki nie jest dostępny!');
-      return;
-    }
-    var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(selectedMonster.cr / 2);
-    addCombatant({
-      name: companionName,
-      init: initVal,
-      hp: selectedMonster.hp,
-      maxHp: selectedMonster.hp,
-      ac: selectedMonster.ac,
-      role: 'Companion',
-      avatar: '🐾',
-      conditions: [],
-      exhaustionLevel: 0
-    });
-    playSound('add');
-    var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
-    if (combatTab) combatTab.click();
-  } else {
-    // Dodaj do postaci jako NPC
-    if (typeof players === 'undefined') {
-      alert('Lista postaci nie jest dostępna!');
-      return;
-    }
-    players.push({
-      name: companionName,
-      hp: selectedMonster.hp,
-      maxHp: selectedMonster.hp,
-      ac: selectedMonster.ac,
-      role: 'NPC',
-      conditions: [],
-      exhaustionLevel: 0,
-      deathSaves: { passes: 0, fails: 0 },
-      avatar: '🐾'
-    });
-    if (typeof renderPlayers === 'function') renderPlayers();
-    playSound('add');
-    var playersTab = document.querySelector('.nav-btn[data-tab="players"]');
-    if (playersTab) playersTab.click();
-  }
-  
-  closeMonsterDetail();
-}
-
-// ====== FUNKCJA POMOCNICZA DO DODAWANIA POSTACI ======
-function addPlayer(data) {
-  if (typeof players === 'undefined') {
-    players = [];
-  }
-  players.push({
-    name: data.name,
-    hp: data.hp,
-    maxHp: data.maxHp || data.hp,
-    ac: data.ac || 10,
-    role: data.role || 'NPC',
-    conditions: data.conditions || [],
-    exhaustionLevel: data.exhaustionLevel || 0,
-    deathSaves: { passes: 0, fails: 0 },
-    avatar: data.avatar || '🐉'
-  });
-  if (typeof renderPlayers === 'function') renderPlayers();
-}
-
 // ====== EKSPORT ======
-window.addPlayer = addPlayer;
 window.renderMonsters = renderMonsters;
 window.filterMonsters = filterMonsters;
 window.addMonsterToCombat = addMonsterToCombat;
@@ -833,4 +701,7 @@ window.openMonsterDetail = openMonsterDetail;
 window.closeMonsterDetail = closeMonsterDetail;
 window.addMonsterDetailToCombat = addMonsterDetailToCombat;
 window.addMonsterDetailAsCompanion = addMonsterDetailAsCompanion;
+window.openMonsterTargetPopup = openMonsterTargetPopup;
+window.closeMonsterTargetPopup = closeMonsterTargetPopup;
+window.confirmMonsterTarget = confirmMonsterTarget;
 window.MONSTERS = MONSTERS;
