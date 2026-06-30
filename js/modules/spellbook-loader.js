@@ -1,21 +1,33 @@
 // ============================================================
-//  SPELLBOOK LOADER - Ładuje zaklęcia z plików JSON
+//  SPELLBOOK LOADER - Z POPRAWIONYMI SZKOŁAMI I FILTRAMI
 // ============================================================
 
 var spellCache = {};
 var allSpells = [];
 var isLoading = false;
 
-// Rozszerzone mapowanie szkół magicznych
+// Mapowanie szkół na poprawne polskie nazwy
 var SCHOOL_MAP = {
-  'wywoływanie': 'Ewokacja',
-  'przywoływanie': 'Przyzywanie',
+  'wywoływanie': 'Wywoływanie',
+  'przywoływanie': 'Przywoływanie',
   'wieszczenie': 'Wieszczenie',
   'nekromancja': 'Nekromancja',
-  'uroki': 'Oczarowanie',
-  'iluzje': 'Iluzja',
-  'odpychanie': 'Ochrona',
+  'uroki': 'Uroki',
+  'iluzje': 'Iluzje',
+  'odpychanie': 'Odpychanie',
   'przemiany': 'Przemiany'
+};
+
+// Kolory dla szkół (ramka i tag)
+var SCHOOL_COLORS = {
+  'Wywoływanie': { bg: 'rgba(255,107,53,0.15)', border: '#ff6b35', text: '#ff6b35' },
+  'Przywoływanie': { bg: 'rgba(107,255,158,0.15)', border: '#6bff9e', text: '#6bff9e' },
+  'Wieszczenie': { bg: 'rgba(107,184,255,0.15)', border: '#6bb8ff', text: '#6bb8ff' },
+  'Nekromancja': { bg: 'rgba(184,74,143,0.15)', border: '#b84a8f', text: '#b84a8f' },
+  'Uroki': { bg: 'rgba(255,107,196,0.15)', border: '#ff6bc4', text: '#ff6bc4' },
+  'Iluzje': { bg: 'rgba(168,124,255,0.15)', border: '#a87cff', text: '#a87cff' },
+  'Odpychanie': { bg: 'rgba(212,168,67,0.15)', border: '#d4a843', text: '#d4a843' },
+  'Przemiany': { bg: 'rgba(74,192,176,0.15)', border: '#4ac0b0', text: '#4ac0b0' }
 };
 
 // Odwrotne mapowanie dla filtrów
@@ -77,32 +89,37 @@ function loadAllSpells(callback) {
   });
 }
 
-function filterSpells(level, school, callback) {
+function filterSpells(level, school, classFilter, callback) {
   loadAllSpells(function(spells) {
     var results = spells;
     if (level !== 'all' && level !== undefined && level !== '') {
       results = results.filter(function(s) { return s.level === parseInt(level); });
     }
     if (school !== 'all' && school !== undefined && school !== '') {
-      // Mapowanie nazwy szkoły z filtra na wartość w danych
       var schoolKey = SCHOOL_REVERSE[school] || school;
       results = results.filter(function(s) { return s.school === schoolKey; });
+    }
+    if (classFilter && classFilter !== 'all' && classFilter !== '') {
+      results = results.filter(function(s) {
+        return s.classes && s.classes.indexOf(classFilter) !== -1;
+      });
     }
     if (callback) callback(results);
   });
 }
 
 // ====== RENDER LISTY ZAKLĘĆ ======
-function renderSpellbook(filter, levelFilter, schoolFilter) {
+function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
   filter = filter || '';
   levelFilter = levelFilter || 'all';
   schoolFilter = schoolFilter || 'all';
+  classFilter = classFilter || 'all';
 
   var container = document.getElementById('spellbookList');
   if (!container) return;
   container.innerHTML = '<div style="color:var(--muted);text-align:center;padding:20px;">⏳ Ładowanie księgi zaklęć...</div>';
 
-  filterSpells(levelFilter, schoolFilter, function(spells) {
+  filterSpells(levelFilter, schoolFilter, classFilter, function(spells) {
     var filtered = spells;
     
     if (filter) {
@@ -124,6 +141,12 @@ function renderSpellbook(filter, levelFilter, schoolFilter) {
     filtered.forEach(function(spell) {
       var div = document.createElement('div');
       div.className = 'spellbook-item';
+      
+      var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
+      var color = SCHOOL_COLORS[schoolDisplay] || { bg: 'rgba(255,255,255,0.05)', border: 'var(--border)', text: 'var(--muted)' };
+      
+      div.style.borderLeftColor = color.border;
+      
       var levelText = spell.level === 0 ? 'Cantrip' : 'Lvl ' + spell.level;
       
       var classTags = '';
@@ -133,14 +156,11 @@ function renderSpellbook(filter, levelFilter, schoolFilter) {
         }).join('');
       }
       
-      // Mapowanie szkoły na wyświetlaną nazwę
-      var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
-      
       div.innerHTML = `
         <div class="spellbook-header">
           <span class="spellbook-name">${spell.name_pl} <span style="color:var(--muted);font-weight:400;">(${spell.name_en})</span></span>
           <span class="spellbook-level">${levelText}</span>
-          <span class="spellbook-school">${schoolDisplay}</span>
+          <span class="spellbook-school-tag" data-school="${spell.school}" style="background:${color.bg};color:${color.text};border-color:${color.border};">${schoolDisplay}</span>
           <span class="spellbook-source">${spell.source || 'PHB'}</span>
         </div>
         <div class="spellbook-meta">
@@ -169,20 +189,52 @@ document.addEventListener('DOMContentLoaded', function() {
   var searchInput = document.getElementById('spellbookSearch');
   var levelSelect = document.getElementById('spellbookLevel');
   var schoolSelect = document.getElementById('spellbookSchool');
+  var classSelect = document.getElementById('spellbookClass');
+
+  // Dodajemy filtr klas jeśli nie istnieje
+  if (!classSelect) {
+    var controls = document.querySelector('.spellbook-controls');
+    if (controls) {
+      var classDiv = document.createElement('div');
+      classDiv.style.cssText = 'margin-top:8px;';
+      classDiv.innerHTML = `
+        <select id="spellbookClass" style="width:100%;padding:10px;background:var(--card3);color:var(--text);border:1px solid var(--border);border-radius:10px;font-family:Inter,sans-serif;font-size:var(--font-sm);min-height:44px;">
+          <option value="all">Wszystkie klasy</option>
+          <option value="Czarodziej">🧙 Czarodziej</option>
+          <option value="Czarownik">🔥 Czarownik</option>
+          <option value="Mag">📖 Mag</option>
+          <option value="Kapłan">⛪ Kapłan</option>
+          <option value="Druid">🌿 Druid</option>
+          <option value="Bard">🎵 Bard</option>
+          <option value="Paladyn">⚔️ Paladyn</option>
+          <option value="Łowca">🏹 Łowca</option>
+          <option value="Łotrzyk">🗡️ Łotrzyk</option>
+        </select>
+      `;
+      controls.appendChild(classDiv);
+    }
+  }
+
+  var classFilter = document.getElementById('spellbookClass');
 
   if (searchInput) {
     searchInput.addEventListener('input', function() {
-      renderSpellbook(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all');
+      renderSpellbook(this.value, levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', classFilter ? classFilter.value : 'all');
     });
   }
   if (levelSelect) {
     levelSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all');
+      renderSpellbook(searchInput ? searchInput.value : '', this.value, schoolSelect ? schoolSelect.value : 'all', classFilter ? classFilter.value : 'all');
     });
   }
   if (schoolSelect) {
     schoolSelect.addEventListener('change', function() {
-      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value);
+      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', this.value, classFilter ? classFilter.value : 'all');
+    });
+  }
+  if (classFilter) {
+    classFilter.addEventListener('change', function() {
+      renderSpellbook(searchInput ? searchInput.value : '', levelSelect ? levelSelect.value : 'all', schoolSelect ? schoolSelect.value : 'all', this.value);
     });
   }
 
@@ -195,3 +247,4 @@ window.loadAllSpells = loadAllSpells;
 window.filterSpells = filterSpells;
 window.SCHOOL_MAP = SCHOOL_MAP;
 window.SCHOOL_REVERSE = SCHOOL_REVERSE;
+window.SCHOOL_COLORS = SCHOOL_COLORS;

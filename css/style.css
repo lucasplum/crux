@@ -1096,3 +1096,348 @@ select:focus{outline:none;border-color:var(--accent);}
     padding: 1px 6px;
   }
 }
+
+/* ===== SPELL SUGGESTIONS ===== */
+.spell-suggestions {
+  position: relative;
+  margin-bottom: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--card3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: none;
+}
+
+.spell-suggestions.active {
+  display: block;
+}
+
+.spell-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--font-sm);
+  border-bottom: 1px solid var(--border);
+  transition: background .2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spell-suggestion:last-child {
+  border-bottom: none;
+}
+
+.spell-suggestion:hover {
+  background: rgba(168,124,255,0.1);
+}
+
+.spell-suggestion .suggestion-level {
+  font-size: 0.6rem;
+  color: var(--muted);
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ===== SPELL SUGGESTIONS ===== */
+.spell-suggestions {
+  position: relative;
+  margin-bottom: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--card3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: none;
+}
+
+.spell-suggestions.active {
+  display: block;
+}
+
+.spell-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--font-sm);
+  border-bottom: 1px solid var(--border);
+  transition: background .2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spell-suggestion:last-child {
+  border-bottom: none;
+}
+
+.spell-suggestion:hover {
+  background: rgba(168,124,255,0.1);
+}
+
+.spell-suggestion .suggestion-level {
+  font-size: 0.6rem;
+  color: var(--muted);
+  background: rgba(255,255,255,0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* ===== PLAYER CARDS - NOWY WYGLĄD ===== */
+.player-card .p-stats-row {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0;
+  align-items: center;
+}
+
+.player-card .p-hp-ac-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+}
+
+.player-card .p-hp-ac-wrap .p-hp-wrap {
+  flex: 1;
+  margin: 0;
+}
+
+.player-card .p-ac-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, rgba(107,184,255,0.15), rgba(107,184,255,0.05));
+  border: 1px solid rgba(107,184,255,0.3);
+  border-radius: 8px;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--blue);
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+.player-card .p-ac-badge .ac-icon {
+  font-size: 0.8rem;
+}
+
+.player-card .p-ac-badge .ac-val {
+  font-size: var(--font-md);
+}
+
+/* HP bar z płynną zmianą koloru */
+.player-card .p-hp-bar .p-hp-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width .6s cubic-bezier(.4,0,.2,1), background .6s ease;
+  position: relative;
+}
+
+/* Przyciski na dole - nowy układ */
+.player-card .p-controls {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.player-card .p-controls button {
+  flex: 1;
+  min-width: 60px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.6rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: .2s;
+  font-family: 'Inter', sans-serif;
+  touch-action: manipulation;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.player-card .p-controls button:hover {
+  background: rgba(168,124,255,.12);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.player-card .p-controls button.danger:hover {
+  background: rgba(255,107,107,.12);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.player-card .p-controls button.success:hover {
+  background: rgba(107,255,158,.12);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.player-card .p-controls button.primary {
+  background: rgba(168,124,255,.1);
+  border-color: rgba(168,124,255,0.2);
+  color: var(--accent2);
+}
+
+.player-card .p-controls button.primary:hover {
+  background: rgba(168,124,255,.2);
+  border-color: var(--accent);
+}
+
+/* ===== SPELLBOOK - KOLORY SZKÓŁ ===== */
+.spellbook-item {
+  border-left: 4px solid var(--border);
+  transition: all .2s;
+}
+
+.spellbook-item[data-school="wywoływanie"] {
+  border-left-color: #ff6b35;
+}
+.spellbook-item[data-school="przywoływanie"] {
+  border-left-color: #6bff9e;
+}
+.spellbook-item[data-school="wieszczenie"] {
+  border-left-color: #6bb8ff;
+}
+.spellbook-item[data-school="nekromancja"] {
+  border-left-color: #b84a8f;
+}
+.spellbook-item[data-school="uroki"] {
+  border-left-color: #ff6bc4;
+}
+.spellbook-item[data-school="iluzje"] {
+  border-left-color: #a87cff;
+}
+.spellbook-item[data-school="odpychanie"] {
+  border-left-color: #d4a843;
+}
+.spellbook-item[data-school="przemiany"] {
+  border-left-color: #4ac0b0;
+}
+
+.spellbook-school-tag {
+  font-size: 0.6rem;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.spellbook-school-tag[data-school="wywoływanie"] {
+  background: rgba(255,107,53,0.15);
+  color: #ff6b35;
+  border: 1px solid rgba(255,107,53,0.2);
+}
+.spellbook-school-tag[data-school="przywoływanie"] {
+  background: rgba(107,255,158,0.15);
+  color: #6bff9e;
+  border: 1px solid rgba(107,255,158,0.2);
+}
+.spellbook-school-tag[data-school="wieszczenie"] {
+  background: rgba(107,184,255,0.15);
+  color: #6bb8ff;
+  border: 1px solid rgba(107,184,255,0.2);
+}
+.spellbook-school-tag[data-school="nekromancja"] {
+  background: rgba(184,74,143,0.15);
+  color: #b84a8f;
+  border: 1px solid rgba(184,74,143,0.2);
+}
+.spellbook-school-tag[data-school="uroki"] {
+  background: rgba(255,107,196,0.15);
+  color: #ff6bc4;
+  border: 1px solid rgba(255,107,196,0.2);
+}
+.spellbook-school-tag[data-school="iluzje"] {
+  background: rgba(168,124,255,0.15);
+  color: #a87cff;
+  border: 1px solid rgba(168,124,255,0.2);
+}
+.spellbook-school-tag[data-school="odpychanie"] {
+  background: rgba(212,168,67,0.15);
+  color: #d4a843;
+  border: 1px solid rgba(212,168,67,0.2);
+}
+.spellbook-school-tag[data-school="przemiany"] {
+  background: rgba(74,192,176,0.15);
+  color: #4ac0b0;
+  border: 1px solid rgba(74,192,176,0.2);
+}
+
+/* ===== TIMER POPUP ===== */
+.timer-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 6px 0;
+}
+
+.timer-preset-btn {
+  padding: 4px 10px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  background: var(--card3);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: .2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.timer-preset-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(168,124,255,.08);
+}
+
+.timer-preset-btn.active {
+  background: rgba(168,124,255,.15);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+.timer-current-target {
+  font-size: 0.7rem;
+  color: var(--gold);
+  text-align: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+/* ===== MOBILE - dostosowanie ===== */
+@media (max-width: 768px) {
+  .player-card .p-controls button {
+    font-size: 0.55rem;
+    padding: 4px 6px;
+    min-height: 28px;
+  }
+  
+  .player-card .p-hp-ac-wrap {
+    flex-wrap: wrap;
+  }
+  
+  .spell-suggestions {
+    max-height: 150px;
+  }
+  
+  .timer-presets {
+    gap: 3px;
+  }
+  
+  .timer-preset-btn {
+    font-size: 0.55rem;
+    padding: 3px 8px;
+  }
+}

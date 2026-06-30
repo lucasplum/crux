@@ -33,6 +33,12 @@ function renderDistances() {
     };
     grid.appendChild(btn);
   });
+  
+  // Domyślnie wybieramy pierwszy element (5 ft)
+  var firstBtn = grid.querySelector('.dist-btn');
+  if (firstBtn) {
+    firstBtn.click();
+  }
 }
 
 // Inicjalizacja

@@ -1,10 +1,141 @@
 // ============================================================
-//  SPELLS - Obszary zaklęć
+//  SPELLS - Obszary zaklęć z autouzupełnianiem
 // ============================================================
 
 var spellCanvas = document.getElementById('spellCanvas');
 var pctx = spellCanvas ? spellCanvas.getContext('2d') : null;
-var selectedSpell = null;
+var allSpellsData = [];
+var isLoadingSpells = false;
+
+// ====== ŁADOWANIE ZAKLĘĆ DLA PODPOWIADAJKI ======
+function loadSpellsForSuggestions() {
+  if (allSpellsData.length > 0) return;
+  if (isLoadingSpells) return;
+  
+  isLoadingSpells = true;
+  var levels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  var loaded = 0;
+  var total = levels.length;
+  
+  levels.forEach(function(level) {
+    var url = 'data/spells/level-' + level + '.json';
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        allSpellsData = allSpellsData.concat(data || []);
+        loaded++;
+        if (loaded === total) {
+          isLoadingSpells = false;
+          // Posortuj po nazwie
+          allSpellsData.sort(function(a, b) {
+            return a.name_pl.localeCompare(b.name_pl);
+          });
+        }
+      })
+      .catch(function() {
+        loaded++;
+        if (loaded === total) {
+          isLoadingSpells = false;
+        }
+      });
+  });
+}
+
+// ====== AUTOUZUPEŁNIANIE ======
+var suggestionTimeout = null;
+
+function showSpellSuggestions(query) {
+  var container = document.getElementById('spellSuggestions');
+  if (!container) return;
+  
+  if (!query || query.length < 2) {
+    container.classList.remove('active');
+    container.innerHTML = '';
+    return;
+  }
+  
+  var results = allSpellsData.filter(function(s) {
+    return s.name_pl.toLowerCase().includes(query.toLowerCase()) ||
+           s.name_en.toLowerCase().includes(query.toLowerCase());
+  }).slice(0, 10);
+  
+  if (results.length === 0) {
+    container.classList.remove('active');
+    container.innerHTML = '';
+    return;
+  }
+  
+  container.classList.add('active');
+  container.innerHTML = '';
+  
+  results.forEach(function(spell) {
+    var div = document.createElement('div');
+    div.className = 'spell-suggestion';
+    var levelText = spell.level === 0 ? 'Cantrip' : 'Lvl ' + spell.level;
+    div.innerHTML = `
+      <span>${spell.name_pl} <span style="color:var(--muted);font-weight:400;">(${spell.name_en})</span></span>
+      <span class="suggestion-level">${levelText} · ${spell.school}</span>
+    `;
+    div.onclick = function() {
+      var input = document.getElementById('spellSearch');
+      if (input) {
+        input.value = spell.name_pl;
+        // Ustaw kształt i zasięg na podstawie zaklęcia
+        setSpellFromData(spell);
+        container.classList.remove('active');
+        container.innerHTML = '';
+      }
+    };
+    container.appendChild(div);
+  });
+}
+
+function setSpellFromData(spell) {
+  // Próbujemy dopasować kształt i zasięg
+  var shapeMap = {
+    'sphere': ['sfera', 'promień', 'kula', 'aura'],
+    'cone': ['stożek', 'stożka'],
+    'line': ['linia', 'promień', 'ściana'],
+    'cube': ['sześcian', 'kostka']
+  };
+  
+  var desc = (spell.desc_pl + ' ' + spell.desc_en).toLowerCase();
+  var shapeSelect = document.getElementById('shape');
+  var sizeSelect = document.getElementById('spellSize');
+  
+  if (shapeSelect) {
+    var foundShape = 'sphere';
+    for (var key in shapeMap) {
+      for (var i = 0; i < shapeMap[key].length; i++) {
+        if (desc.includes(shapeMap[key][i])) {
+          foundShape = key;
+          break;
+        }
+      }
+      if (foundShape !== 'sphere') break;
+    }
+    shapeSelect.value = foundShape;
+  }
+  
+  // Próba wyciągnięcia zasięgu z opisu
+  if (sizeSelect) {
+    var rangeMatch = desc.match(/(\d+)\s*ft/);
+    if (rangeMatch) {
+      var r = parseInt(rangeMatch[1]);
+      var options = [5, 10, 15, 20, 30, 60, 90, 120];
+      var closest = options.reduce(function(prev, curr) {
+        return (Math.abs(curr - r) < Math.abs(prev - r) ? curr : prev);
+      });
+      sizeSelect.value = closest;
+    }
+  }
+  
+  // Wywołaj zmianę
+  if (typeof renderSpellCanvas === 'function') {
+    setTimeout(renderSpellCanvas, 50);
+  }
+  playSound('add');
+}
 
 // ====== RENDER CANVAS OBSZARÓW ======
 function renderSpellCanvas() {
@@ -57,11 +188,9 @@ function renderSpellCanvas() {
   var R = baseR;
   var HexW = R * 1.73205;
   
-  // Maksymalny promień - dostosowany do rozmiaru canvas
   var maxL = Math.min(w, h) / 2 - 20;
   var L = Math.min(radiusHexes * HexW, maxL);
   
-  // Środek - uwzględniamy pan
   var O = { x: w / 2 + state.panX / state.zoom, y: h / 2 + state.panY / state.zoom };
 
   var showDir = shape === 'cone' || shape === 'line' || shape === 'cube';
@@ -133,7 +262,6 @@ function renderSpellCanvas() {
       pctx.save();
       pctx.setTransform(dpr * state.zoom, 0, 0, dpr * state.zoom, 0, 0);
       
-      // Sprawdzenie czy hex jest w obszarze
       if (q !== 0 || rr !== 0) {
         active = pctx.isPointInPath(path, cx, cy);
       } else if (shape === 'sphere' || (shape === 'cube' && cubeOrigin === 'center')) {
@@ -156,7 +284,6 @@ function renderSpellCanvas() {
   pctx.stroke(path);
   pctx.setLineDash([]);
 
-  // Punkt centralny
   pctx.beginPath();
   pctx.arc(O.x, O.y, hexR * 0.55, 0, Math.PI * 2);
   pctx.fillStyle = '#444a55';
@@ -170,7 +297,6 @@ function renderSpellCanvas() {
   pctx.fillStyle = '#aab';
   pctx.fill();
 
-  // Licznik hexów
   var showCount = document.getElementById('showCount');
   if (showCount && showCount.checked) {
     pctx.fillStyle = '#c4a8ffcc';
@@ -189,23 +315,38 @@ function renderSpellCanvas() {
 var showCount = document.getElementById('showCount');
 if (showCount) showCount.addEventListener('change', renderSpellCanvas);
 
-// Wyszukiwanie - tylko do filtrowania obszarów (usuwamy listę zaklęć)
 var searchInput = document.getElementById('spellSearch');
 if (searchInput) {
   searchInput.addEventListener('input', function() {
-    // Tylko informacja wizualna - nie mamy już listy zaklęć
-    // Możemy dodać placeholder lub komunikat
-    var container = document.getElementById('spellList');
-    if (container) {
-      var query = this.value.trim();
-      if (query) {
-        container.innerHTML = '<span style="font-size:.6rem;color:var(--muted);">🔍 Szukasz: "' + query + '"</span>';
-      } else {
+    clearTimeout(suggestionTimeout);
+    var query = this.value.trim();
+    suggestionTimeout = setTimeout(function() {
+      showSpellSuggestions(query);
+    }, 200);
+  });
+  
+  searchInput.addEventListener('blur', function() {
+    setTimeout(function() {
+      var container = document.getElementById('spellSuggestions');
+      if (container) {
+        container.classList.remove('active');
         container.innerHTML = '';
       }
+    }, 300);
+  });
+  
+  searchInput.addEventListener('focus', function() {
+    var query = this.value.trim();
+    if (query.length >= 2) {
+      showSpellSuggestions(query);
     }
   });
 }
 
+// Załaduj zaklęcia dla podpowiadajki
+loadSpellsForSuggestions();
+
 // ====== EKSPORT ======
 window.renderSpellCanvas = renderSpellCanvas;
+window.allSpellsData = allSpellsData;
+window.loadSpellsForSuggestions = loadSpellsForSuggestions;

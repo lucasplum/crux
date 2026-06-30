@@ -1,5 +1,5 @@
 // ============================================================
-//  COMBAT - ZAAWANSOWANY SYSTEM POTYCZKI
+//  COMBAT - Z POPRAWIONYM ATAKIEM I TIMERAMI
 // ============================================================
 
 var combatants = [];
@@ -37,7 +37,8 @@ function addCombatant(data) {
     status: 'active',
     initiativeBonus: data.initBonus || 0,
     notes: data.notes || '',
-    effects: []
+    effects: [],
+    timers: []
   });
   sortInit();
   if (!combatActive && combatants.length > 0) {
@@ -70,7 +71,7 @@ function removeCombatant(index) {
   }
 }
 
-// ====== OTWÓRZ POPUP DODAWANIA Z DRUŻYNY ======
+// ====== OTWÓRZ POPUP DODAWANIA Z BAZY ======
 function openAddFromPartyPopup() {
   if (typeof players === 'undefined' || players.length === 0) {
     alert('Dodaj najpierw postacie do "Postaci"!');
@@ -92,7 +93,7 @@ function openAddFromPartyPopup() {
 
   popup.innerHTML = `
     <div class="popup-content">
-      <div class="popup-title">👥 Dodaj z drużyny</div>
+      <div class="popup-title">👥 Dodaj z bazy</div>
       <div class="attack-form">
         <div class="attack-row">
           <label>Wybierz postać</label>
@@ -209,7 +210,15 @@ function nextTurn() {
   if (currentTurn === 0) {
     round++;
     combatStats.totalRounds++;
-    if (typeof advanceTimers === 'function') advanceTimers();
+    // Aktualizacja timerów
+    combatants.forEach(function(c) {
+      if (c.timers && c.timers.length > 0) {
+        c.timers = c.timers.filter(function(t) {
+          t.remaining--;
+          return t.remaining > 0;
+        });
+      }
+    });
     focusFire = [];
     turnLog = [];
     addTurnLog('⚔️', '🔄 Rozpoczęcie rundy ' + round);
@@ -251,195 +260,154 @@ function processTurnStartEffects(combatant) {
   }
 }
 
-// ====== SYSTEM EFEKTÓW ======
-function addEffect(combatantIndex, effectName, duration) {
-  var c = combatants[combatantIndex];
+// ====== TIMERY ======
+function openTimerPopup() {
+  if (combatants.length === 0) {
+    alert('Brak bojowników w potyczce!');
+    return;
+  }
+
+  var existing = document.getElementById('timerPopup');
+  if (existing) existing.remove();
+
+  var current = combatants[currentTurn] || combatants[0];
+  var currentName = current ? current.name : 'Brak';
+
+  var popup = document.createElement('div');
+  popup.className = 'popup-overlay';
+  popup.id = 'timerPopup';
+  
+  var presetOptions = [
+    { label: 'Koncentracja', value: 'Koncentracja' },
+    { label: 'Oślepienie', value: 'Oślepienie' },
+    { label: 'Ogłuszenie', value: 'Ogłuszenie' },
+    { label: 'Paraliż', value: 'Paraliż' },
+    { label: 'Trucizna', value: 'Trucizna' },
+    { label: 'Prędkość', value: 'Prędkość' },
+    { label: 'Ochrona', value: 'Ochrona' },
+    { label: 'Płonący', value: 'Płonący' },
+    { label: 'Zamrożony', value: 'Zamrożony' },
+    { label: 'Przerażony', value: 'Przerażony' }
+  ];
+  
+  var presetBtns = presetOptions.map(function(p) {
+    return '<button class="timer-preset-btn" onclick="document.getElementById(\'timerNameInput\').value=\'' + p.value + '\'">' + p.value + '</button>';
+  }).join('');
+
+  var targetOptions = combatants.map(function(c, i) {
+    var isCurrent = i === currentTurn ? ' ▶' : '';
+    return '<option value="' + i + '" ' + (i === currentTurn ? 'selected' : '') + '>' + c.name + ' (' + c.role + ')' + isCurrent + '</option>';
+  }).join('');
+
+  popup.innerHTML = `
+    <div class="popup-content timer-popup-content">
+      <div class="popup-title">⏱️ Timer efektu</div>
+      <div class="timer-current-target">🎯 Aktualny w turze: <strong>${currentName}</strong></div>
+      <div class="attack-row">
+        <label>Cel</label>
+        <select id="timerTarget">${targetOptions}</select>
+      </div>
+      <div class="attack-row">
+        <label>Nazwa efektu</label>
+        <input id="timerNameInput" placeholder="Nazwa efektu..." />
+      </div>
+      <div class="timer-presets">${presetBtns}</div>
+      <div class="attack-row">
+        <label>Czas trwania (tury)</label>
+        <input type="number" id="timerDuration" value="3" min="1" max="999" />
+      </div>
+      <div class="attack-actions">
+        <button class="btn" onclick="addTimerToCombatant()">⏱️ Dodaj timer</button>
+        <button class="btn outline" onclick="closeTimerPopup()">Anuluj</button>
+      </div>
+      <div id="timerListDisplay" style="margin-top:10px;"></div>
+      <button class="popup-close" onclick="closeTimerPopup()">✕ Zamknij</button>
+    </div>
+  `;
+  document.body.appendChild(popup);
+  updateTimerListDisplay();
+}
+
+function closeTimerPopup() {
+  var p = document.getElementById('timerPopup');
+  if (p) p.remove();
+}
+
+function addTimerToCombatant() {
+  var targetSelect = document.getElementById('timerTarget');
+  var nameInput = document.getElementById('timerNameInput');
+  var durationInput = document.getElementById('timerDuration');
+  
+  if (!targetSelect || !nameInput || !durationInput) return;
+  
+  var idx = parseInt(targetSelect.value);
+  var name = nameInput.value.trim();
+  var duration = parseInt(durationInput.value) || 3;
+  
+  if (!name) { alert('Podaj nazwę efektu'); return; }
+  if (duration < 1) { alert('Czas trwania musi być większy niż 0'); return; }
+  
+  var c = combatants[idx];
   if (!c) return;
   
-  var existing = c.effects.find(function(e) { return e.name === effectName; });
+  if (!c.timers) c.timers = [];
+  
+  // Sprawdź czy już istnieje taki timer
+  var existing = c.timers.find(function(t) { return t.name === name; });
   if (existing) {
     existing.remaining = duration;
-    existing.active = true;
   } else {
-    c.effects.push({
-      name: effectName,
+    c.timers.push({
+      name: name,
       duration: duration,
-      remaining: duration,
-      active: true
+      remaining: duration
     });
   }
-  addTurnLog(c.name, '✨ ' + effectName + ' (' + duration + ' tur)');
+  
+  addTurnLog(c.name, '⏱️ ' + name + ' (' + duration + ' tur)');
+  nameInput.value = '';
+  updateTimerListDisplay();
   renderInit();
   playSound('state');
 }
 
-function removeEffect(combatantIndex, effectName) {
-  var c = combatants[combatantIndex];
-  if (!c) return;
-  c.effects = c.effects.filter(function(e) { return e.name !== effectName; });
+function updateTimerListDisplay() {
+  var container = document.getElementById('timerListDisplay');
+  if (!container) return;
+  
+  var allTimers = [];
+  combatants.forEach(function(c, i) {
+    if (c.timers && c.timers.length > 0) {
+      c.timers.forEach(function(t) {
+        allTimers.push({
+          combatant: c.name,
+          index: i,
+          name: t.name,
+          remaining: t.remaining
+        });
+      });
+    }
+  });
+  
+  if (allTimers.length === 0) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:6px;">Brak aktywnych timerów</div>';
+    return;
+  }
+  
+  container.innerHTML = allTimers.map(function(t) {
+    return '<div class="timer-item"><span class="timer-name">' + t.combatant + ': ' + t.name + '</span><span class="timer-time">' + t.remaining + ' tur</span></div>';
+  }).join('');
+}
+
+function removeTimerFromCombatant(combatantIdx, timerIdx) {
+  var c = combatants[combatantIdx];
+  if (!c || !c.timers) return;
+  c.timers.splice(timerIdx, 1);
+  updateTimerListDisplay();
   renderInit();
 }
 
-function addEffectPopup(index) {
-  var c = combatants[index];
-  if (!c || c.status === 'dead') return;
-  
-  var duration = prompt('Czas trwania efektu (w turach):', '3');
-  if (duration === null) return;
-  var dur = parseInt(duration);
-  if (isNaN(dur) || dur < 1) { alert('Podaj poprawną liczbę tur'); return; }
-  
-  var effectName = prompt('Nazwa efektu (np. Oślepienie, Trucizna, Prędkość):', '');
-  if (!effectName) return;
-  
-  addEffect(index, effectName, dur);
-}
-
-// ====== SYSTEM OBRAŻEŃ ======
-function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
-  var attacker = attackerIndex !== null && attackerIndex !== undefined ? combatants[attackerIndex] : null;
-  var target = combatants[targetIndex];
-  if (!target) return;
-  
-  var actualDamage = damage;
-  var targetName = target.name;
-  
-  if (target.tempHp > 0) {
-    var tempDamage = Math.min(target.tempHp, actualDamage);
-    target.tempHp -= tempDamage;
-    actualDamage -= tempDamage;
-    addTurnLog(targetName, '🛡️ Tymczasowe HP zablokowało ' + tempDamage + ' obrażeń');
-  }
-  
-  if (actualDamage > 0) {
-    target.hp = Math.max(0, target.hp - actualDamage);
-    target.roundDamage = (target.roundDamage || 0) + actualDamage;
-    target.totalDamage = (target.totalDamage || 0) + actualDamage;
-    combatStats.totalDamage += actualDamage;
-    
-    if (isCrit) {
-      combatStats.crits++;
-      addTurnLog(targetName, '💥 Krytyk! +' + actualDamage + ' ' + damageType);
-    } else {
-      addTurnLog(targetName, '⚔️ ' + actualDamage + ' ' + damageType + ' obrażeń');
-    }
-    
-    if (target.hp <= 0) {
-      target.status = 'dead';
-      combatStats.kills++;
-      addTurnLog(targetName, '💀 ŚMIERĆ!');
-      playSound('death');
-      if (attacker) {
-        addTurnLog(attacker.name, '🏆 Zabił ' + targetName + '!');
-      }
-    } else {
-      playSound(isCrit ? 'crit' : 'hit');
-    }
-  }
-  
-  var existing = focusFire.find(function(f) { return f.name === targetName; });
-  if (existing) {
-    existing.dmg += actualDamage;
-    existing.status = '⚔️ ' + existing.dmg + ' ' + damageType;
-  } else {
-    focusFire.push({ 
-      name: targetName, 
-      dmg: actualDamage, 
-      status: '⚔️ ' + actualDamage + ' ' + damageType 
-    });
-  }
-  
-  renderInit();
-  updateFocusFire();
-  updateCombatStats();
-}
-
-// ====== SYSTEM ATAKU ======
-function performAttack(attackerIndex, targetIndex, attackBonus, damageDice, damageType, advantage, disadvantage) {
-  var attacker = combatants[attackerIndex];
-  var target = combatants[targetIndex];
-  if (!attacker || !target) return null;
-  
-  if (attackerIndex === targetIndex) {
-    alert('Nie możesz atakować samego siebie!');
-    return null;
-  }
-  
-  if (target.status === 'dead') {
-    alert('Cel już nie żyje!');
-    return null;
-  }
-  
-  var roll1 = rollDice(20);
-  var roll2 = rollDice(20);
-  var attackRoll;
-  var rollText = '';
-  
-  if (advantage && !disadvantage) {
-    attackRoll = Math.max(roll1, roll2);
-    rollText = 'Przewaga: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
-  } else if (disadvantage && !advantage) {
-    attackRoll = Math.min(roll1, roll2);
-    rollText = 'Utrudnienie: ' + roll1 + ' + ' + roll2 + ' → ' + attackRoll;
-  } else {
-    attackRoll = roll1;
-    rollText = 'Rzut: ' + attackRoll;
-  }
-  
-  var totalAttack = attackRoll + attackBonus;
-  var isCrit = attackRoll === 20;
-  var isMiss = attackRoll === 1;
-  
-  if (isMiss) {
-    combatStats.misses++;
-    addTurnLog(attacker.name, '💨 Pudło (krytyczne) na ' + target.name);
-    playSound('hit');
-    return { hit: false, crit: false, miss: true };
-  }
-  
-  if (totalAttack < target.ac) {
-    combatStats.misses++;
-    addTurnLog(attacker.name, '💨 Pudło na ' + target.name + ' (' + totalAttack + ' vs AC ' + target.ac + ')');
-    playSound('hit');
-    return { hit: false, crit: false, miss: false };
-  }
-  
-  var dmgMatch = damageDice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-  var damage = 0;
-  var damageRolls = [];
-  
-  if (dmgMatch) {
-    var count = parseInt(dmgMatch[1]);
-    var sides = parseInt(dmgMatch[2]);
-    var bonus = dmgMatch[3] ? parseInt(dmgMatch[3]) : 0;
-    var rollCount = isCrit ? count * 2 : count;
-    
-    for (var i = 0; i < rollCount; i++) {
-      var r = rollDice(sides);
-      damageRolls.push(r);
-      damage += r;
-    }
-    damage += bonus;
-  } else {
-    damage = rollDice(8);
-    damageRolls.push(damage);
-  }
-  
-  dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit);
-  
-  return {
-    hit: true,
-    crit: isCrit,
-    miss: false,
-    attackRoll: attackRoll,
-    totalAttack: totalAttack,
-    damage: damage,
-    damageRolls: damageRolls,
-    target: target.name
-  };
-}
-
-// ====== OTWÓRZ POPUP ATAKU ======
+// ====== SYSTEM ATAKU Z AUTOMATYCZNYM WYBOREM ======
 function openAttackPopup() {
   if (combatants.length === 0) {
     alert('Brak bojowników w potyczce!');
@@ -453,21 +421,56 @@ function openAttackPopup() {
   popup.className = 'popup-overlay';
   popup.id = 'attackPopup';
   
+  // Automatyczny wybór: aktualny bojownik jako atakujący
+  var defaultAttacker = currentTurn < combatants.length ? currentTurn : 0;
+  
+  // Cel: pierwszy przeciwnik (inna rola niż atakujący)
+  var attackerRole = combatants[defaultAttacker] ? combatants[defaultAttacker].role : '';
+  var defaultTarget = -1;
+  
+  // Szukamy przeciwnika (inna rola)
+  for (var i = 0; i < combatants.length; i++) {
+    if (i !== defaultAttacker && combatants[i].status !== 'dead') {
+      var isPlayer = combatants[i].role === 'Gracz' || combatants[i].role === 'Companion';
+      var isAttackerPlayer = attackerRole === 'Gracz' || attackerRole === 'Companion';
+      if (isPlayer !== isAttackerPlayer) {
+        defaultTarget = i;
+        break;
+      }
+    }
+  }
+  // Jeśli nie znaleziono przeciwnika, weź pierwszy żywy
+  if (defaultTarget === -1) {
+    for (var j = 0; j < combatants.length; j++) {
+      if (j !== defaultAttacker && combatants[j].status !== 'dead') {
+        defaultTarget = j;
+        break;
+      }
+    }
+  }
+  
   var targetOptions = combatants.map(function(c, i) {
     var statusIcon = c.status === 'dead' ? '💀 ' : '';
     var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
     var condText = c.conditions && c.conditions.length > 0 ? ' ⚡' + c.conditions.length : '';
-    var effectsText = c.effects && c.effects.length > 0 ? ' 🕐' + c.effects.length : '';
-    return '<option value="' + i + '" ' + (c.status === 'dead' ? 'disabled' : '') + '>' + statusIcon + c.name + ' (' + hpText + ')' + condText + effectsText + '</option>';
+    var effectsText = c.timers && c.timers.length > 0 ? ' 🕐' + c.timers.length : '';
+    var selected = (i === defaultTarget) ? 'selected' : '';
+    return '<option value="' + i + '" ' + selected + ' ' + (c.status === 'dead' ? 'disabled' : '') + '>' + statusIcon + c.name + ' (' + hpText + ')' + condText + effectsText + '</option>';
+  }).join('');
+
+  var attackerOptions = combatants.map(function(c, i) {
+    var statusIcon = c.status === 'dead' ? '💀 ' : '';
+    var selected = (i === defaultAttacker) ? 'selected' : '';
+    return '<option value="' + i + '" ' + selected + ' ' + (c.status === 'dead' ? 'disabled' : '') + '>' + statusIcon + c.name + ' (' + c.role + ')</option>';
   }).join('');
 
   popup.innerHTML = `
     <div class="popup-content attack-popup-content">
-      <div class="popup-title">⚔️ Zaawansowany atak</div>
+      <div class="popup-title">⚔️ Atak</div>
       <div class="attack-form">
         <div class="attack-row">
           <label>Atakujący</label>
-          <select id="attackerSelect">${targetOptions}</select>
+          <select id="attackerSelect">${attackerOptions}</select>
         </div>
         <div class="attack-row">
           <label>Cel</label>
@@ -572,6 +575,145 @@ function executeAttack() {
       container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
+}
+
+function performAttack(attackerIndex, targetIndex, attackBonus, damageDice, damageType, advantage, disadvantage) {
+  var attacker = combatants[attackerIndex];
+  var target = combatants[targetIndex];
+  if (!attacker || !target) return null;
+  
+  if (attackerIndex === targetIndex) {
+    alert('Nie możesz atakować samego siebie!');
+    return null;
+  }
+  
+  if (target.status === 'dead') {
+    alert('Cel już nie żyje!');
+    return null;
+  }
+  
+  var roll1 = rollDice(20);
+  var roll2 = rollDice(20);
+  var attackRoll;
+  
+  if (advantage && !disadvantage) {
+    attackRoll = Math.max(roll1, roll2);
+  } else if (disadvantage && !advantage) {
+    attackRoll = Math.min(roll1, roll2);
+  } else {
+    attackRoll = roll1;
+  }
+  
+  var totalAttack = attackRoll + attackBonus;
+  var isCrit = attackRoll === 20;
+  var isMiss = attackRoll === 1;
+  
+  if (isMiss) {
+    combatStats.misses++;
+    addTurnLog(attacker.name, '💨 Pudło (krytyczne) na ' + target.name);
+    playSound('hit');
+    return { hit: false, crit: false, miss: true };
+  }
+  
+  if (totalAttack < target.ac) {
+    combatStats.misses++;
+    addTurnLog(attacker.name, '💨 Pudło na ' + target.name + ' (' + totalAttack + ' vs AC ' + target.ac + ')');
+    playSound('hit');
+    return { hit: false, crit: false, miss: false };
+  }
+  
+  var dmgMatch = damageDice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  var damage = 0;
+  var damageRolls = [];
+  
+  if (dmgMatch) {
+    var count = parseInt(dmgMatch[1]);
+    var sides = parseInt(dmgMatch[2]);
+    var bonus = dmgMatch[3] ? parseInt(dmgMatch[3]) : 0;
+    var rollCount = isCrit ? count * 2 : count;
+    
+    for (var i = 0; i < rollCount; i++) {
+      var r = rollDice(sides);
+      damageRolls.push(r);
+      damage += r;
+    }
+    damage += bonus;
+  } else {
+    damage = rollDice(8);
+    damageRolls.push(damage);
+  }
+  
+  dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit);
+  
+  return {
+    hit: true,
+    crit: isCrit,
+    miss: false,
+    attackRoll: attackRoll,
+    totalAttack: totalAttack,
+    damage: damage,
+    damageRolls: damageRolls,
+    target: target.name
+  };
+}
+
+// ====== SYSTEM OBRAŻEŃ ======
+function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
+  var attacker = attackerIndex !== null && attackerIndex !== undefined ? combatants[attackerIndex] : null;
+  var target = combatants[targetIndex];
+  if (!target) return;
+  
+  var actualDamage = damage;
+  var targetName = target.name;
+  
+  if (target.tempHp > 0) {
+    var tempDamage = Math.min(target.tempHp, actualDamage);
+    target.tempHp -= tempDamage;
+    actualDamage -= tempDamage;
+    addTurnLog(targetName, '🛡️ Tymczasowe HP zablokowało ' + tempDamage + ' obrażeń');
+  }
+  
+  if (actualDamage > 0) {
+    target.hp = Math.max(0, target.hp - actualDamage);
+    target.roundDamage = (target.roundDamage || 0) + actualDamage;
+    target.totalDamage = (target.totalDamage || 0) + actualDamage;
+    combatStats.totalDamage += actualDamage;
+    
+    if (isCrit) {
+      combatStats.crits++;
+      addTurnLog(targetName, '💥 Krytyk! +' + actualDamage + ' ' + damageType);
+    } else {
+      addTurnLog(targetName, '⚔️ ' + actualDamage + ' ' + damageType + ' obrażeń');
+    }
+    
+    if (target.hp <= 0) {
+      target.status = 'dead';
+      combatStats.kills++;
+      addTurnLog(targetName, '💀 ŚMIERĆ!');
+      playSound('death');
+      if (attacker) {
+        addTurnLog(attacker.name, '🏆 Zabił ' + targetName + '!');
+      }
+    } else {
+      playSound(isCrit ? 'crit' : 'hit');
+    }
+  }
+  
+  var existing = focusFire.find(function(f) { return f.name === targetName; });
+  if (existing) {
+    existing.dmg += actualDamage;
+    existing.status = '⚔️ ' + existing.dmg + ' ' + damageType;
+  } else {
+    focusFire.push({ 
+      name: targetName, 
+      dmg: actualDamage, 
+      status: '⚔️ ' + actualDamage + ' ' + damageType 
+    });
+  }
+  
+  renderInit();
+  updateFocusFire();
+  updateCombatStats();
 }
 
 // ====== STATYSTYKI ======
@@ -700,6 +842,13 @@ function renderInitEntry(div, c, i) {
     }).join('');
   }
   
+  var timerTags = '';
+  if (c.timers && c.timers.length > 0) {
+    timerTags = c.timers.map(function(t) {
+      return '<span class="effect-tag" style="background:rgba(212,168,67,0.12);color:var(--gold);border-color:rgba(212,168,67,0.15);">⏱️ ' + t.name + ' (' + t.remaining + ')</span>';
+    }).join('');
+  }
+  
   var dmgCounter = c.roundDamage > 0 ? '<span class="init-dmg-counter">⚔️' + c.roundDamage + '</span>' : '';
   var statusIcon = c.status === 'dead' ? '💀 ' : '';
 
@@ -707,7 +856,7 @@ function renderInitEntry(div, c, i) {
     <div class="init-badge">${c.init}</div>
     <div class="init-name">
       ${i === currentTurn ? '▶ ' : ''} ${statusIcon}${c.name}
-      ${condTags}${effectsTags}${dmgCounter}
+      ${condTags}${effectsTags}${timerTags}${dmgCounter}
       <button class="init-cond-btn ${c.conditions && c.conditions.length > 0 ? 'has-cond' : ''}" onclick="event.stopPropagation();showInitCondPopup(${i})" title="Zarządzaj stanami">${c.conditions && c.conditions.length > 0 ? '🔄' : '⚙️'}</button>
       <button class="init-cond-btn" onclick="event.stopPropagation();showInitDmg(${i})" title="Zadaj obrażenia">⚔️</button>
       ${c.status !== 'dead' ? '<button class="init-cond-btn" onclick="event.stopPropagation();addEffectPopup(' + i + ')" title="Dodaj efekt">⏱️</button>' : ''}
@@ -794,3 +943,6 @@ window.closeAddFromPartyPopup = closeAddFromPartyPopup;
 window.confirmAddFromParty = confirmAddFromParty;
 window.showInitDmg = showInitDmg;
 window.showInitCondPopup = showInitCondPopup;
+window.openTimerPopup = openTimerPopup;
+window.closeTimerPopup = closeTimerPopup;
+window.addTimerToCombatant = addTimerToCombatant;

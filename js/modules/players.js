@@ -1,5 +1,5 @@
 // ============================================================
-//  PLAYERS
+//  PLAYERS - NOWY WYGLĄD KART
 // ============================================================
 
 var players = [];
@@ -111,7 +111,7 @@ function confirmAddPlayer() {
   playSound('add');
 }
 
-// ====== RENDER ======
+// ====== RENDER - NOWY WYGLĄD ======
 function renderPlayers() {
   var container = document.getElementById('playerTracker');
   if (!container) return;
@@ -141,35 +141,42 @@ function renderPlayers() {
       : '';
 
     var stateBtnClass = p.conditions.length > 0 ? 'p-state-btn has-conds' : 'p-state-btn';
-    var stateBtnText = p.conditions.length > 0 ? '⚙️ Stany (' + p.conditions.length + ')' : '⚙️ Zarządzaj stanami';
+    var stateBtnText = p.conditions.length > 0 ? '⚙️ Stany (' + p.conditions.length + ')' : '⚙️ Stany';
+
+    var isDead = p.hp <= 0;
+    var deathSaveText = isDead ? '💀 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails : '';
 
     div.innerHTML = `
       <div class="p-header">
         <div class="p-avatar">${avatarHtml}${stateOverlay}</div>
         <div class="p-main">
-          <div class="p-name">${p.name}<span class="${getRoleBadge(p.role)}">${p.role}</span>${p.hp <= 0 ? '💀' : ''}</div>
-          <div class="p-stats-row">
-            ${p.ac > 0 ? '<div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">' + p.ac + '</span><span style="font-size:.6rem;color:var(--muted);margin-left:2px;">AC</span></div>' : ''}
-            <div style="flex:1;"></div>
-          </div>
+          <div class="p-name">${p.name}<span class="${getRoleBadge(p.role)}">${p.role}</span>${isDead ? ' 💀' : ''}</div>
         </div>
       </div>
-      <div class="p-hp-wrap">
-        <div class="p-hp-bar"><div class="p-hp-fill" style="width:${hpPct}%;background:linear-gradient(90deg,${hpColor},${hpColor}dd);"></div></div>
-        <div class="p-hp-text" style="color:${hpColor}">${p.hp}/${p.maxHp}</div>
+      
+      <div class="p-stats-row">
+        <div class="p-hp-ac-wrap">
+          <div class="p-hp-wrap">
+            <div class="p-hp-bar">
+              <div class="p-hp-fill" style="width:${hpPct}%;background:${hpColor};"></div>
+            </div>
+            <div class="p-hp-text" style="color:${hpColor}">${p.hp}/${p.maxHp}</div>
+          </div>
+          ${p.ac > 0 ? '<div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">' + p.ac + '</span></div>' : ''}
+        </div>
       </div>
-      ${p.hp <= 0 ? '<div style="font-size:.55rem;color:var(--muted);margin:2px 0;">🪦 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails + '</div>' : ''}
-      <div class="p-stats">
-        <span>❤️ ${p.hp}</span>
-        ${p.conditions.length > 0 ? '<span>⚡ ' + p.conditions.length + '</span>' : ''}
-      </div>
+      
+      ${isDead ? '<div style="font-size:.55rem;color:var(--muted);margin:2px 0;">' + deathSaveText + '</div>' : ''}
+      
       <div class="p-cond">${condTags}</div>
+      
       <button class="${stateBtnClass}" onclick="event.stopPropagation();showPlayerCondPopup(${i})">${stateBtnText}</button>
+      
       <div class="p-controls">
-        <button onclick="event.stopPropagation();showPlayerDmg(${i})">⚔️ Obrażenia</button>
-        <button onclick="event.stopPropagation();addPlayerToInitiative(${i})">⚡ Do potyczki</button>
-        ${p.hp <= 0 ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : ''}
-        <button class="danger" onclick="event.stopPropagation();removePlayer(${i})">✕</button>
+        <button class="primary" onclick="event.stopPropagation();showPlayerDmg(${i})">⚔️ DMG</button>
+        <button class="primary" onclick="event.stopPropagation();addPlayerToInitiative(${i})">⚡ Do walki</button>
+        ${isDead ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : ''}
+        <button class="danger" onclick="event.stopPropagation();removePlayer(${i})">✕ Usuń</button>
       </div>
     `;
     container.appendChild(div);
@@ -420,3 +427,4 @@ window.rollDmg = rollDmg;
 window.showDamagePopup = showDamagePopup;
 window.applyDamage = applyDamage;
 window.players = players;
+window.renderPlayers = renderPlayers;
