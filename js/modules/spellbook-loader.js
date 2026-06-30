@@ -1,5 +1,5 @@
 // ============================================================
-//  SPELLBOOK LOADER - Z KOLOROWYMI RAMKAMI WOKÓŁ ZAKLĘCIA
+//  SPELLBOOK LOADER - KOLOROWA NAZWA CZARU
 // ============================================================
 
 var spellCache = {};
@@ -156,7 +156,8 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter) {
       
       div.innerHTML = `
         <div class="spellbook-header">
-          <span class="spellbook-name">${spell.name_pl} <span style="color:var(--muted);font-weight:400;">(${spell.name_en})</span></span>
+          <span class="spellbook-name" style="color:${color.text};">${spell.name_pl}</span>
+          <span style="color:var(--muted);font-weight:400;font-size:var(--font-sm);">(${spell.name_en})</span>
           <span class="spellbook-level">${levelText}</span>
           <span class="spellbook-school-tag" data-school="${spell.school}" style="background:${color.bg};color:${color.text};border-color:${color.border};">${schoolDisplay}</span>
           <span class="spellbook-source">${spell.source || 'PHB'}</span>

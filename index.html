@@ -36,6 +36,7 @@
   <button class="nav-btn" data-tab="spells">🎨 Obszary</button>
   <button class="nav-btn" data-tab="players">👥 Postacie</button>
   <button class="nav-btn" data-tab="combat">⚔️ Potyczka</button>
+  <button class="nav-btn" data-tab="monsters">🐉 Potwory</button>
   <button class="nav-btn" data-tab="info">📖 Info</button>
   <button class="nav-btn" data-tab="spellbook">📖 Księga</button>
 </nav>
@@ -207,6 +208,23 @@
   </div>
 </section>
 
+<!-- ===== TAB: POTWORY ===== -->
+<section class="tab-section" data-tab="monsters">
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">🐉 Bestiariusz (CR 6-8)</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn outline" onclick="filterMonsters('all')" id="filterAll">Wszystkie</button>
+        <button class="btn outline" onclick="filterMonsters(6)" id="filter6">CR 6</button>
+        <button class="btn outline" onclick="filterMonsters(7)" id="filter7">CR 7</button>
+        <button class="btn outline" onclick="filterMonsters(8)" id="filter8">CR 8</button>
+      </div>
+    </div>
+    <input type="text" class="spell-search" id="monsterSearch" placeholder="🔍 Szukaj potwora...">
+    <div class="monster-grid" id="monsterGrid"></div>
+  </div>
+</section>
+
   <!-- ===== TAB: INFO ===== -->
   <section class="tab-section" data-tab="info">
     <div class="card">
@@ -343,6 +361,7 @@
   <button class="bottom-nav-btn" data-tab="spells"><span class="bottom-nav-icon">🎨</span><span class="bottom-nav-label">Obszary</span></button>
   <button class="bottom-nav-btn" data-tab="players"><span class="bottom-nav-icon">👥</span><span class="bottom-nav-label">Postacie</span></button>
   <button class="bottom-nav-btn" data-tab="combat"><span class="bottom-nav-icon">⚔️</span><span class="bottom-nav-label">Potyczka</span></button>
+  <button class="bottom-nav-btn" data-tab="monsters"><span class="bottom-nav-icon">🐉</span><span class="bottom-nav-label">Potwory</span></button>
   <button class="bottom-nav-btn" data-tab="info"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Info</span></button>
   <button class="bottom-nav-btn" data-tab="spellbook"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Księga</span></button>
 </nav>

@@ -1,5 +1,5 @@
 // ============================================================
-//  COMBAT - Z SYNCHRONIZACJĄ DANYCH I NOWYM POPUPEM
+//  COMBAT - Z INDYWIDUALNĄ INICJATYWĄ I ANIMACJĄ RUNDY
 // ============================================================
 
 var combatants = [];
@@ -9,6 +9,7 @@ var focusFire = [];
 var turnLog = [];
 var lastInitCount = -1;
 var combatActive = false;
+var roundChangeAnimating = false;
 var combatStats = {
   totalRounds: 0,
   totalDamage: 0,
@@ -24,34 +25,24 @@ function syncPlayerData() {
   if (typeof players === 'undefined' || !players) return;
   
   combatants.forEach(function(c) {
-    // Znajdź odpowiadającą postać w liście graczy (po nazwie)
     var player = players.find(function(p) { 
       return p.name === c.name && p.role === c.role; 
     });
     if (player) {
-      // Synchronizuj HP
-      if (player.hp !== c.hp) {
-        player.hp = c.hp;
-      }
-      // Synchronizuj stany
+      if (player.hp !== c.hp) player.hp = c.hp;
       if (JSON.stringify(player.conditions) !== JSON.stringify(c.conditions)) {
         player.conditions = c.conditions.slice();
       }
-      // Synchronizuj wyczerpanie
       if (player.exhaustionLevel !== c.exhaustionLevel) {
         player.exhaustionLevel = c.exhaustionLevel;
       }
-      // Synchronizuj status śmierci
       if (player.hp <= 0 && !player.deathSaves) {
         player.deathSaves = { passes: 0, fails: 0 };
       }
     }
   });
   
-  // Odśwież listę postaci
-  if (typeof renderPlayers === 'function') {
-    renderPlayers();
-  }
+  if (typeof renderPlayers === 'function') renderPlayers();
 }
 
 // ====== DODAWANIE BOJOWNIKA ======
@@ -108,7 +99,7 @@ function removeCombatant(index) {
   }
 }
 
-// ====== OTWÓRZ POPUP DODAWANIA Z BAZY (WIELOKROTNY) ======
+// ====== OTWÓRZ POPUP DODAWANIA Z BAZY (Z INDYWIDUALNĄ INICJATYWĄ) ======
 function openAddFromPartyPopup() {
   if (typeof players === 'undefined' || players.length === 0) {
     alert('Dodaj najpierw postacie do "Postaci"!');
@@ -126,18 +117,20 @@ function openAddFromPartyPopup() {
     var statusIcon = p.hp <= 0 ? '💀 ' : '';
     var roleClass = p.role ? p.role.toLowerCase() : 'npc';
     var checked = p.hp > 0 ? 'checked' : '';
+    var initVal = Math.floor(Math.random() * 20) + 1; // losowa inicjatywa
     return `
       <div class="party-list-item">
         <input type="checkbox" class="party-checkbox" data-index="${i}" ${checked}>
         <span class="party-name">${statusIcon}${p.name}</span>
         <span class="party-hp">❤️ ${p.hp}/${p.maxHp}</span>
         <span class="party-role ${roleClass}">${p.role || 'NPC'}</span>
+        <input type="number" class="party-init-input" data-index="${i}" value="${initVal}" min="0" max="50" step="1" title="Inicjatywa">
       </div>
     `;
   }).join('');
 
   popup.innerHTML = `
-    <div class="popup-content" style="max-width:480px;">
+    <div class="popup-content" style="max-width:520px;">
       <div class="popup-title">👥 Dodaj z bazy</div>
       <div class="party-select-all">
         <input type="checkbox" id="partySelectAll" checked>
@@ -149,8 +142,9 @@ function openAddFromPartyPopup() {
         ${listItems}
       </div>
       <div class="party-bulk-init">
-        <label>Inicjatywa:</label>
-        <input type="number" id="partyBulkInit" value="0" step="1" />
+        <label>⬡ Wszystkim:</label>
+        <input type="number" id="partyBulkInit" value="" placeholder="ustaw inicjatywę" min="0" max="50" step="1" />
+        <button class="btn outline" onclick="applyBulkInit()" style="padding:4px 12px;min-height:30px;font-size:0.7rem;">Zastosuj</button>
         <span style="flex:1;"></span>
         <button class="btn" onclick="confirmAddFromPartyBulk()" style="padding:6px 16px;min-height:36px;">✓ Dodaj zaznaczonych</button>
         <button class="btn outline" onclick="closeAddFromPartyPopup()" style="padding:6px 16px;min-height:36px;">Anuluj</button>
@@ -159,7 +153,6 @@ function openAddFromPartyPopup() {
   `;
   document.body.appendChild(popup);
 
-  // Zaznacz/odznacz wszystkich
   var selectAll = document.getElementById('partySelectAll');
   if (selectAll) {
     selectAll.addEventListener('change', function() {
@@ -175,35 +168,44 @@ function closeAddFromPartyPopup() {
   if (p) p.remove();
 }
 
-function confirmAddFromPartyBulk() {
-  var checkboxes = document.querySelectorAll('.party-checkbox:checked');
-  var initInput = document.getElementById('partyBulkInit');
-  var initVal = parseInt(initInput ? initInput.value : 0) || 0;
+function applyBulkInit() {
+  var bulkInput = document.getElementById('partyBulkInit');
+  if (!bulkInput) return;
+  var val = parseInt(bulkInput.value);
+  if (isNaN(val) || val < 0) { alert('Podaj poprawną wartość inicjatywy'); return; }
   
-  if (checkboxes.length === 0) {
+  document.querySelectorAll('.party-init-input').forEach(function(input) {
+    input.value = val;
+  });
+}
+
+function confirmAddFromPartyBulk() {
+  var checkedItems = document.querySelectorAll('.party-checkbox:checked');
+  
+  if (checkedItems.length === 0) {
     alert('Zaznacz co najmniej jedną postać!');
     return;
   }
   
   var added = 0;
-  checkboxes.forEach(function(cb) {
+  checkedItems.forEach(function(cb) {
     var idx = parseInt(cb.dataset.index);
     var player = players[idx];
     if (!player) return;
-    if (player.hp <= 0) {
-      // Pomijamy martwych
-      return;
-    }
+    if (player.hp <= 0) return;
     
-    // Sprawdź czy już jest w potyczce
     var exists = combatants.some(function(c) { 
       return c.name === player.name && c.role === player.role; 
     });
     if (exists) return;
     
+    // Pobierz inicjatywę z pola input
+    var initInput = document.querySelector('.party-init-input[data-index="' + idx + '"]');
+    var initVal = initInput ? parseInt(initInput.value) || 0 : 0;
+    
     addCombatant({
       name: player.name,
-      init: initVal + Math.floor(Math.random() * 5) - 2, // mała losowość
+      init: initVal,
       hp: player.hp,
       maxHp: player.maxHp,
       ac: player.ac,
@@ -280,15 +282,19 @@ function confirmAddCombatant() {
   playSound('add');
 }
 
-// ====== SYSTEM TUR ======
+// ====== SYSTEM TUR Z ANIMACJĄ ======
 function nextTurn() {
   if (combatants.length === 0) return;
   
   combatants.forEach(function(c) { c.roundDamage = 0; });
   
+  var oldTurn = currentTurn;
   currentTurn = (currentTurn + 1) % combatants.length;
   
-  if (currentTurn === 0) {
+  // Sprawdź czy nowa runda
+  var isNewRound = currentTurn === 0;
+  
+  if (isNewRound) {
     round++;
     combatStats.totalRounds++;
     combatants.forEach(function(c) {
@@ -302,6 +308,7 @@ function nextTurn() {
     focusFire = [];
     turnLog = [];
     addTurnLog('⚔️', '🔄 Rozpoczęcie rundy ' + round);
+    playSound('turn');
   }
   
   var current = combatants[currentTurn];
@@ -314,11 +321,36 @@ function nextTurn() {
     processTurnStartEffects(current);
   }
   
-  playSound('turn');
+  // Animacja zmiany rundy
+  if (isNewRound) {
+    animateRoundChange();
+  } else {
+    playSound('turn');
+  }
+  
   renderInit();
   updateFocusFire();
   updateCombatStats();
   syncPlayerData();
+}
+
+function animateRoundChange() {
+  var entries = document.querySelectorAll('.init-entry');
+  entries.forEach(function(el, i) {
+    setTimeout(function() {
+      el.classList.remove('round-change', 'round-change-current');
+      // Wymuś reflow
+      void el.offsetWidth;
+      if (i === currentTurn % entries.length) {
+        el.classList.add('round-change-current');
+      } else {
+        el.classList.add('round-change');
+      }
+      setTimeout(function() {
+        el.classList.remove('round-change', 'round-change-current');
+      }, 700);
+    }, i * 50);
+  });
 }
 
 function processTurnStartEffects(combatant) {
@@ -642,7 +674,6 @@ function executeAttack() {
       container.innerHTML = resultHtml;
       container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    // Synchronizuj po ataku
     syncPlayerData();
   }
 }
@@ -1023,6 +1054,7 @@ window.confirmAddCombatant = confirmAddCombatant;
 window.openAddFromPartyPopup = openAddFromPartyPopup;
 window.closeAddFromPartyPopup = closeAddFromPartyPopup;
 window.confirmAddFromPartyBulk = confirmAddFromPartyBulk;
+window.applyBulkInit = applyBulkInit;
 window.showInitDmg = showInitDmg;
 window.showInitCondPopup = showInitCondPopup;
 window.openTimerPopup = openTimerPopup;
