@@ -311,6 +311,33 @@ function rollDmg(sides) {
   if (input) { input.value = rollDice(sides); playSound('dice'); }
 }
 
+function applyDamage() {
+  var input = document.getElementById('dmgAmount');
+  var critCheck = document.getElementById('dmgCrit');
+  if (!input) return;
+  var dmg = parseInt(input.value);
+  if (isNaN(dmg) || dmg < 0) { alert('Podaj poprawną wartość obrażeń'); return; }
+  if (critCheck && critCheck.checked) dmg *= 2;
+
+  if (dmgPopupTarget) {
+    if (dmgPopupTarget.type === 'player') {
+      var p = players[dmgPopupTarget.index];
+      if (p) {
+        p.hp = Math.max(0, p.hp - dmg);
+        triggerHpHitAnimation(dmgPopupTarget.index);
+        renderPlayers();
+        playSound('hit');
+      }
+    } else if (dmgPopupTarget.type === 'init') {
+      var c = combatants[dmgPopupTarget.index];
+      if (c) {
+        dealDamage(null, dmgPopupTarget.index, dmg, 'obrażenia', false);
+      }
+    }
+  }
+  closeDmgPopup();
+}
+
 // ====== CONDITION POPUP ======
 function showCondPopup(name, currentConds, onToggle) {
   var existing = document.getElementById('condPopup');
@@ -359,9 +386,9 @@ function closeCondPopup() {
   if (p) p.remove();
   conditionPopupTarget = null;
 }
+
 // ====== INICJALIZACJA PICKERA AWATARÓW ======
 function initCombatantAvatarPicker() {
-  // Prosta implementacja - jeśli istnieje grid avatarów dla bojowników
   var grid = document.getElementById('combatantAvatarGrid');
   if (!grid) return;
   
@@ -376,7 +403,6 @@ function initCombatantAvatarPicker() {
   });
 }
 
-// Eksportuj
 window.initCombatantAvatarPicker = initCombatantAvatarPicker;
 
 // ====== Eksport globalny ======
@@ -392,3 +418,5 @@ window.closeDmgPopup = closeDmgPopup;
 window.closeCondPopup = closeCondPopup;
 window.rollDmg = rollDmg;
 window.showDamagePopup = showDamagePopup;
+window.applyDamage = applyDamage;
+window.players = players;

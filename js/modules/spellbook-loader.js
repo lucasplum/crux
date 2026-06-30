@@ -6,6 +6,24 @@ var spellCache = {};
 var allSpells = [];
 var isLoading = false;
 
+// Rozszerzone mapowanie szkół magicznych
+var SCHOOL_MAP = {
+  'wywoływanie': 'Ewokacja',
+  'przywoływanie': 'Przyzywanie',
+  'wieszczenie': 'Wieszczenie',
+  'nekromancja': 'Nekromancja',
+  'uroki': 'Oczarowanie',
+  'iluzje': 'Iluzja',
+  'odpychanie': 'Ochrona',
+  'przemiany': 'Przemiany'
+};
+
+// Odwrotne mapowanie dla filtrów
+var SCHOOL_REVERSE = {};
+for (var key in SCHOOL_MAP) {
+  SCHOOL_REVERSE[SCHOOL_MAP[key]] = key;
+}
+
 function loadSpellLevel(level, callback) {
   if (spellCache[level]) {
     if (callback) callback(spellCache[level]);
@@ -59,34 +77,16 @@ function loadAllSpells(callback) {
   });
 }
 
-function getSpellsByLevel(level, callback) {
-  if (spellCache[level]) {
-    if (callback) callback(spellCache[level]);
-    return;
-  }
-  loadSpellLevel(level, callback);
-}
-
-function searchSpells(query, callback) {
-  loadAllSpells(function(spells) {
-    var results = spells.filter(function(s) {
-      return s.name_pl.toLowerCase().includes(query.toLowerCase()) ||
-             s.name_en.toLowerCase().includes(query.toLowerCase()) ||
-             s.desc_pl.toLowerCase().includes(query.toLowerCase()) ||
-             s.desc_en.toLowerCase().includes(query.toLowerCase());
-    });
-    if (callback) callback(results);
-  });
-}
-
 function filterSpells(level, school, callback) {
   loadAllSpells(function(spells) {
     var results = spells;
-    if (level !== 'all' && level !== undefined) {
+    if (level !== 'all' && level !== undefined && level !== '') {
       results = results.filter(function(s) { return s.level === parseInt(level); });
     }
-    if (school !== 'all' && school !== undefined) {
-      results = results.filter(function(s) { return s.school === school; });
+    if (school !== 'all' && school !== undefined && school !== '') {
+      // Mapowanie nazwy szkoły z filtra na wartość w danych
+      var schoolKey = SCHOOL_REVERSE[school] || school;
+      results = results.filter(function(s) { return s.school === schoolKey; });
     }
     if (callback) callback(results);
   });
@@ -133,11 +133,14 @@ function renderSpellbook(filter, levelFilter, schoolFilter) {
         }).join('');
       }
       
+      // Mapowanie szkoły na wyświetlaną nazwę
+      var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
+      
       div.innerHTML = `
         <div class="spellbook-header">
           <span class="spellbook-name">${spell.name_pl} <span style="color:var(--muted);font-weight:400;">(${spell.name_en})</span></span>
           <span class="spellbook-level">${levelText}</span>
-          <span class="spellbook-school">${spell.school}</span>
+          <span class="spellbook-school">${schoolDisplay}</span>
           <span class="spellbook-source">${spell.source || 'PHB'}</span>
         </div>
         <div class="spellbook-meta">
@@ -183,13 +186,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Render initial - załaduj wszystkie
   renderSpellbook();
 });
 
 window.renderSpellbook = renderSpellbook;
 window.loadSpellLevel = loadSpellLevel;
 window.loadAllSpells = loadAllSpells;
-window.searchSpells = searchSpells;
 window.filterSpells = filterSpells;
-window.getSpellsByLevel = getSpellsByLevel;
+window.SCHOOL_MAP = SCHOOL_MAP;
+window.SCHOOL_REVERSE = SCHOOL_REVERSE;

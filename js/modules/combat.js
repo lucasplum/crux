@@ -70,27 +70,67 @@ function removeCombatant(index) {
   }
 }
 
-// ====== DODAWANIE Z DRUŻYNY ======
-function addFromParty() {
+// ====== OTWÓRZ POPUP DODAWANIA Z DRUŻYNY ======
+function openAddFromPartyPopup() {
   if (typeof players === 'undefined' || players.length === 0) {
     alert('Dodaj najpierw postacie do "Postaci"!');
     return;
   }
-  var names = players.map(function(p, i) { return (i + 1) + '. ' + p.name + ' (' + p.role + ')'; }).join('\n');
-  var choice = prompt('Którą postać dodać?\n' + names + '\n\nWpisz numer lub nazwę:');
-  if (!choice) return;
 
-  var player = null;
-  var num = parseInt(choice);
-  if (!isNaN(num) && num > 0 && num <= players.length) player = players[num - 1];
-  else player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
+  var existing = document.getElementById('addFromPartyPopup');
+  if (existing) existing.remove();
 
-  if (!player) { alert('Nie znaleziono'); return; }
+  var popup = document.createElement('div');
+  popup.className = 'popup-overlay';
+  popup.id = 'addFromPartyPopup';
+  
+  var playerOptions = players.map(function(p, i) {
+    var statusIcon = p.hp <= 0 ? '💀 ' : '';
+    var hpText = p.hp + '/' + p.maxHp + ' HP';
+    return '<option value="' + i + '">' + statusIcon + p.name + ' (' + hpText + ')</option>';
+  }).join('');
 
-  var initVal = prompt('Inicjatywa dla ' + player.name + ':') || '0';
+  popup.innerHTML = `
+    <div class="popup-content">
+      <div class="popup-title">👥 Dodaj z drużyny</div>
+      <div class="attack-form">
+        <div class="attack-row">
+          <label>Wybierz postać</label>
+          <select id="partyPlayerSelect">${playerOptions}</select>
+        </div>
+        <div class="attack-row">
+          <label>Inicjatywa</label>
+          <input type="number" id="partyInit" value="0" step="1" />
+        </div>
+        <div class="attack-actions">
+          <button class="btn" onclick="confirmAddFromParty()">✓ Dodaj do potyczki</button>
+          <button class="btn outline" onclick="closeAddFromPartyPopup()">Anuluj</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(popup);
+}
+
+function closeAddFromPartyPopup() {
+  var p = document.getElementById('addFromPartyPopup');
+  if (p) p.remove();
+}
+
+function confirmAddFromParty() {
+  var select = document.getElementById('partyPlayerSelect');
+  var initInput = document.getElementById('partyInit');
+  if (!select || !initInput) return;
+  
+  var idx = parseInt(select.value);
+  var player = players[idx];
+  if (!player) return;
+  
+  var initVal = parseInt(initInput.value) || 0;
+  
   addCombatant({
     name: player.name,
-    init: parseInt(initVal) || 0,
+    init: initVal,
     hp: player.hp,
     maxHp: player.maxHp,
     ac: player.ac,
@@ -98,12 +138,13 @@ function addFromParty() {
     conditions: player.conditions ? player.conditions.slice() : [],
     avatar: player.avatar
   });
+  
+  closeAddFromPartyPopup();
   playSound('add');
 }
 
 // ====== OTWÓRZ MODAL DODAWANIA ======
 function openAddCombatantModal() {
-  // Użyj istniejącego modalu z HTML
   var popup = document.getElementById('addCombatantPopup');
   if (popup) {
     popup.style.display = 'flex';
@@ -112,7 +153,6 @@ function openAddCombatantModal() {
       nameInput.value = '';
       setTimeout(function() { nameInput.focus(); }, 100);
     }
-    // Resetuj inne pola
     var initInput = document.getElementById('cInit');
     var hpInput = document.getElementById('cHp');
     var acInput = document.getElementById('cAc');
@@ -162,13 +202,10 @@ function confirmAddCombatant() {
 function nextTurn() {
   if (combatants.length === 0) return;
   
-  // Reset obrażeń rundy
   combatants.forEach(function(c) { c.roundDamage = 0; });
   
-  // Przejście do następnej tury
   currentTurn = (currentTurn + 1) % combatants.length;
   
-  // Nowa runda
   if (currentTurn === 0) {
     round++;
     combatStats.totalRounds++;
@@ -178,14 +215,12 @@ function nextTurn() {
     addTurnLog('⚔️', '🔄 Rozpoczęcie rundy ' + round);
   }
   
-  // Sprawdź czy obecny bojownik żyje
   var current = combatants[currentTurn];
   if (current && current.status === 'dead') {
     nextTurn();
     return;
   }
   
-  // Efekty na początku tury
   if (current) {
     processTurnStartEffects(current);
   }
@@ -269,7 +304,6 @@ function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
   var actualDamage = damage;
   var targetName = target.name;
   
-  // Sprawdź czy cel ma tymczasowe HP
   if (target.tempHp > 0) {
     var tempDamage = Math.min(target.tempHp, actualDamage);
     target.tempHp -= tempDamage;
@@ -277,7 +311,6 @@ function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
     addTurnLog(targetName, '🛡️ Tymczasowe HP zablokowało ' + tempDamage + ' obrażeń');
   }
   
-  // Zadaj obrażenia
   if (actualDamage > 0) {
     target.hp = Math.max(0, target.hp - actualDamage);
     target.roundDamage = (target.roundDamage || 0) + actualDamage;
@@ -304,7 +337,6 @@ function dealDamage(attackerIndex, targetIndex, damage, damageType, isCrit) {
     }
   }
   
-  // Dodaj do focus fire
   var existing = focusFire.find(function(f) { return f.name === targetName; });
   if (existing) {
     existing.dmg += actualDamage;
@@ -372,7 +404,6 @@ function performAttack(attackerIndex, targetIndex, attackBonus, damageDice, dama
     return { hit: false, crit: false, miss: false };
   }
   
-  // Trafienie - oblicz obrażenia
   var dmgMatch = damageDice.match(/^(\d+)d(\d+)([+-]\d+)?$/);
   var damage = 0;
   var damageRolls = [];
@@ -732,168 +763,6 @@ function resetInit() {
   updateCombatStats();
 }
 
-// ============================================================
-//  COMBAT - DODATKOWE FUNKCJE DO POPUPÓW
-//  (DODAJ NA KONIEC PLIKU combat.js)
-// ============================================================
-
-// ====== DODAWANIE Z DRUŻYNY (popup) ======
-function addFromParty() {
-  if (typeof players === 'undefined' || players.length === 0) {
-    alert('Dodaj najpierw postacie do "Postaci"!');
-    return;
-  }
-
-  var existing = document.getElementById('partySelectPopup');
-  if (existing) existing.remove();
-
-  var popup = document.createElement('div');
-  popup.className = 'popup-overlay';
-  popup.id = 'partySelectPopup';
-
-  var options = players.map(function(p, i) {
-    var status = p.hp <= 0 ? '💀 ' : '';
-    return '<option value="' + i + '">' + status + p.name + ' (' + p.role + ') HP: ' + p.hp + '/' + p.maxHp + '</option>';
-  }).join('');
-
-  popup.innerHTML = `
-    <div class="popup-content">
-      <div class="popup-title">👥 Dodaj z drużyny</div>
-      <div class="attack-row">
-        <label>Wybierz postać</label>
-        <select id="partyMemberSelect">${options}</select>
-      </div>
-      <div class="attack-row">
-        <label>Inicjatywa</label>
-        <input type="number" id="partyInitValue" value="0" step="1" />
-      </div>
-      <div class="modal-actions">
-        <button class="btn" onclick="confirmAddFromParty()">✓ Dodaj</button>
-        <button class="btn outline" onclick="closePartySelectPopup()">Anuluj</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(popup);
-}
-
-function closePartySelectPopup() {
-  var p = document.getElementById('partySelectPopup');
-  if (p) p.remove();
-}
-
-function confirmAddFromParty() {
-  var select = document.getElementById('partyMemberSelect');
-  var initInput = document.getElementById('partyInitValue');
-  if (!select || !initInput) return;
-
-  var index = parseInt(select.value);
-  var initVal = parseInt(initInput.value) || 0;
-  var player = players[index];
-  if (!player) return;
-
-  addCombatant({
-    name: player.name,
-    init: initVal,
-    hp: player.hp,
-    maxHp: player.maxHp,
-    ac: player.ac,
-    role: player.role,
-    conditions: player.conditions ? player.conditions.slice() : [],
-    avatar: player.avatar
-  });
-
-  closePartySelectPopup();
-  playSound('add');
-}
-
-// ====== OTWÓRZ POPUP ATAKU ======
-function openAttackPopup() {
-  if (combatants.length === 0) {
-    alert('Brak bojowników w potyczce!');
-    return;
-  }
-
-  var existing = document.getElementById('attackPopup');
-  if (existing) existing.remove();
-
-  var popup = document.createElement('div');
-  popup.className = 'popup-overlay';
-  popup.id = 'attackPopup';
-
-  var targetOptions = combatants.map(function(c, i) {
-    var statusIcon = c.status === 'dead' ? '💀 ' : '';
-    var hpText = typeof c.hp === 'number' ? c.hp + '/' + c.maxHp + ' HP' : '? HP';
-    var condText = c.conditions && c.conditions.length > 0 ? ' ⚡' + c.conditions.length : '';
-    var effectsText = c.effects && c.effects.length > 0 ? ' 🕐' + c.effects.length : '';
-    return '<option value="' + i + '" ' + (c.status === 'dead' ? 'disabled' : '') + '>' + statusIcon + c.name + ' (' + hpText + ')' + condText + effectsText + '</option>';
-  }).join('');
-
-  popup.innerHTML = `
-    <div class="popup-content attack-popup-content">
-      <div class="popup-title">⚔️ Atak</div>
-      <div class="attack-form">
-        <div class="attack-row">
-          <label>Atakujący</label>
-          <select id="attackerSelect">${targetOptions}</select>
-        </div>
-        <div class="attack-row">
-          <label>Cel</label>
-          <select id="targetSelect">${targetOptions}</select>
-        </div>
-        <div class="attack-row">
-          <label>Bonus do trafienia</label>
-          <input type="number" id="attackBonus" value="0" step="1" />
-        </div>
-        <div class="attack-row">
-          <label>Kości obrażeń (np. 2d6+3)</label>
-          <input type="text" id="damageDice" placeholder="np. 2d6+3" value="1d8" />
-        </div>
-        <div class="attack-row">
-          <label>Typ obrażeń</label>
-          <select id="damageType">
-            <option value="obuchowe">⚡ Obuchowe</option>
-            <option value="cięte">🗡️ Cięte</option>
-            <option value="kłute">🏹 Kłute</option>
-            <option value="ogniste">🔥 Ogniste</option>
-            <option value="zimne">❄️ Zimne</option>
-            <option value="elektryczne">⚡ Elektryczne</option>
-            <option value="trucizna">☠️ Trucizna</option>
-            <option value="nekrotyczne">💀 Nekrotyczne</option>
-            <option value="kwas">🧪 Kwas</option>
-            <option value="psychiczne">🧠 Psychiczne</option>
-            <option value="promieniowanie">☀️ Promieniowanie</option>
-            <option value="grzmot">🔊 Grzmot</option>
-          </select>
-        </div>
-        <div class="attack-check">
-          <input type="checkbox" id="attackAdvantage" />
-          <label for="attackAdvantage">⚡ Przewaga</label>
-          <input type="checkbox" id="attackDisadvantage" />
-          <label for="attackDisadvantage">🌑 Utrudnienie</label>
-        </div>
-        <div class="attack-actions">
-          <button class="btn" onclick="executeAttack()">⚔️ Rzuć atak</button>
-          <button class="btn outline" onclick="closeAttackPopup()">Anuluj</button>
-        </div>
-        <div id="attackResultContainer"></div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(popup);
-}
-
-function closeAttackPopup() {
-  var p = document.getElementById('attackPopup');
-  if (p) p.remove();
-}
-
-// ====== EKSPORT ======
-window.addFromParty = addFromParty;
-window.confirmAddFromParty = confirmAddFromParty;
-window.closePartySelectPopup = closePartySelectPopup;
-window.openAttackPopup = openAttackPopup;
-window.closeAttackPopup = closeAttackPopup;
-
 // ====== EKSPORT GLOBALNY ======
 window.combatants = combatants;
 window.currentTurn = currentTurn;
@@ -920,6 +789,8 @@ window.executeAttack = executeAttack;
 window.openAddCombatantModal = openAddCombatantModal;
 window.closeAddCombatantModal = closeAddCombatantModal;
 window.confirmAddCombatant = confirmAddCombatant;
-window.addFromParty = addFromParty;
+window.openAddFromPartyPopup = openAddFromPartyPopup;
+window.closeAddFromPartyPopup = closeAddFromPartyPopup;
+window.confirmAddFromParty = confirmAddFromParty;
 window.showInitDmg = showInitDmg;
 window.showInitCondPopup = showInitCondPopup;

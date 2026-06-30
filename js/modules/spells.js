@@ -1,73 +1,12 @@
 // ============================================================
-//  SPELLS - OBSZARY ZAKLĘĆ (tylko wyszukiwanie)
+//  SPELLS - Obszary zaklęć
 // ============================================================
-
-var selectedSpell = null;
 
 var spellCanvas = document.getElementById('spellCanvas');
 var pctx = spellCanvas ? spellCanvas.getContext('2d') : null;
+var selectedSpell = null;
 
-// ---- LISTA OBSZARÓW ZAKLĘĆ ----
-var AREA_TEMPLATES = [
-  { name: 'Kula Ognia (Fireball)', shape: 'sphere', size: 20, desc: '🔥 8k6, promień 20 ft', school: 'Ewokacja', level: 3 },
-  { name: 'Kula Lodu (Ice Storm)', shape: 'sphere', size: 20, desc: '❄️ 8k6, promień 20 ft', school: 'Ewokacja', level: 3 },
-  { name: 'Meteor (Meteor Swarm)', shape: 'sphere', size: 40, desc: '☄️ 20k6, promień 40 ft', school: 'Ewokacja', level: 9 },
-  { name: 'Stożek Zimna (Cone of Cold)', shape: 'cone', size: 60, desc: '❄️ 8k6, stożek 60 ft', school: 'Ewokacja', level: 5 },
-  { name: 'Ognisty Oddech (Dragon\'s Breath)', shape: 'cone', size: 30, desc: '🔥 5k6, stożek 30 ft', school: 'Ewokacja', level: 2 },
-  { name: 'Promień Światła (Sunbeam)', shape: 'line', size: 120, desc: '💫 10k6, linia 120 ft', school: 'Ewokacja', level: 6 },
-  { name: 'Piorun (Lightning Bolt)', shape: 'line', size: 100, desc: '⚡ 8k6, linia 100 ft', school: 'Ewokacja', level: 3 },
-  { name: 'Kula Śmierci (Circle of Death)', shape: 'sphere', size: 30, desc: '💀 12k6 nekrotycznych, promień 30 ft', school: 'Nekromancja', level: 6 },
-  { name: 'Sześcian Ognia (Fire Cube)', shape: 'cube', size: 30, desc: '🔥 10k6, sześcian 30 ft', school: 'Ewokacja', level: 4 },
-  { name: 'Błogosławieństwo (Bless)', shape: 'sphere', size: 30, desc: '✨ Buff, promień 30 ft', school: 'Oczarowanie', level: 1 },
-  { name: 'Mroczna Moc (Revivify)', shape: 'sphere', size: 20, desc: '🌑 Przywraca życie, promień 20 ft', school: 'Nekromancja', level: 3 },
-  { name: 'Aura Życia (Aura of Life)', shape: 'sphere', size: 30, desc: '💚 Leczenie, promień 30 ft', school: 'Oczarowanie', level: 4 },
-  { name: 'Bariera (Shield of Faith)', shape: 'sphere', size: 10, desc: '🛡️ +2 KP, promień 10 ft', school: 'Ochrona', level: 1 },
-  { name: 'Mroczna Chmura (Dark Cloud)', shape: 'sphere', size: 30, desc: '☁️ Zasłona, promień 30 ft', school: 'Czarowanie', level: 2 },
-  { name: 'Ściana Ognia (Wall of Fire)', shape: 'line', size: 60, desc: '🔥 Ściana 60 ft', school: 'Ewokacja', level: 4 },
-  { name: 'Krąg Ochrony (Circle of Power)', shape: 'sphere', size: 30, desc: '🔮 Antymagia, promień 30 ft', school: 'Ochrona', level: 6 },
-  { name: 'Uścisk Ziemi (Earthbind)', shape: 'cube', size: 20, desc: '🪨 Trzyma wrogów, sześcian 20 ft', school: 'Przyzywanie', level: 2 },
-  { name: 'Mroczne Oczy (Eyebite)', shape: 'cone', size: 30, desc: '👁️ Paraliż, stożek 30 ft', school: 'Nekromancja', level: 4 },
-  { name: 'Tarcza Światła (Sunburst)', shape: 'sphere', size: 15, desc: '✨ Oślepia, promień 15 ft', school: 'Ewokacja', level: 2 },
-];
-
-// ====== RENDER LISTY OBSZARÓW (tylko wyszukiwanie) ======
-function renderAreaList(filter) {
-  filter = filter || '';
-
-  var container = document.getElementById('spellList');
-  if (!container) return;
-  container.innerHTML = '';
-
-  var filtered = AREA_TEMPLATES.filter(function(s) {
-    return s.name.toLowerCase().includes(filter.toLowerCase()) ||
-           s.desc.toLowerCase().includes(filter.toLowerCase());
-  });
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<span style="font-size:.6rem;color:var(--muted);">Brak obszarów</span>';
-    return;
-  }
-
-  filtered.forEach(function(area) {
-    var tag = document.createElement('span');
-    tag.className = 'spell-tag' + (selectedSpell === area ? ' selected' : '');
-    tag.textContent = area.name + ' (Lvl ' + area.level + ')';
-    tag.title = area.desc + ' | ' + area.school;
-    tag.onclick = function() {
-      selectedSpell = area;
-      var shapeSelect = document.getElementById('shape');
-      var sizeSelect = document.getElementById('spellSize');
-      if (shapeSelect) shapeSelect.value = area.shape;
-      if (sizeSelect) sizeSelect.value = area.size;
-      renderAreaList(document.getElementById('spellSearch') ? document.getElementById('spellSearch').value : '');
-      renderSpellCanvas();
-      playSound('add');
-    };
-    container.appendChild(tag);
-  });
-}
-
-// ====== RENDER CANVAS ======
+// ====== RENDER CANVAS OBSZARÓW ======
 function renderSpellCanvas() {
   var container = document.getElementById('spellCanvasContainer');
   if (!container || container.offsetWidth === 0 || !spellCanvas || !pctx) return;
@@ -89,12 +28,12 @@ function renderSpellCanvas() {
 
   var displayW = Math.round(canvasW);
   var displayH = Math.round(canvasH);
-
+  
   if (spellCanvas.style.width !== displayW + 'px' || spellCanvas.style.height !== displayH + 'px') {
     spellCanvas.style.width = displayW + 'px';
     spellCanvas.style.height = displayH + 'px';
   }
-
+  
   spellCanvas.width = Math.round(canvasW * state.zoom * dpr);
   spellCanvas.height = Math.round(canvasH * state.zoom * dpr);
 
@@ -102,8 +41,6 @@ function renderSpellCanvas() {
   pctx.scale(dpr * state.zoom, dpr * state.zoom);
 
   var w = canvasW, h = canvasH;
-
-  // Czyszczenie z uwzględnieniem przesunięcia
   pctx.clearRect(
     -state.panX / state.zoom - 50,
     -state.panY / state.zoom - 50,
@@ -119,15 +56,13 @@ function renderSpellCanvas() {
   var baseR = isMobile() ? 12 : 14;
   var R = baseR;
   var HexW = R * 1.73205;
-
-  // L - ograniczenie do widocznego obszaru
-  var L = Math.min(radiusHexes * HexW, Math.min(w, h) / 2 - 10);
-
-  // Punkt centralny - uwzględniamy przesunięcie
-  var O = {
-    x: w / 2 + state.panX / state.zoom,
-    y: h / 2 + state.panY / state.zoom
-  };
+  
+  // Maksymalny promień - dostosowany do rozmiaru canvas
+  var maxL = Math.min(w, h) / 2 - 20;
+  var L = Math.min(radiusHexes * HexW, maxL);
+  
+  // Środek - uwzględniamy pan
+  var O = { x: w / 2 + state.panX / state.zoom, y: h / 2 + state.panY / state.zoom };
 
   var showDir = shape === 'cone' || shape === 'line' || shape === 'cube';
   var dirParent = document.getElementById('direction') ? document.getElementById('direction').parentElement : null;
@@ -192,16 +127,20 @@ function renderSpellCanvas() {
     for (var rr = -12; rr <= 12; rr++) {
       var cx = O.x + HexW * (q + rr * 0.5);
       var cy = O.y + 1.5 * R * rr;
-
-      // Sprawdzanie czy hex jest w widocznym obszarze
-      if (cx < -hexR - 20 || cx > w + hexR + 20 || cy < -hexR - 20 || cy > h + hexR + 20) continue;
+      if (cx < -hexR || cx > w + hexR || cy < -hexR || cy > h + hexR) continue;
 
       var active = false;
       pctx.save();
       pctx.setTransform(dpr * state.zoom, 0, 0, dpr * state.zoom, 0, 0);
+      
+      // Sprawdzenie czy hex jest w obszarze
       if (q !== 0 || rr !== 0) {
         active = pctx.isPointInPath(path, cx, cy);
       } else if (shape === 'sphere' || (shape === 'cube' && cubeOrigin === 'center')) {
+        active = pctx.isPointInPath(path, cx, cy);
+      } else if (shape === 'cube') {
+        active = pctx.isPointInPath(path, cx, cy);
+      } else if (shape === 'cone' || shape === 'line') {
         active = pctx.isPointInPath(path, cx, cy);
       }
       pctx.restore();
@@ -250,18 +189,23 @@ function renderSpellCanvas() {
 var showCount = document.getElementById('showCount');
 if (showCount) showCount.addEventListener('change', renderSpellCanvas);
 
-// ====== INICJALIZACJA ======
+// Wyszukiwanie - tylko do filtrowania obszarów (usuwamy listę zaklęć)
 var searchInput = document.getElementById('spellSearch');
-
 if (searchInput) {
   searchInput.addEventListener('input', function() {
-    renderAreaList(this.value);
+    // Tylko informacja wizualna - nie mamy już listy zaklęć
+    // Możemy dodać placeholder lub komunikat
+    var container = document.getElementById('spellList');
+    if (container) {
+      var query = this.value.trim();
+      if (query) {
+        container.innerHTML = '<span style="font-size:.6rem;color:var(--muted);">🔍 Szukasz: "' + query + '"</span>';
+      } else {
+        container.innerHTML = '';
+      }
+    }
   });
 }
 
-// Render initial
-renderAreaList();
-
-// ====== EKSPORT GLOBALNY ======
-window.renderAreaList = renderAreaList;
+// ====== EKSPORT ======
 window.renderSpellCanvas = renderSpellCanvas;
