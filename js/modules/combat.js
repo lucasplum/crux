@@ -1,5 +1,5 @@
 // ============================================================
-//  COMBAT - Z INDYWIDUALNĄ INICJATYWĄ I ANIMACJĄ RUNDY
+//  COMBAT - ZAAWANSOWANY SYSTEM POTYCZKI
 // ============================================================
 
 var combatants = [];
@@ -117,7 +117,7 @@ function openAddFromPartyPopup() {
     var statusIcon = p.hp <= 0 ? '💀 ' : '';
     var roleClass = p.role ? p.role.toLowerCase() : 'npc';
     var checked = p.hp > 0 ? 'checked' : '';
-    var initVal = Math.floor(Math.random() * 20) + 1; // losowa inicjatywa
+    var initVal = Math.floor(Math.random() * 20) + 1;
     return `
       <div class="party-list-item">
         <input type="checkbox" class="party-checkbox" data-index="${i}" ${checked}>
@@ -199,7 +199,6 @@ function confirmAddFromPartyBulk() {
     });
     if (exists) return;
     
-    // Pobierz inicjatywę z pola input
     var initInput = document.querySelector('.party-init-input[data-index="' + idx + '"]');
     var initVal = initInput ? parseInt(initInput.value) || 0 : 0;
     
@@ -282,7 +281,7 @@ function confirmAddCombatant() {
   playSound('add');
 }
 
-// ====== SYSTEM TUR Z ANIMACJĄ ======
+// ====== SYSTEM TUR Z ANIMACJĄ TYLKO PRZY NOWEJ RUNDZIE ======
 function nextTurn() {
   if (combatants.length === 0) return;
   
@@ -291,7 +290,7 @@ function nextTurn() {
   var oldTurn = currentTurn;
   currentTurn = (currentTurn + 1) % combatants.length;
   
-  // Sprawdź czy nowa runda
+  // Sprawdź czy to nowa runda (currentTurn wróciło do 0)
   var isNewRound = currentTurn === 0;
   
   if (isNewRound) {
@@ -309,6 +308,12 @@ function nextTurn() {
     turnLog = [];
     addTurnLog('⚔️', '🔄 Rozpoczęcie rundy ' + round);
     playSound('turn');
+    
+    // TYLKO przy nowej rundzie - animacja fali
+    animateRoundChange();
+  } else {
+    // Zwykła zmiana tury - tylko dźwięk
+    playSound('turn');
   }
   
   var current = combatants[currentTurn];
@@ -321,36 +326,10 @@ function nextTurn() {
     processTurnStartEffects(current);
   }
   
-  // Animacja zmiany rundy
-  if (isNewRound) {
-    animateRoundChange();
-  } else {
-    playSound('turn');
-  }
-  
   renderInit();
   updateFocusFire();
   updateCombatStats();
   syncPlayerData();
-}
-
-function animateRoundChange() {
-  var entries = document.querySelectorAll('.init-entry');
-  entries.forEach(function(el, i) {
-    setTimeout(function() {
-      el.classList.remove('round-change', 'round-change-current');
-      // Wymuś reflow
-      void el.offsetWidth;
-      if (i === currentTurn % entries.length) {
-        el.classList.add('round-change-current');
-      } else {
-        el.classList.add('round-change');
-      }
-      setTimeout(function() {
-        el.classList.remove('round-change', 'round-change-current');
-      }, 700);
-    }, i * 50);
-  });
 }
 
 function processTurnStartEffects(combatant) {
@@ -371,6 +350,32 @@ function processTurnStartEffects(combatant) {
       combatant.effects.splice(idx, 1);
     });
   }
+}
+
+// ====== ANIMACJA ZMIANY RUNDY (TYLKO NOWA RUNDA) ======
+function animateRoundChange() {
+  var entries = document.querySelectorAll('.init-entry');
+  if (entries.length === 0) return;
+  
+  entries.forEach(function(el, i) {
+    setTimeout(function() {
+      el.classList.remove('round-change', 'round-change-current');
+      // Wymuś reflow
+      void el.offsetWidth;
+      
+      // Aktualny bojownik (pierwszy w nowej rundzie) dostaje specjalną animację
+      var currentEntry = document.querySelector('.init-entry.current');
+      if (currentEntry && el === currentEntry) {
+        el.classList.add('round-change-current');
+      } else {
+        el.classList.add('round-change');
+      }
+      
+      setTimeout(function() {
+        el.classList.remove('round-change', 'round-change-current');
+      }, 700);
+    }, i * 40);
+  });
 }
 
 // ====== TIMERY ======
@@ -904,7 +909,7 @@ function renderInit() {
 
   if (combatants.length === 0) {
     var badge = document.getElementById('roundBadge');
-    if (badge) badge.textContent = '— Runda 1 —';
+    if (badge) badge.innerHTML = '— Runda 1 —';
     var turnBtns = document.getElementById('turnBtns');
     if (turnBtns) turnBtns.style.display = 'none';
     updateFocusFire();
@@ -919,7 +924,10 @@ function renderInit() {
   combatants.forEach(function(c, i) {
     var div = document.createElement('div');
     div.className = 'init-entry' + (i === currentTurn ? ' current' : '') + (c.status === 'dead' ? ' dead' : '');
-    if (i === combatants.length - 1) div.classList.add('slide-in');
+    // slide-in tylko przy pierwszym dodaniu (nie przy każdym odświeżeniu)
+    if (i === combatants.length - 1 && lastInitCount !== combatants.length) {
+      div.classList.add('slide-in');
+    }
     renderInitEntry(div, c, i);
     list.appendChild(div);
   });
@@ -981,10 +989,31 @@ function renderInitEntry(div, c, i) {
   `;
 }
 
+// ====== UPDATE ROUND BADGE Z ANIMACJĄ ======
 function updateRoundBadge() {
   var badge = document.getElementById('roundBadge');
   if (badge) {
-    badge.textContent = combatants.length > 0 ? '— Runda ' + round + ' —' : '— Runda 1 —';
+    var oldHtml = badge.innerHTML;
+    var newHtml = combatants.length > 0 
+      ? '— Runda <span class="round-number">' + round + '</span> —' 
+      : '— Runda 1 —';
+    
+    badge.innerHTML = newHtml;
+    
+    // Animacja tylko jeśli zmieniła się runda (i to nie pierwszy raz)
+    if (oldHtml !== newHtml && round > 1) {
+      animateRoundNumber();
+    }
+  }
+}
+
+// ====== ANIMACJA NUMERU RUNDY ======
+function animateRoundNumber() {
+  var numSpan = document.querySelector('.round-number');
+  if (numSpan) {
+    numSpan.classList.remove('bump');
+    void numSpan.offsetWidth;
+    numSpan.classList.add('bump');
   }
 }
 
@@ -1061,3 +1090,6 @@ window.openTimerPopup = openTimerPopup;
 window.closeTimerPopup = closeTimerPopup;
 window.addTimerToCombatant = addTimerToCombatant;
 window.syncPlayerData = syncPlayerData;
+window.animateRoundChange = animateRoundChange;
+window.animateRoundNumber = animateRoundNumber;
+window.updateRoundBadge = updateRoundBadge;

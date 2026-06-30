@@ -15,20 +15,20 @@
 
 <div class="app">
   <!-- ===== HEADER ===== -->
-  <header>
-    <div class="raven-stage">
-      <div class="raven-orbit"></div>
-      <div class="raven-orbit orbit-2"></div>
-      <div class="raven-glow"></div>
-      <div class="raven-feather f1"></div>
-      <div class="raven-feather f2"></div>
-      <div class="raven-feather f3"></div>
-      <div class="raven">🐦‍⬛</div>
-    </div>
-    <h1>CRUX Toolkit</h1>
-    <p class="subtitle">🐦‍⬛ <span class="highlight">WIECZNY ASYSTENT KAMPANIJNY</span></p>
-    <div class="hex-deco"><span></span><span></span><span></span></div>
-  </header>
+<header>
+  <div class="raven-stage">
+    <div class="raven-orbit"></div>
+    <div class="raven-orbit orbit-2"></div>
+    <div class="raven-glow"></div>
+    <div class="raven-feather f1"></div>
+    <div class="raven-feather f2"></div>
+    <div class="raven-feather f3"></div>
+    <div class="raven">🐦‍⬛</div>
+  </div>
+  <h1>CRUX Toolkit</h1>
+  <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY</span></p>
+  <div class="hex-deco"><span></span><span></span><span></span></div>
+</header>
 
   <!-- ===== NAWIGACJA ===== -->
 <nav class="top-nav">
@@ -213,7 +213,7 @@
   <div class="card">
     <div class="card-header-row">
       <div class="card-title">🐉 Bestiariusz (CR 6-8)</div>
-      <div style="display:flex;gap:6px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button class="btn outline" onclick="filterMonsters('all')" id="filterAll">Wszystkie</button>
         <button class="btn outline" onclick="filterMonsters(6)" id="filter6">CR 6</button>
         <button class="btn outline" onclick="filterMonsters(7)" id="filter7">CR 7</button>
@@ -475,7 +475,20 @@
 </div>
 
 
-<!-- Skrypty -->
+<!-- ===== MONSTER DETAIL MODAL ===== -->
+<div class="popup-overlay" id="monsterDetailPopup" style="display:none;">
+  <div class="popup-content monster-detail-content">
+    <div class="popup-title" id="monsterDetailName">🐉 Potwór</div>
+    <div id="monsterDetailBody"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn" onclick="addMonsterDetailToCombat()">⚔️ Dodaj do potyczki</button>
+      <button class="btn outline" onclick="addMonsterDetailAsCompanion()">🐾 Dodaj jako kompana</button>
+      <button class="btn outline" onclick="closeMonsterDetail()">✕ Zamknij</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SKRYPTY ===== -->
 <script src="js/config/data.js"></script>
 <script src="js/core/navigation.js"></script>
 <script src="js/core/audio.js"></script>
@@ -490,7 +503,7 @@
 <script src="js/modules/spellbook.js"></script>
 <script src="js/modules/players.js"></script>
 <script src="js/modules/combat.js"></script>
-<script src="js/modules/monsters.js"></script>  <!-- NOWY PLIK -->
+<script src="js/modules/monsters.js"></script>
 <script src="js/modules/info.js"></script>
 <script src="js/ui/canvas.js"></script>
 <script src="js/ui/render.js"></script>
