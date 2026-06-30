@@ -1,5 +1,5 @@
 // ============================================================
-//  MONSTERS - BESTIARIUSZ CR 6-8 Z POPUPEM WYBORU CELU
+//  MONSTERS - BESTIARIUSZ CR 6-8 Z OBRAZKAMI Z API
 // ============================================================
 
 var monstersData = [];
@@ -7,6 +7,7 @@ var currentMonsterFilter = 'all';
 var monsterSearchQuery = '';
 var selectedMonster = null;
 var pendingMonster = null;
+var monsterImagesLoading = {};
 
 // ====== BESTIE CR 6-8 ======
 var MONSTERS = [
@@ -343,6 +344,293 @@ var MONSTERS = [
   }
 ];
 
+// ====== POBIERANIE OBRAZKÓW DLA POTWORÓW ======
+function loadMonsterImages(monsters, callback) {
+  var total = monsters.length;
+  var loaded = 0;
+  var results = {};
+  
+  if (total === 0) {
+    if (callback) callback(results);
+    return;
+  }
+  
+  monsters.forEach(function(monster) {
+    var name = monster.name;
+    
+    // Sprawdź czy już mamy obrazek w cache
+    var cacheKey = name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
+    
+    if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache) {
+      if (MONSTER_API.monsterCache[cacheKey]) {
+        var imageUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
+        results[name] = imageUrl;
+        loaded++;
+        if (loaded === total && callback) callback(results);
+        return;
+      }
+    }
+    
+    // Pobierz obrazek przez API
+    if (typeof getMonsterImage === 'function') {
+      getMonsterImage(name, function(imageUrl) {
+        results[name] = imageUrl || null;
+        loaded++;
+        if (loaded === total && callback) callback(results);
+      });
+    } else {
+      results[name] = null;
+      loaded++;
+      if (loaded === total && callback) callback(results);
+    }
+  });
+}
+
+// ====== RENDER ======
+function renderMonsters(filter, query) {
+  filter = filter || 'all';
+  query = query || '';
+
+  var container = document.getElementById('monsterGrid');
+  if (!container) return;
+
+  var filtered = MONSTERS;
+
+  if (filter !== 'all') {
+    filtered = filtered.filter(function(m) { return m.cr === parseInt(filter); });
+  }
+
+  if (query) {
+    var q = query.toLowerCase();
+    filtered = filtered.filter(function(m) {
+      return m.name.toLowerCase().includes(q) ||
+             m.type.toLowerCase().includes(q) ||
+             m.desc.toLowerCase().includes(q);
+    });
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="color:var(--parchment-dim);text-align:center;padding:40px;font-size:var(--font-md);">🐉 Brak potworów spełniających kryteria</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  
+  filtered.forEach(function(m) {
+    var div = document.createElement('div');
+    div.className = 'monster-card';
+    div.dataset.monsterName = m.name;
+
+    var imageHtml = '<div class="monster-image-placeholder" style="width:100%;height:160px;background:rgba(156, 43, 27, 0.05);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin-bottom:12px;border:1px dashed #E69A28;color:#9C2B1B;">🐉</div>';
+    
+    var cacheKey = m.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
+    if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
+      var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
+      imageHtml = '<div class="monster-image" style="width:100%;height:160px;border-radius:4px;overflow:hidden;margin-bottom:12px;border:1px solid #E69A28;background:rgba(156, 43, 27, 0.05);"><img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.style.fontSize=\'3.5rem\';this.parentElement.style.display=\'flex\';this.parentElement.style.alignItems=\'center\';this.parentElement.style.justifyContent=\'center\';this.parentElement.style.color=\'#9C2B1B\';"></div>';
+    }
+
+    var statsHtml = Object.keys(m.stats).map(function(k) {
+      return '<span>' + k.toUpperCase() + ' ' + m.stats[k] + '</span>';
+    }).join('');
+
+    var actionsHtml = m.actions.map(function(a) {
+      return '<div class="m-action"><strong>' + a.name + '.</strong> ' + a.desc + '</div>';
+    }).join('');
+
+    div.innerHTML = `
+      <div class="m-header" onclick="openMonsterDetail('${m.name}')">
+        <div class="m-name">${m.name}</div>
+        <div class="m-cr">CR ${m.cr}</div>
+      </div>
+      <div class="m-type">${m.type}</div>
+      ${imageHtml}
+      <div class="m-divider"></div>
+      <div class="m-stats">${statsHtml}</div>
+      <div class="m-divider"></div>
+      <div class="m-desc">${m.desc}</div>
+      <div class="m-actions">${actionsHtml}</div>
+      <button class="m-add-btn" onclick="openMonsterTargetPopup({name:'${m.name.replace(/'/g, "\'")}', cr:${m.cr}, type:'${m.type}', hp:${m.hp}, ac:${m.ac}})">⚔️ Dołącz do walki</button>
+    `;
+
+    container.appendChild(div);
+  });
+  
+  if (typeof getMonsterImage === 'function') {
+    filtered.forEach(function(m) {
+      var cacheKey = m.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
+      if (typeof MONSTER_API === 'undefined' || !MONSTER_API.monsterCache || !MONSTER_API.monsterCache[cacheKey]) {
+        getMonsterImage(m.name, function(imageUrl) {
+          if (imageUrl) {
+            var card = container.querySelector('.monster-card[data-monster-name="' + m.name + '"]');
+            if (card) {
+              var imgContainer = card.querySelector('.monster-image-placeholder');
+              if (imgContainer) {
+                imgContainer.className = 'monster-image';
+                imgContainer.style.border = '1px solid #E69A28';
+                imgContainer.innerHTML = '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.style.fontSize=\'3.5rem\';this.parentElement.style.display=\'flex\';this.parentElement.style.alignItems=\'center\';this.parentElement.style.justifyContent=\'center\';this.parentElement.style.color=\'#9C2B1B\';">';
+              }
+            }
+          }
+        });
+      }
+    });
+  }
+}
+
+function openMonsterDetail(name) {
+  var monster = MONSTERS.find(function(m) { return m.name === name; });
+  if (!monster) return;
+  
+  selectedMonster = monster;
+  
+  var popup = document.getElementById('monsterDetailPopup');
+  var title = document.getElementById('monsterDetailName');
+  var body = document.getElementById('monsterDetailBody');
+  
+  if (!popup || !title || !body) return;
+  
+  var attrLabels = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+  
+  var attrHtml = Object.keys(monster.stats).map(function(k) {
+    var mod = Math.floor((monster.stats[k] - 10) / 2);
+    var modStr = mod >= 0 ? '+' + mod : '' + mod;
+    return '<div class="m-attr-item"><div class="label">' + attrLabels[k] + '</div><div class="value">' + monster.stats[k] + ' (' + modStr + ')</div></div>';
+  }).join('');
+  
+  var savesHtml = '';
+  if (monster.saves && Object.keys(monster.saves).length > 0) {
+    var saveLabels = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
+    savesHtml = Object.keys(monster.saves).map(function(k) {
+      var val = monster.saves[k];
+      var mod = val >= 0 ? '+' + val : '' + val;
+      return saveLabels[k] + ' ' + mod;
+    }).join(', ');
+  }
+  
+  var skillsHtml = '';
+  if (monster.skills && Object.keys(monster.skills).length > 0) {
+    var skillLabels = { 
+      percepcja: 'Perception', skradanie: 'Stealth', atletyka: 'Athletics', 
+      religia: 'Religion', historia: 'History'
+    };
+    skillsHtml = Object.keys(monster.skills).map(function(k) {
+      var val = monster.skills[k];
+      var mod = val >= 0 ? '+' + val : '' + val;
+      var label = skillLabels[k] || k;
+      return label + ' ' + mod;
+    }).join(', ');
+  }
+  
+  var resistancesHtml = monster.resistances ? monster.resistances.join(', ') : '';
+  var immunitiesHtml = monster.immunities ? monster.immunities.join(', ') : '';
+  var languagesHtml = monster.languages ? monster.languages : '--';
+  
+  var actionsHtml = monster.actions.map(function(a) {
+    return '<div class="m-action-item"><span class="action-name">' + a.name + '.</span><span class="action-desc">' + a.desc + '</span></div>';
+  }).join('');
+  
+  // Obrazek w szczegółach
+  var imageHtml = '';
+  var cacheKey = monster.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
+  if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
+    var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
+    imageHtml = '<div class="monster-detail-image" style="float:right;width:150px;height:150px;border-radius:4px;overflow:hidden;margin:0 0 12px 16px;border:1px solid #E69A28;background:rgba(156, 43, 27, 0.05);"><img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover;"></div>';
+  } else {
+    // Brak obrazka na start, spróbujemy dociągnąć
+    imageHtml = '<div class="monster-detail-image" style="float:right;width:150px;height:150px;border-radius:4px;overflow:hidden;margin:0 0 12px 16px;border:1px solid #E69A28;background:rgba(156, 43, 27, 0.05);display:flex;align-items:center;justify-content:center;font-size:3rem;color:#9C2B1B;">🐉</div>';
+    if (typeof getMonsterImage === 'function') {
+      getMonsterImage(monster.name, function(imageUrl) {
+        if (imageUrl) {
+          var imgContainer = document.querySelector('.monster-detail-image');
+          if (imgContainer) {
+            imgContainer.innerHTML = '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;">';
+          }
+        }
+      });
+    }
+  }
+  
+  body.innerHTML = `
+    <div class="popup-title">${monster.name}</div>
+    <div class="m-type-line">${monster.type}</div>
+    <hr class="tapered">
+    
+    ${imageHtml}
+    
+    <div class="m-top-stats">
+      <div>Armor Class <span>${monster.ac}</span></div>
+      <div>Hit Points <span>${monster.hp}</span></div>
+      <div>Speed <span>${monster.speed}</span></div>
+    </div>
+    
+    <hr class="tapered">
+    
+    <div class="m-attr-grid">${attrHtml}</div>
+    
+    <hr class="tapered">
+    
+    <div class="m-mid-stats">
+      ${savesHtml ? '<div>Saving Throws <span>' + savesHtml + '</span></div>' : ''}
+      ${skillsHtml ? '<div>Skills <span>' + skillsHtml + '</span></div>' : ''}
+      ${resistancesHtml ? '<div>Damage Resistances <span>' + resistancesHtml + '</span></div>' : ''}
+      ${immunitiesHtml ? '<div>Damage Immunities <span>' + immunitiesHtml + '</span></div>' : ''}
+      <div>Languages <span>${languagesHtml}</span></div>
+      <div>Challenge <span>${monster.cr}</span></div>
+    </div>
+    
+    <hr class="tapered" style="clear:both;">
+    
+    <div class="m-desc-text">${monster.desc}</div>
+    
+    <div class="m-section-title">Actions</div>
+    ${actionsHtml}
+    
+    <div class="btn-grid">
+      <button class="btn outline" onclick="addMonsterDetailAsCompanion()">👥 Dodaj jako NPC</button>
+      <button class="btn" onclick="addMonsterDetailToCombat()">⚔️ Dołącz do potyczki</button>
+    </div>
+  `;
+  
+  title.style.display = 'none'; // Ukrywamy stary tytuł popupa
+  popup.style.display = 'flex';
+}
+
+// ====== KOLOR CR ======
+function getCRColor(cr) {
+  var colors = {
+    6: '#6bb8ff',
+    7: '#d4a843',
+    8: '#ff6b6b'
+  };
+  return colors[cr] || 'var(--border)';
+}
+
+// ====== FILTRY ======
+function filterMonsters(cr) {
+  currentMonsterFilter = cr;
+  var searchInput = document.getElementById('monsterSearch');
+  var query = searchInput ? searchInput.value : '';
+  renderMonsters(cr, query);
+  
+  document.querySelectorAll('[id^="filter"]').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  if (cr === 'all') {
+    var allBtn = document.getElementById('filterAll');
+    if (allBtn) allBtn.classList.add('active');
+  } else {
+    var btn = document.getElementById('filter' + cr);
+    if (btn) btn.classList.add('active');
+  }
+}
+
+// ====== ZAMKNIJ SZCZEGÓŁY ======
+function closeMonsterDetail() {
+  var popup = document.getElementById('monsterDetailPopup');
+  if (popup) popup.style.display = 'none';
+  selectedMonster = null;
+}
+
 // ====== OTWÓRZ POPUP WYBORU CELU ======
 function openMonsterTargetPopup(monster) {
   pendingMonster = monster;
@@ -467,200 +755,6 @@ function addMonsterDetailAsCompanion() {
   };
   
   openMonsterTargetPopup(monster);
-}
-
-// ====== RENDER ======
-function renderMonsters(filter, query) {
-  filter = filter || 'all';
-  query = query || '';
-
-  var container = document.getElementById('monsterGrid');
-  if (!container) return;
-
-  var filtered = MONSTERS;
-
-  if (filter !== 'all') {
-    filtered = filtered.filter(function(m) { return m.cr === parseInt(filter); });
-  }
-
-  if (query) {
-    var q = query.toLowerCase();
-    filtered = filtered.filter(function(m) {
-      return m.name.toLowerCase().includes(q) ||
-             m.type.toLowerCase().includes(q) ||
-             m.desc.toLowerCase().includes(q);
-    });
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px;font-size:var(--font-sm);">🐉 Brak potworów spełniających kryteria</div>';
-    return;
-  }
-
-  container.innerHTML = '';
-  filtered.forEach(function(m) {
-    var div = document.createElement('div');
-    div.className = 'monster-card';
-    var crColor = getCRColor(m.cr);
-    div.style.borderColor = crColor;
-
-    div.innerHTML = `
-      <div class="m-header" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')" style="cursor:pointer;">
-        <span class="m-name" style="color:${crColor};">${m.name}</span>
-        <span class="m-cr" style="border-color:${crColor};color:${crColor};">CR ${m.cr}</span>
-      </div>
-      <div class="m-type">${m.type}</div>
-      <div class="m-stats">
-        <span>❤️ ${m.hp} HP</span>
-        <span>🛡️ ${m.ac} AC</span>
-        <span>💨 ${m.speed}</span>
-      </div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;margin:4px 0;">
-        ${Object.keys(m.stats).map(function(k) {
-          var labels = { str: '💪', dex: '🏃', con: '❤️‍🔥', int: '🧠', wis: '👁️', cha: '💬' };
-          return '<span style="font-size:0.6rem;background:var(--card3);padding:1px 6px;border-radius:4px;border:1px solid var(--border);">' + labels[k] + ' ' + m.stats[k] + '</span>';
-        }).join('')}
-      </div>
-      <div class="m-desc">${m.desc}</div>
-      <button class="m-add-btn" onclick="event.stopPropagation();addMonsterToCombat('${m.name.replace(/'/g, "\\'")}', ${m.cr}, ${m.hp}, ${m.ac}, '${m.type}')">
-        ⚔️ Dodaj do potyczki
-      </button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-function getCRColor(cr) {
-  var colors = {
-    6: '#6bb8ff',
-    7: '#d4a843',
-    8: '#ff6b6b'
-  };
-  return colors[cr] || 'var(--border)';
-}
-
-function filterMonsters(cr) {
-  currentMonsterFilter = cr;
-  var searchInput = document.getElementById('monsterSearch');
-  var query = searchInput ? searchInput.value : '';
-  renderMonsters(cr, query);
-  
-  document.querySelectorAll('[id^="filter"]').forEach(function(btn) {
-    btn.classList.remove('active');
-  });
-  if (cr === 'all') {
-    var allBtn = document.getElementById('filterAll');
-    if (allBtn) allBtn.classList.add('active');
-  } else {
-    var btn = document.getElementById('filter' + cr);
-    if (btn) btn.classList.add('active');
-  }
-}
-
-function openMonsterDetail(name) {
-  var monster = MONSTERS.find(function(m) { return m.name === name; });
-  if (!monster) return;
-  
-  selectedMonster = monster;
-  
-  var popup = document.getElementById('monsterDetailPopup');
-  var title = document.getElementById('monsterDetailName');
-  var body = document.getElementById('monsterDetailBody');
-  
-  if (!popup || !title || !body) return;
-  
-  var crColor = getCRColor(monster.cr);
-  var attrLabels = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
-  var attrIcons = { str: '💪', dex: '🏃', con: '❤️‍🔥', int: '🧠', wis: '👁️', cha: '💬' };
-  
-  var attrHtml = Object.keys(monster.stats).map(function(k) {
-    var mod = Math.floor((monster.stats[k] - 10) / 2);
-    var modStr = mod >= 0 ? '+' + mod : '' + mod;
-    return '<div class="m-attr-item"><div class="label">' + attrIcons[k] + ' ' + attrLabels[k] + '</div><div class="value">' + monster.stats[k] + ' (' + modStr + ')</div></div>';
-  }).join('');
-  
-  var savesHtml = '';
-  if (monster.saves && Object.keys(monster.saves).length > 0) {
-    var saveLabels = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
-    savesHtml = Object.keys(monster.saves).map(function(k) {
-      var val = monster.saves[k];
-      var mod = val >= 0 ? '+' + val : '' + val;
-      return '<span class="m-tag">' + saveLabels[k] + ': ' + mod + '</span>';
-    }).join('');
-  }
-  
-  var skillsHtml = '';
-  if (monster.skills && Object.keys(monster.skills).length > 0) {
-    var skillLabels = { 
-      percepcja: 'Percepcja', skradanie: 'Skradanie', atletyka: 'Atletyka', 
-      religia: 'Religia', historia: 'Historia'
-    };
-    skillsHtml = Object.keys(monster.skills).map(function(k) {
-      var val = monster.skills[k];
-      var mod = val >= 0 ? '+' + val : '' + val;
-      var label = skillLabels[k] || k;
-      return '<span class="m-tag skill">' + label + ': ' + mod + '</span>';
-    }).join('');
-  }
-  
-  var resistancesHtml = '';
-  if (monster.resistances && monster.resistances.length > 0) {
-    resistancesHtml = monster.resistances.map(function(r) {
-      return '<span class="m-tag resistance">🛡️ ' + r + '</span>';
-    }).join('');
-  }
-  
-  var immunitiesHtml = '';
-  if (monster.immunities && monster.immunities.length > 0) {
-    immunitiesHtml = monster.immunities.map(function(i) {
-      return '<span class="m-tag immunity">⛔ ' + i + '</span>';
-    }).join('');
-  }
-  
-  var languagesHtml = '';
-  if (monster.languages) {
-    languagesHtml = '<span class="m-tag language">🗣️ ' + monster.languages + '</span>';
-  }
-  
-  var actionsHtml = monster.actions.map(function(a) {
-    return '<div class="m-action-item"><div class="action-name">⚔️ ' + a.name + '</div><div class="action-desc">' + a.desc + '</div></div>';
-  }).join('');
-  
-  body.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
-      <span style="font-size:var(--font-sm);color:var(--muted);">${monster.type}</span>
-      <span class="m-cr-badge" style="border-color:${crColor};color:${crColor};">CR ${monster.cr}</span>
-    </div>
-    
-    <div class="m-stat-grid">
-      <div class="m-stat-item"><div class="label">❤️ PW</div><div class="value">${monster.hp}</div></div>
-      <div class="m-stat-item"><div class="label">🛡️ KP</div><div class="value">${monster.ac}</div></div>
-      <div class="m-stat-item"><div class="label">💨 Prędkość</div><div class="value" style="font-size:var(--font-sm);">${monster.speed}</div></div>
-    </div>
-    
-    <div style="font-size:0.7rem;color:var(--muted);margin:4px 0;">📊 Atrybuty</div>
-    <div class="m-attr-grid">${attrHtml}</div>
-    
-    ${savesHtml ? '<div style="font-size:0.7rem;color:var(--muted);margin:4px 0;">🛡️ Rzuty obronne</div><div class="m-tags">' + savesHtml + '</div>' : ''}
-    ${skillsHtml ? '<div style="font-size:0.7rem;color:var(--muted);margin:4px 0;">🎯 Umiejętności</div><div class="m-tags">' + skillsHtml + '</div>' : ''}
-    ${resistancesHtml ? '<div style="font-size:0.7rem;color:var(--muted);margin:4px 0;">🛡️ Odporności</div><div class="m-tags">' + resistancesHtml + '</div>' : ''}
-    ${immunitiesHtml ? '<div style="font-size:0.7rem;color:var(--muted);margin:4px 0;">⛔ Immunitety</div><div class="m-tags">' + immunitiesHtml + '</div>' : ''}
-    ${languagesHtml ? '<div style="font-size:0.7rem;color:var(--muted);margin:4px 0;">🗣️ Języki</div><div class="m-tags">' + languagesHtml + '</div>' : ''}
-    
-    <div style="font-size:0.7rem;color:var(--muted);margin:8px 0 4px;">⚔️ Akcje</div>
-    <div class="m-action-list">${actionsHtml}</div>
-    
-    <div class="m-desc-text">${monster.desc}</div>
-  `;
-  
-  title.textContent = '🐉 ' + monster.name;
-  popup.style.display = 'flex';
-}
-
-function closeMonsterDetail() {
-  var popup = document.getElementById('monsterDetailPopup');
-  if (popup) popup.style.display = 'none';
-  selectedMonster = null;
 }
 
 // ====== EVENTY ======
