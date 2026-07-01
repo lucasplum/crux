@@ -106,13 +106,20 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter, sortBy)
     container.innerHTML = '<div style="color:var(--dim);text-align:center;padding:40px;font-family:\'Cinzel\',serif;">⏳ Ładowanie księgi zaklęć...</div>';
     
     loadAllSpells(function(spells) {
+        console.log('Załadowano zaklęć:', spells ? spells.length : 0);
+        
+        if (!spells || spells.length === 0) {
+            container.innerHTML = '<div style="color:var(--dim);text-align:center;padding:40px;font-family:\'Cinzel\',serif;">📖 Brak zaklęć do wyświetlenia. Sprawdź pliki data/spells/level-*.json</div>';
+            return;
+        }
+        
         var filtered = spells;
         
-        if (levelFilter !== 'all') {
+        if (levelFilter !== 'all' && levelFilter !== '') {
             filtered = filtered.filter(function(s) { return s.level === parseInt(levelFilter); });
         }
         
-        if (schoolFilter !== 'all') {
+        if (schoolFilter !== 'all' && schoolFilter !== '') {
             filtered = filtered.filter(function(s) { return s.school === schoolFilter; });
         }
         
@@ -125,21 +132,21 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter, sortBy)
         if (filter) {
             var f = filter.toLowerCase();
             filtered = filtered.filter(function(s) {
-                return s.name_pl.toLowerCase().includes(f) ||
-                       s.name_en.toLowerCase().includes(f) ||
-                       s.desc_pl.toLowerCase().includes(f) ||
-                       s.desc_en.toLowerCase().includes(f);
+                return (s.name_pl && s.name_pl.toLowerCase().includes(f)) ||
+                       (s.name_en && s.name_en.toLowerCase().includes(f)) ||
+                       (s.desc_pl && s.desc_pl.toLowerCase().includes(f)) ||
+                       (s.desc_en && s.desc_en.toLowerCase().includes(f));
             });
         }
         
         if (sortBy === 'level') {
             filtered.sort(function(a, b) {
                 if (a.level !== b.level) return a.level - b.level;
-                return a.name_pl.localeCompare(b.name_pl);
+                return (a.name_pl || '').localeCompare(b.name_pl || '');
             });
         } else if (sortBy === 'name') {
             filtered.sort(function(a, b) {
-                return a.name_pl.localeCompare(b.name_pl);
+                return (a.name_pl || '').localeCompare(b.name_pl || '');
             });
         }
         
@@ -150,11 +157,13 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter, sortBy)
             return;
         }
         
+        console.log('Wyświetlam zaklęć:', filtered.length);
+        
         filtered.forEach(function(spell) {
             var div = document.createElement('div');
             div.className = 'spellbook-card';
             
-            var schoolName = SCHOOL_NAMES[spell.school] || spell.school;
+            var schoolName = SCHOOL_NAMES[spell.school] || spell.school || 'Nieznana';
             var schoolIcon = SCHOOL_ICONS[spell.school] || '✦';
             var color = SCHOOL_COLORS[spell.school] || '#c9a24b';
             var levelText = getLevelText(spell.level);
@@ -163,13 +172,13 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter, sortBy)
             var damageType = '';
             var damageIcon = '';
             var desc = (spell.desc_pl || '').toLowerCase();
-            if (desc.includes('ogni')) { damageType = 'fire'; damageIcon = '🔥'; }
-            else if (desc.includes('zimn')) { damageType = 'cold'; damageIcon = '❄️'; }
+            if (desc.includes('ogni') || desc.includes('fire')) { damageType = 'fire'; damageIcon = '🔥'; }
+            else if (desc.includes('zimn') || desc.includes('cold')) { damageType = 'cold'; damageIcon = '❄️'; }
             else if (desc.includes('nekro')) { damageType = 'necro'; damageIcon = '💀'; }
-            else if (desc.includes('kwas')) { damageType = 'acid'; damageIcon = '🧪'; }
-            else if (desc.includes('elektry')) { damageType = 'lightning'; damageIcon = '⚡'; }
-            else if (desc.includes('promieni')) { damageType = 'radiant'; damageIcon = '☀️'; }
-            else if (desc.includes('trucizn')) { damageType = 'poison'; damageIcon = '☠️'; }
+            else if (desc.includes('kwas') || desc.includes('acid')) { damageType = 'acid'; damageIcon = '🧪'; }
+            else if (desc.includes('elektry') || desc.includes('lightning')) { damageType = 'lightning'; damageIcon = '⚡'; }
+            else if (desc.includes('promieni') || desc.includes('radiant')) { damageType = 'radiant'; damageIcon = '☀️'; }
+            else if (desc.includes('trucizn') || desc.includes('poison')) { damageType = 'poison'; damageIcon = '☠️'; }
             else if (desc.includes('psych')) { damageType = 'psychic'; damageIcon = '🧠'; }
             
             var damageHtml = damageType ? 
@@ -181,18 +190,18 @@ function renderSpellbook(filter, levelFilter, schoolFilter, classFilter, sortBy)
                 }).join('') : '';
             
             div.style.setProperty('--accent', color);
-            div.dataset.school = spell.school;
+            div.dataset.school = spell.school || '';
             
             div.innerHTML = `
                 <div class="spellbook-school">${schoolIcon} ${schoolName}</div>
-                <div class="spellbook-name">${spell.name_pl}</div>
-                <div class="spellbook-en">${spell.name_en}</div>
+                <div class="spellbook-name">${spell.name_pl || spell.name_en || '?'}</div>
+                <div class="spellbook-en">${spell.name_en || ''}</div>
                 <div class="spellbook-circle">${levelText}</div>
                 ${damageHtml}
                 <div class="spellbook-info">
-                    <div>⏱ ${spell.casting}</div>
-                    <div>📏 ${spell.range}</div>
-                    <div>⌛ ${spell.duration}</div>
+                    <div>⏱ ${spell.casting || '—'}</div>
+                    <div>📏 ${spell.range || '—'}</div>
+                    <div>⌛ ${spell.duration || '—'}</div>
                     ${classesHtml ? `<div>👥 ${classesHtml}</div>` : ''}
                 </div>
             `;
