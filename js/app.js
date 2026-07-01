@@ -42,6 +42,8 @@ function init() {
 
     if (typeof initAvatarPickers === 'function') initAvatarPickers();
     if (typeof initEditTabs === 'function') initEditTabs();
+    if (typeof initClassSelect === 'function') initClassSelect();
+
 
     var resizeTimeout;
     window.addEventListener('resize', function() {

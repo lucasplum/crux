@@ -162,6 +162,23 @@ function initEditTabs() {
             });
         });
     });
+    // ====== OBSŁUGA WYBORU KLASY ======
+function initClassSelect() {
+    var classSelect = document.getElementById('eClass');
+    var classOther = document.getElementById('eClassOther');
+    
+    if (classSelect && classOther) {
+        classSelect.addEventListener('change', function() {
+            if (this.value === 'inna') {
+                classOther.style.display = 'block';
+                classOther.focus();
+            } else {
+                classOther.style.display = 'none';
+                classOther.value = '';
+            }
+        });
+    }
+}
 }
 
 // ====== PROSTE DODAWANIE ======
@@ -263,7 +280,27 @@ function openEditPlayer(index) {
     document.getElementById('eName').value = p.name || '';
     document.getElementById('eRole').value = p.role || 'Gracz';
     document.getElementById('eRace').value = p.race || '';
-    document.getElementById('eClass').value = p.class || '';
+    
+    var classVal = p.class || '';
+    var classSelect = document.getElementById('eClass');
+    var classOther = document.getElementById('eClassOther');
+    var classOptions = ['Wojownik','Czarodziej','Łotrzyk','Kapłan','Paladyn','Łowca','Bard','Czarownik','Mag','Druid','Mnich','Zaklinacz'];
+    
+    if (classOptions.indexOf(classVal) > -1) {
+        classSelect.value = classVal;
+        classOther.style.display = 'none';
+        classOther.value = '';
+    } else if (classVal) {
+        classSelect.value = 'inna';
+        classOther.style.display = 'block';
+        classOther.value = classVal;
+    } else {
+        classSelect.value = '';
+        classOther.style.display = 'none';
+        classOther.value = '';
+    }
+    
+    
     document.getElementById('eLevel').value = p.level || 1;
     document.getElementById('eBackground').value = p.background || '';
     document.getElementById('eAlignment').value = p.alignment || 'Neutralny';
@@ -356,8 +393,18 @@ function confirmEditPlayer() {
     var name = document.getElementById('eName').value.trim();
     if (!name) { alert('Podaj imię postaci!'); return; }
     
+    var classSelect = document.getElementById('eClass');
+    var classOther = document.getElementById('eClassOther');
+    var cls = classSelect.value;
+    if (cls === 'inna') {
+        cls = classOther.value.trim();
+    } else if (cls === '') {
+        cls = '';
+    }
+    
+    
     // Atrybuty
-    var str = parseInt(document.getElementById('eStr').value) || 10;
+    var str = parseInt(document.getElementById('eStr').value) || null;
     var dex = parseInt(document.getElementById('eDex').value) || 10;
     var con = parseInt(document.getElementById('eCon').value) || 10;
     var int = parseInt(document.getElementById('eInt').value) || 10;

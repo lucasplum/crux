@@ -218,3 +218,51 @@
   font-family: var(--font-cinzel);
   letter-spacing: 0.04em;
 }
+
+/* ===== RESPONSYWNOŚĆ BESTIARIUSZ ===== */
+
+@media (max-width: 768px) {
+    .monster-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .bestiary-card {
+        padding: 20px 16px 16px;
+    }
+    
+    .bestiary-name {
+        font-size: var(--font-lg);
+    }
+    
+    .bestiary-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+    
+    .bestiary-image,
+    .bestiary-image-placeholder {
+        height: 140px;
+    }
+    
+    .bestiary-desc {
+        font-size: var(--font-sm);
+        padding: 10px 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bestiary-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .bestiary-image,
+    .bestiary-image-placeholder {
+        height: 120px;
+    }
+    
+    .bestiary-card .bestiary-header {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+}

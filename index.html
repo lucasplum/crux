@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V23.3.DS</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V23.4.DS</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -421,9 +421,9 @@
       <button class="btn outline" onclick="closeAddPlayerModal()">Anuluj</button>
     </div>
     
-    <div style="margin-top:12px;text-align:center;font-size:0.7rem;color:var(--parchment-dim);">
-      ⚡ Po dodaniu możesz edytować pełną kartę postaci
-    </div>
+    <div style="margin-top:12px;text-align:center;font-size:0.65rem;color:var(--ink-faint);font-family:var(--font-cinzel);letter-spacing:0.04em;">
+  Po dodaniu kliknij kartę postaci, aby edytować szczegóły
+</div>
   </div>
 </div>
 
@@ -470,7 +470,23 @@
             </div>
             <div class="form-group">
               <label>Klasa</label>
-              <input type="text" id="eClass" placeholder="np. Wojownik, Czarodziej">
+              <select id="eClass" style="appearance:auto;width:100%;padding:12px 14px;min-height:48px;border:2px solid var(--hairline);background:rgba(0,0,0,0.3);color:var(--parchment);font-family:var(--font-garamond);font-size:0.95rem;">
+                <option value="">— Wybierz klasę —</option>
+                <option value="Wojownik">⚔️ Wojownik</option>
+                <option value="Czarodziej">🔮 Czarodziej</option>
+                <option value="Łotrzyk">🗡️ Łotrzyk</option>
+                <option value="Kapłan">🛡️ Kapłan</option>
+                <option value="Paladyn">⚔️ Paladyn</option>
+                <option value="Łowca">🏹 Łowca</option>
+                <option value="Bard">🎵 Bard</option>
+                <option value="Czarownik">🔥 Czarownik</option>
+                <option value="Mag">📖 Mag</option>
+                <option value="Druid">🌿 Druid</option>
+                <option value="Mnich">👊 Mnich</option>
+                <option value="Zaklinacz">🌀 Zaklinacz</option>
+                <option value="inna">✏️ Inna (wpisz poniżej)</option>
+              </select>
+              <input type="text" id="eClassOther" placeholder="Wpisz nazwę własnej klasy" style="display:none;margin-top:6px;padding:12px 14px;min-height:48px;border:2px solid var(--hairline);background:rgba(0,0,0,0.3);color:var(--parchment);font-family:var(--font-garamond);font-size:0.95rem;width:100%;">
             </div>
             <div class="form-group">
               <label>Poziom</label>
