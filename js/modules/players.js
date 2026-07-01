@@ -281,6 +281,7 @@ function openEditPlayer(index) {
     document.getElementById('eRole').value = p.role || 'Gracz';
     document.getElementById('eRace').value = p.race || '';
     
+    // === OBSŁUGA KLASY Z LISTĄ WYBORU ===
     var classVal = p.class || '';
     var classSelect = document.getElementById('eClass');
     var classOther = document.getElementById('eClassOther');
@@ -299,7 +300,6 @@ function openEditPlayer(index) {
         classOther.style.display = 'none';
         classOther.value = '';
     }
-    
     
     document.getElementById('eLevel').value = p.level || 1;
     document.getElementById('eBackground').value = p.background || '';
@@ -383,7 +383,6 @@ function closeEditPlayerModal() {
     if (popup) popup.style.display = 'none';
     editingPlayerIndex = null;
 }
-
 function confirmEditPlayer() {
     if (editingPlayerIndex === null) return;
     
@@ -393,6 +392,7 @@ function confirmEditPlayer() {
     var name = document.getElementById('eName').value.trim();
     if (!name) { alert('Podaj imię postaci!'); return; }
     
+    // === OBSŁUGA KLASY Z LISTĄ WYBORU ===
     var classSelect = document.getElementById('eClass');
     var classOther = document.getElementById('eClassOther');
     var cls = classSelect.value;
@@ -463,7 +463,7 @@ function confirmEditPlayer() {
     p.name = name;
     p.role = document.getElementById('eRole').value;
     p.race = document.getElementById('eRace').value.trim();
-    p.class = document.getElementById('eClass').value.trim();
+    p.class = cls;
     p.level = level;
     p.background = document.getElementById('eBackground').value.trim();
     p.alignment = document.getElementById('eAlignment').value;
