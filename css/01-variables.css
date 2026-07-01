@@ -1,0 +1,53 @@
+/* ===== ZMIENNE CSS ===== */
+:root {
+  /* Kolory podstawowe */
+  --ink: #15120e;
+  --ink-2: #1c1812;
+  --ink-3: #221e16;
+  
+  /* Pergamin */
+  --parchment: #ece2c8;
+  --parchment-dim: #cabf9e;
+  --parchment-faded: #9a8b6e;
+  
+  /* Krew */
+  --blood: #8a2a22;
+  --blood-bright: #b8392c;
+  --blood-glow: rgba(184,57,44,0.25);
+  
+  /* Złoto */
+  --gold: #b9924a;
+  --gold-dim: #7a6234;
+  --gold-glow: rgba(185,146,74,0.15);
+  
+  /* Turkus */
+  --teal: #3f6b62;
+  
+  /* Linie i cienie */
+  --line: rgba(185,146,74,0.2);
+  --shadow: rgba(0,0,0,0.6);
+  
+  /* Kolory stanów */
+  --red: #ff6b6b;
+  --green: #6bff9e;
+  --blue: #6bb8ff;
+  --purple: #a87cff;
+  --yellow: #d4a843;
+  
+  /* Fonty */
+  --font-sm: 0.9rem;
+  --font-md: 1.05rem;
+  --font-lg: 1.3rem;
+  --font-xl: 1.7rem;
+  --font-xxl: 2.2rem;
+  
+  /* Font families */
+  --font-cinzel: 'Cinzel', serif;
+  --font-garamond: 'EB Garamond', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Przejścia */
+  --transition-fast: 0.2s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
+}

@@ -1,0 +1,317 @@
+/* ===== KARTY POSTACI ===== */
+
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.player-card {
+  background: linear-gradient(160deg, rgba(28,24,18,0.92), rgba(20,17,14,0.96));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 22px;
+  transition: all var(--transition-normal);
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.02);
+  overflow: hidden;
+}
+
+.player-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 10px 10px 0 0;
+  background: var(--parchment-dim);
+}
+
+.player-card[data-role="Gracz"]::before { 
+  background: linear-gradient(90deg, var(--blue), #4a8ecf); 
+}
+
+.player-card[data-role="Companion"]::before { 
+  background: linear-gradient(90deg, var(--green), #3aaf7a); 
+}
+
+.player-card[data-role="Wróg"]::before { 
+  background: linear-gradient(90deg, var(--red), #cf4a4a); 
+}
+
+.player-card[data-role="NPC"]::before { 
+  background: linear-gradient(90deg, var(--purple), #7c3aed); 
+}
+
+.player-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 40px rgba(185,146,74,0.04);
+}
+
+.player-card .p-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.player-card .p-avatar {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.3);
+  border: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  overflow: visible;
+  box-shadow: 0 0 16px rgba(185,146,74,0.06);
+}
+
+.player-card .p-avatar img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  border-radius: 50%; 
+}
+
+.player-card .p-main { 
+  flex: 1; 
+  min-width: 0; 
+}
+
+.player-card .p-name {
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  font-size: var(--font-md);
+  color: var(--parchment);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.player-card .p-role-badge {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  font-family: var(--font-cinzel);
+}
+
+.player-card .p-role-badge.gracz { 
+  background: rgba(107,184,255,0.12); 
+  color: var(--blue); 
+  border-color: rgba(107,184,255,0.15); 
+}
+
+.player-card .p-role-badge.companion { 
+  background: rgba(107,255,158,0.10); 
+  color: var(--green); 
+  border-color: rgba(107,255,158,0.12); 
+}
+
+.player-card .p-role-badge.wrog { 
+  background: rgba(255,107,107,0.10); 
+  color: var(--red); 
+  border-color: rgba(255,107,107,0.12); 
+}
+
+.player-card .p-role-badge.npc { 
+  background: rgba(168,124,255,0.10); 
+  color: var(--purple); 
+  border-color: rgba(168,124,255,0.12); 
+}
+
+.player-card .p-hp-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+.player-card .p-hp-bar {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.player-card .p-hp-bar .p-hp-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width var(--transition-slow) cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+
+.player-card .p-hp-text {
+  font-size: var(--font-md);
+  font-weight: 700;
+  min-width: 70px;
+  text-align: right;
+  color: var(--parchment);
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+.player-card .p-stats-row {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.player-card .p-ac-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  background: rgba(107,184,255,0.08);
+  border: 1px solid rgba(107,184,255,0.15);
+  border-radius: 8px;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--blue);
+  min-height: 32px;
+  font-family: var(--font-mono);
+}
+
+.player-card .p-maxhp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.15);
+  border-radius: 8px;
+  font-size: var(--font-sm);
+  font-weight: 700;
+  color: var(--red);
+  min-height: 32px;
+  font-family: var(--font-mono);
+}
+
+.player-card .p-cond {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  min-height: 24px;
+}
+
+.player-card .p-cond .tag {
+  font-size: 0.65rem;
+  background: rgba(168,124,255,0.08);
+  color: var(--purple);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(168,124,255,0.10);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.player-card .p-state-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: var(--font-cinzel);
+  background: rgba(168,124,255,0.04);
+  color: var(--parchment-dim);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+}
+
+.player-card .p-state-btn:hover { 
+  background: rgba(168,124,255,0.08); 
+  border-color: rgba(168,124,255,0.3); 
+}
+
+.player-card .p-state-btn.has-conds {
+  background: rgba(168,124,255,0.08);
+  border-color: rgba(168,124,255,0.2);
+  color: var(--parchment);
+}
+
+.player-card .p-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.player-card .p-controls button {
+  flex: 1;
+  min-width: 60px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  color: var(--parchment-dim);
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: var(--transition-fast);
+  font-family: var(--font-cinzel);
+  touch-action: manipulation;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.player-card .p-controls button:hover {
+  background: rgba(168,124,255,0.08);
+  border-color: rgba(168,124,255,0.3);
+  color: var(--parchment);
+}
+
+.player-card .p-controls button.danger:hover {
+  background: rgba(255,107,107,0.10);
+  border-color: rgba(255,107,107,0.2);
+  color: var(--red);
+}
+
+.player-card .p-controls button.success:hover {
+  background: rgba(107,255,158,0.10);
+  border-color: rgba(107,255,158,0.2);
+  color: var(--green);
+}
+
+.player-card .p-controls button.primary {
+  background: rgba(168,124,255,0.04);
+  border-color: rgba(168,124,255,0.1);
+  color: var(--purple);
+}
+
+.player-card .p-controls button.primary:hover {
+  background: rgba(168,124,255,0.10);
+  border-color: rgba(168,124,255,0.2);
+}
