@@ -157,13 +157,29 @@ function initPlayers() {
             var parsed = JSON.parse(saved);
             if (parsed && parsed.length > 0) {
                 players = parsed;
+                renderPlayers();
                 return;
             }
         } catch (e) {}
     }
-    // Jeśli brak danych lub błąd, używamy domyślnych
-    players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
-    savePlayers();
+    
+    // Jeśli brak danych, załaduj z JSON
+    fetch('data/players/default-players.json')
+        .then(function(response) {
+            if (!response.ok) throw new Error('Brak pliku default-players.json');
+            return response.json();
+        })
+        .then(function(data) {
+            players = data;
+            savePlayers();
+            renderPlayers();
+        })
+        .catch(function() {
+            // Jeśli JSON nie istnieje, użyj domyślnych
+            players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+            savePlayers();
+            renderPlayers();
+        });
 }
 
 function savePlayers() {

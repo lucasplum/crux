@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V24.7.DS</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V25.0.DS</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -355,54 +355,70 @@
     </div>
   </section>
 
-  <!-- ===== TAB: KSIĘGA ZAKLĘĆ ===== -->
-  <section class="tab-section" data-tab="spellbook">
+<!-- ===== TAB: KSIĘGA ZAKLĘĆ ===== -->
+<section class="tab-section" data-tab="spellbook">
     <div class="card">
-      <div class="card-title">📖 Księga zaklęć</div>
-      <div class="spellbook-controls">
-        <input type="text" class="spell-search" id="spellbookSearch" placeholder="🔍 Szukaj zaklęcia...">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-          <select id="spellbookLevel">
-            <option value="all">Wszystkie poziomy</option>
-            <option value="0">Cantrip</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          </select>
-          <select id="spellbookSchool">
-            <option value="all">Wszystkie szkoły</option>
-            <option value="Wywoływanie">🔥 Wywoływanie</option>
-            <option value="Przywoływanie">📯 Przywoływanie</option>
-            <option value="Wieszczenie">🔮 Wieszczenie</option>
-            <option value="Nekromancja">💀 Nekromancja</option>
-            <option value="Uroki">✨ Uroki</option>
-            <option value="Iluzja">🎭 Iluzja</option>
-            <option value="Ochrona">🛡️ Ochrona</option>
-            <option value="Przemiany">🌀 Przemiany</option>
-          </select>
+        <div class="card-title">📖 Księga zaklęć</div>
+        
+        <div class="spellbook-controls">
+            <input type="text" class="spellbook-search" id="spellbookSearch" placeholder="🔍 Szukaj zaklęcia..." style="width:100%;padding:12px 16px;background:#18140d;border:1px solid var(--border);color:var(--ink);font-family:inherit;margin-bottom:10px;">
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <select id="spellbookLevel" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
+                    <option value="all">Wszystkie poziomy</option>
+                    <option value="0">Cantrip</option>
+                    <option value="1">I</option>
+                    <option value="2">II</option>
+                    <option value="3">III</option>
+                    <option value="4">IV</option>
+                    <option value="5">V</option>
+                    <option value="6">VI</option>
+                    <option value="7">VII</option>
+                    <option value="8">VIII</option>
+                    <option value="9">IX</option>
+                </select>
+                <select id="spellbookSchool" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
+                    <option value="all">Wszystkie szkoły</option>
+                    <option value="wywoływanie">✦ Ewokacja</option>
+                    <option value="przywoływanie">⬡ Przywoływanie</option>
+                    <option value="wieszczenie">◈ Wieszczenie</option>
+                    <option value="nekromancja">✧ Nekromancja</option>
+                    <option value="uroki">♥ Uroki</option>
+                    <option value="iluzje">◐ Iluzja</option>
+                    <option value="odpychanie">⊜ Ochrona</option>
+                    <option value="przemiany">◈ Przemiany</option>
+                </select>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+                <select id="spellbookClass" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
+                    <option value="all">Wszystkie klasy</option>
+                    <option value="Czarodziej">🧙 Czarodziej</option>
+                    <option value="Czarownik">🔥 Czarownik</option>
+                    <option value="Mag">📖 Mag</option>
+                    <option value="Kapłan">⛪ Kapłan</option>
+                    <option value="Druid">🌿 Druid</option>
+                    <option value="Bard">🎵 Bard</option>
+                    <option value="Paladyn">⚔️ Paladyn</option>
+                    <option value="Łowca">🏹 Łowca</option>
+                </select>
+                <select id="spellbookSort" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
+                    <option value="level">📊 Sortuj: Poziom → Alfabetycznie</option>
+                    <option value="name">🔤 Sortuj: Alfabetycznie</option>
+                </select>
+            </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-          <select id="spellbookClass">
-            <option value="all">Wszystkie klasy</option>
-            <option value="Czarodziej">🧙 Czarodziej</option>
-            <option value="Czarownik">🔥 Czarownik</option>
-            <option value="Mag">📖 Mag</option>
-            <option value="Kapłan">⛪ Kapłan</option>
-            <option value="Druid">🌿 Druid</option>
-            <option value="Bard">🎵 Bard</option>
-            <option value="Paladyn">⚔️ Paladyn</option>
-            <option value="Łowca">🏹 Łowca</option>
-            <option value="Łotrzyk">🗡️ Łotrzyk</option>
-          </select>
-          <select id="spellbookSort">
-            <option value="level">📊 Sortuj: Poziom → Alfabetycznie</option>
-            <option value="name">🔤 Sortuj: Alfabetycznie</option>
-          </select>
-        </div>
-      </div>
-      <div class="spellbook-list" id="spellbookList"></div>
+        
+        <div class="spellbook-grid" id="spellbookList"></div>
     </div>
-  </section>
+</section>
+
+<!-- ===== MODAL SZCZEGÓŁÓW ZAKLĘCIA ===== -->
+<div class="popup-overlay" id="spellDetailOverlay" style="display:none;">
+    <div class="popup-content spell-detail-modal" style="max-width:1000px;max-height:90vh;overflow:auto;background:#211b12;border:1px solid var(--border);padding:34px;">
+        <div id="spellDetailContent"></div>
+    </div>
+</div>
 
   <!-- ===== BOTTOM NAV ===== -->
   <nav class="bottom-nav">
