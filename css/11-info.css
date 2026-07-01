@@ -1,0 +1,136 @@
+/* ===== INFO - ZAKŁADKI ===== */
+
+.info-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    padding: 6px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+.info-tab-btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 14px;
+    font-family: var(--font-cinzel);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--parchment-dim);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 40px;
+    touch-action: manipulation;
+}
+
+.info-tab-btn:hover {
+    color: var(--parchment);
+    background: rgba(185,146,74,0.06);
+}
+
+.info-tab-btn.active {
+    background: linear-gradient(135deg, var(--blood), #5a1a14);
+    color: #f3e7d6;
+    box-shadow: 0 2px 12px rgba(138,42,34,0.2);
+}
+
+.info-content {
+    display: none;
+    animation: tabFadeIn var(--transition-normal) ease;
+}
+
+.info-content.active {
+    display: block;
+}
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.info-item {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 18px;
+    transition: all var(--transition-fast);
+}
+
+.info-item:hover {
+    border-color: rgba(185,146,74,0.2);
+    background: rgba(185,146,74,0.03);
+}
+
+.info-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.info-icon {
+    font-size: 1.4rem;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.info-title {
+    font-family: var(--font-cinzel);
+    font-weight: 700;
+    font-size: var(--font-md);
+    color: var(--gold);
+}
+
+.info-desc {
+    font-size: 0.9rem;
+    color: var(--parchment);
+    line-height: 1.6;
+    padding-left: 44px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .info-tabs {
+        gap: 4px;
+        padding: 4px;
+        flex-wrap: wrap;
+    }
+    
+    .info-tab-btn {
+        min-width: 55px;
+        padding: 8px 10px;
+        font-size: 0.6rem;
+        min-height: 34px;
+        flex: 1 0 auto;
+    }
+    
+    .info-item {
+        padding: 12px 14px;
+    }
+    
+    .info-desc {
+        padding-left: 0;
+        font-size: 0.8rem;
+    }
+    
+    .info-icon {
+        font-size: 1.2rem;
+        width: 28px;
+    }
+    
+    .info-title {
+        font-size: var(--font-sm);
+    }
+}

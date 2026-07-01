@@ -1,42 +1,66 @@
 // ============================================================
-//  INFO - INICJALIZACJA ZAKŁADEK
+//  INFO - ZAKŁADKI I DANE
 // ============================================================
 
 function initInfoTabs() {
     var infoTabButtons = document.querySelectorAll('.info-tab-btn');
     var infoContents = document.querySelectorAll('.info-content');
 
+    // Na początku ukryj wszystkie zawartości poza pierwszą
+    infoContents.forEach(function(c, index) {
+        if (index === 0) {
+            c.classList.add('active');
+            c.style.display = 'block';
+        } else {
+            c.classList.remove('active');
+            c.style.display = 'none';
+        }
+    });
+
+    // Ustaw pierwszy przycisk jako aktywny
+    infoTabButtons.forEach(function(b, index) {
+        if (index === 0) {
+            b.classList.add('active');
+        } else {
+            b.classList.remove('active');
+        }
+    });
+
     infoTabButtons.forEach(function(btn) {
         btn.addEventListener('click', function() {
             var targetInfo = btn.dataset.info;
 
+            // Przyciski
             infoTabButtons.forEach(function(b) {
-                if (b.dataset.info === targetInfo) b.classList.add('active');
-                else b.classList.remove('active');
+                if (b.dataset.info === targetInfo) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
             });
 
+            // Zawartości
             infoContents.forEach(function(c) {
-                if (c.dataset.info === targetInfo) c.classList.add('active');
-                else c.classList.remove('active');
+                if (c.dataset.info === targetInfo) {
+                    c.classList.add('active');
+                    c.style.display = 'block';
+                } else {
+                    c.classList.remove('active');
+                    c.style.display = 'none';
+                }
             });
         });
     });
+
+    // Renderuj stany
+    renderStatesInfoList();
 }
 
-// Inicjalizuj po załadowaniu
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initInfoTabs);
-} else {
-    initInfoTabs();
-}
-
-// ============================================================
-//  INFO - ZAKTUALIZOWANE STANY
-// ============================================================
 function renderStatesInfoList() {
     var container = document.getElementById('statesInfoList');
     if (!container) return;
     container.innerHTML = '';
+    
     var states = [
         { name: 'Nieprzytomny', icon: '💀', desc: 'Obezwładniony. Trafienie w zwarciu to krytyk. Upuszcza wszystko co trzyma. Automatycznie oblewa rzuty obronne na Siłę i Zręczność. Nie może się poruszać ani mówić.' },
         { name: 'Niewidzialny', icon: '👻', desc: 'Traktowany jako mocno zasłonięty. Ataki na niego mają utrudnienie, jego ataki mają przewagę. Nie można go celować czarami wymagającymi widzenia celu.' },
@@ -54,6 +78,7 @@ function renderStatesInfoList() {
         { name: 'Zauroczony', icon: '💗', desc: 'Nie może atakować źródła uroku. Źródło ma przewagę w testach towarzyskich. Nie może celować w źródło uroku szkodliwymi zdolnościami.' },
         { name: 'Wyczerpanie', icon: '🥱', desc: 'Skala 1-6: Poziom 1 - utrudnienie na testy umiejętności; 2 - prędkość połowa; 3 - utrudnienie na ataki i obrony; 4 - HP max połowa; 5 - prędkość 0; 6 - śmierć. Każdy poziom znika po długim odpoczynku.' }
     ];
+    
     states.forEach(function(state) {
         var item = document.createElement('div');
         item.className = 'info-item';
@@ -66,4 +91,15 @@ function renderStatesInfoList() {
     });
 }
 
-renderStatesInfoList();
+// Auto-inicjalizacja
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        initInfoTabs();
+    });
+} else {
+    initInfoTabs();
+}
+
+// Eksport
+window.initInfoTabs = initInfoTabs;
+window.renderStatesInfoList = renderStatesInfoList;
