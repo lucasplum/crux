@@ -10,24 +10,37 @@ var monsterLoading = false;
 
 // ====== ŁADOWANIE Z JSON ======
 function loadMonsterCR(cr, callback) {
-    if (monsterCache[cr]) {
-        if (callback) callback(monsterCache[cr]);
-        return;
-    }
-    var url = 'data/monsters/cr-' + cr + '.json';
-    fetch(url)
-        .then(function(r) {
-            if (!r.ok) throw new Error('Brak pliku: ' + url);
-            return r.json();
-        })
-        .then(function(data) {
-            monsterCache[cr] = data;
-            if (callback) callback(data);
-        })
-        .catch(function(err) {
-            console.warn('Błąd ładowania CR ' + cr + ':', err);
-            if (callback) callback([]);
-        });
+if (monsterCache[cr]) {
+    if (callback) callback(monsterCache[cr]);
+    return;
+}
+// 🔥 FIX: Fallback ścieżek
+var urls = [
+    'data/monsters/cr-' + cr + '.json',
+    'cr-' + cr + '.json',
+    '../data/monsters/cr-' + cr + '.json'
+];
+tryLoadMonsterUrls(urls, 0, callback);
+}
+
+function tryLoadMonsterUrls(urls, idx, callback) {
+if (idx >= urls.length) {
+    if (callback) callback([]);
+    return;
+}
+fetch(urls[idx])
+    .then(function(r) {
+        if (!r.ok) throw new Error('Brak pliku: ' + urls[idx]);
+        return r.json();
+    })
+    .then(function(data) {
+        monsterCache[cr] = data;
+        if (callback) callback(data);
+    })
+    .catch(function(err) {
+        console.warn('Brak ' + urls[idx] + ', próbuję dalej...');
+        tryLoadMonsterUrls(urls, idx + 1, callback);
+    });
 }
 
 function loadAllMonsters(callback) {
@@ -133,8 +146,8 @@ function renderFilteredMonsters(filtered) {
                 <div class="monster-card-name" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">${m.name}</div>
                 <div class="monster-card-type">${m.type}</div>
                 <div class="monster-card-image" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">
-                    <img src="${imgUrl}" onerror="this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
-                </div>
+    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
+</div>
                 <div class="monster-card-stats">
                     <span>❤️ HP <b>${m.hp}</b></span>
                     <span>🛡️ KP <b>${m.ac}</b></span>
@@ -239,8 +252,8 @@ function openMonsterDetail(name) {
                 <div class="monster-detail-type">${monster.type}</div>
                 
                 <div class="monster-detail-image">
-                    <img src="${imgUrl}" onerror="this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-detail-image-placeholder');" alt="${monster.name}">
-                </div>
+    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-detail-image-placeholder');" alt="${monster.name}">
+</div>
                 
                 <div class="monster-detail-stats-grid">
                     <div class="monster-detail-stat">

@@ -164,22 +164,37 @@ function initPlayers() {
     }
     
     // Jeśli brak danych, załaduj z JSON
-    fetch('data/players/default-players.json')
-        .then(function(response) {
-            if (!response.ok) throw new Error('Brak pliku default-players.json');
-            return response.json();
-        })
-        .then(function(data) {
-            players = data;
-            savePlayers();
-            renderPlayers();
-        })
-        .catch(function() {
-            // Jeśli JSON nie istnieje, użyj domyślnych
-            players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
-            savePlayers();
-            renderPlayers();
-        });
+    // 🔥 FIX: Fallback ścieżek
+var urls = [
+    'data/players/default-players.json',
+    'default-players.json',
+    '../data/players/default-players.json'
+];
+tryLoadPlayerUrls(urls, 0);
+
+        function tryLoadPlayerUrls(urls, idx) {
+if (idx >= urls.length) {
+    // Jeśli JSON nie istnieje, użyj domyślnych
+    players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+    savePlayers();
+    renderPlayers();
+    return;
+}
+fetch(urls[idx])
+    .then(function(response) {
+        if (!response.ok) throw new Error('Brak pliku');
+        return response.json();
+    })
+    .then(function(data) {
+        players = data;
+        savePlayers();
+        renderPlayers();
+    })
+    .catch(function() {
+        console.warn('Brak ' + urls[idx] + ', próbuję dalej...');
+        tryLoadPlayerUrls(urls, idx + 1);
+    });
+}
 }
 
 function savePlayers() {
