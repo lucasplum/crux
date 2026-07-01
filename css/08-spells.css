@@ -554,3 +554,91 @@
         min-height: 26px;
     }
 }
+
+/* ===== INFO - HAMBURGER MENU ===== */
+
+.info-tabs-wrapper {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.info-hamburger {
+    display: none;
+    width: 100%;
+    padding: 12px 16px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(0,0,0,0.25);
+    border: 2px solid var(--hairline);
+    color: #ece3cd;
+    cursor: pointer;
+    text-align: left;
+    clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+    transition: all 0.25s ease;
+}
+
+.info-hamburger:hover {
+    border-color: #c9a24b;
+    color: #e9cd85;
+}
+
+.info-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding: 6px;
+    background: rgba(0,0,0,0.15);
+    border: 2px solid var(--hairline);
+    clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+
+.info-tab-btn {
+    padding: 8px 14px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: transparent;
+    color: #786c53;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+}
+
+.info-tab-btn:hover {
+    color: #ece3cd;
+    border-color: var(--hairline);
+}
+
+.info-tab-btn.active {
+    background: #5a1a14;
+    color: #e9cd85;
+    border-color: #8a2a22;
+}
+
+@media (max-width: 768px) {
+    .info-hamburger {
+        display: block;
+    }
+    
+    .info-tabs {
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        padding: 4px;
+    }
+    
+    .info-tabs.open {
+        display: flex;
+    }
+    
+    .info-tab-btn {
+        width: 100%;
+        text-align: left;
+        padding: 10px 14px;
+        font-size: 0.75rem;
+    }
+}

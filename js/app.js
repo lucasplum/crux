@@ -2,7 +2,6 @@
 //  APP - MAIN ENTRY
 // ============================================================
 
-// Obserwator kart
 var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(e) {
         if (e.isIntersecting) e.target.classList.add('visible');
@@ -12,18 +11,22 @@ var observer = new IntersectionObserver(function(entries) {
 document.querySelectorAll('.card').forEach(function(c) { observer.observe(c); });
 
 function init() {
-    // Najpierw nawigacja
+    // Inicjalizacja danych postaci
+    if (typeof initPlayers === 'function') initPlayers();
+    
+    // Nawigacja
     if (typeof initNavigation === 'function') initNavigation();
     
-    // Potem info (zakładki)
+    // Info
     if (typeof initInfoTabs === 'function') initInfoTabs();
     
     // Canvas
     if (typeof initCanvasPanZoom === 'function') initCanvasPanZoom();
     
     // Avatar pickery
-    if (typeof initAvatarPicker === 'function') initAvatarPicker();
+    if (typeof initAvatarPickers === 'function') initAvatarPickers();
     if (typeof initCombatantAvatarPicker === 'function') initCombatantAvatarPicker();
+    if (typeof initEditTabs === 'function') initEditTabs();
     
     // Storage
     if (typeof initStorage === 'function') initStorage();
@@ -34,16 +37,10 @@ function init() {
     if (typeof updateFocusFire === 'function') updateFocusFire();
     if (typeof renderDistances === 'function') renderDistances();
 
-    // Canvas - opóźnione
     setTimeout(function() {
         if (typeof renderSizeCanvas === 'function') renderSizeCanvas();
         if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
     }, 200);
-
-    if (typeof initAvatarPickers === 'function') initAvatarPickers();
-    if (typeof initEditTabs === 'function') initEditTabs();
-    if (typeof initClassSelect === 'function') initClassSelect();
-
 
     var resizeTimeout;
     window.addEventListener('resize', function() {
@@ -51,6 +48,13 @@ function init() {
         resizeTimeout = setTimeout(function() {
             if (typeof renderSizeCanvas === 'function') renderSizeCanvas();
             if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
+            // Info hamburger na mobile
+            if (window.innerWidth > 768) {
+                var tabs = document.getElementById('infoTabs');
+                if (tabs) tabs.classList.remove('open');
+                var btn = document.querySelector('.info-hamburger');
+                if (btn) btn.textContent = '☰ Zakładki';
+            }
         }, 250);
     });
 }

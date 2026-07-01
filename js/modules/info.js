@@ -100,6 +100,23 @@ if (document.readyState === 'loading') {
     initInfoTabs();
 }
 
+function toggleInfoMenu() {
+    var tabs = document.getElementById('infoTabs');
+    if (tabs) {
+        tabs.classList.toggle('open');
+        var btn = document.querySelector('.info-hamburger');
+        if (btn) {
+            btn.textContent = tabs.classList.contains('open') ? '✕ Zamknij' : '☰ Zakładki';
+        }
+    }
+}
+
+// Na mobile domyślnie zamknięte
+if (window.innerWidth <= 768) {
+    var tabs = document.getElementById('infoTabs');
+    if (tabs) tabs.classList.remove('open');
+}
+
 // Eksport
 window.initInfoTabs = initInfoTabs;
 window.renderStatesInfoList = renderStatesInfoList;

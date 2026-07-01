@@ -99,43 +99,59 @@ header p.subtitle {
   margin-top: 10px;
 }
 
-/* Nawigacja górna */
+/* ===== NAWIGACJA GÓRNA ===== */
 .top-nav {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 24px;
-  padding: 8px;
-  background: rgba(28,24,18,0.85);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  backdrop-filter: blur(12px);
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    padding: 8px;
+    background: rgba(28,24,18,0.85);
+    border: 1px solid var(--line);
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    backdrop-filter: blur(12px);
 }
 
 .nav-btn {
-  flex: 1;
-  padding: 12px 10px;
-  font-family: var(--font-cinzel);
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  background: transparent;
-  color: var(--parchment-dim);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  min-height: 48px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 6px;
+    font-family: var(--font-cinzel);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: transparent;
+    color: var(--parchment-dim);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 60px;
+    clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+
+.nav-btn .nav-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.nav-btn .nav-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 .nav-btn:hover {
-  color: var(--parchment);
-  background: rgba(185,146,74,0.08);
+    color: var(--parchment);
+    background: rgba(185,146,74,0.08);
 }
 
 .nav-btn.active {
-  background: linear-gradient(135deg, var(--blood), #5a1a14);
-  color: #f3e7d6;
-  box-shadow: 0 2px 16px rgba(138,42,34,0.3);
+    background: linear-gradient(135deg, var(--blood), #5a1a14);
+    color: #f3e7d6;
+    box-shadow: 0 2px 16px rgba(138,42,34,0.3);
 }
 
 /* Sekcje tabów */
@@ -155,58 +171,59 @@ header p.subtitle {
 
 /* Nawigacja dolna (mobile) */
 .bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(20,17,14,0.95);
-  border-top: 1px solid var(--line);
-  backdrop-filter: blur(16px);
-  z-index: 900;
-  padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 30px rgba(0,0,0,0.6);
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(20,17,14,0.97);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(16px);
+    z-index: 900;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.6);
 }
 
 .bottom-nav-btn {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 4px;
-  background: transparent;
-  color: var(--parchment-dim);
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-cinzel);
-  min-height: 60px;
-  touch-action: manipulation;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 2px;
+    background: transparent;
+    color: var(--parchment-dim);
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: var(--font-cinzel);
+    min-height: 54px;
+    touch-action: manipulation;
+    clip-path: none;
 }
 
-.bottom-nav-btn:hover { 
-  color: var(--parchment); 
-  background: rgba(185,146,74,0.06); 
+.bottom-nav-btn:hover {
+    color: var(--parchment);
+    background: rgba(185,146,74,0.06);
 }
 
-.bottom-nav-btn.active { 
-  color: var(--gold); 
-  background: rgba(185,146,74,0.08); 
+.bottom-nav-btn.active {
+    color: var(--gold);
+    background: rgba(185,146,74,0.08);
+    border-bottom: 2px solid var(--gold);
 }
 
-.bottom-nav-icon { 
-  font-size: 1.6rem; 
-  line-height: 1; 
+.bottom-nav-icon {
+    font-size: 1.4rem;
+    line-height: 1;
 }
 
 .bottom-nav-label {
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+    font-size: 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 /* ===== HEADER - RESPONSYWNOŚĆ ===== */

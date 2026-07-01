@@ -1,5 +1,5 @@
 // ============================================================
-//  MONSTERS - NOWY BESTIARIUSZ
+//  MONSTERS - NOWY BESTIARIUSZ Z FILTRAMI GRUPOWYMI
 // ============================================================
 
 var MONSTERS = [];
@@ -43,6 +43,7 @@ function loadAllMonsters(callback) {
     var crs = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30];
     var loaded = 0;
     var results = [];
+    
     crs.forEach(function(cr) {
         loadMonsterCR(cr, function(data) {
             results = results.concat(data || []);
@@ -79,10 +80,8 @@ function renderMonsters(filter, query) {
     if (!container) return;
 
     loadAllMonsters(function(monsters) {
-        var filtered = monsters;
-        if (filter !== 'all') {
-            filtered = filtered.filter(function(m) { return m.cr === parseInt(filter); });
-        }
+        var filtered = filterMonstersByCR(monsters, filter);
+        
         if (query) {
             var q = query.toLowerCase();
             filtered = filtered.filter(function(m) {
@@ -92,44 +91,63 @@ function renderMonsters(filter, query) {
             });
         }
 
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="monster-empty">🐉 Brak potworów spełniających kryteria</div>';
-            return;
-        }
+        renderFilteredMonsters(filtered);
+    });
+}
 
-        container.innerHTML = '';
-        filtered.forEach(function(m) {
-            var div = document.createElement('div');
-            div.className = 'monster-card';
-            div.dataset.monsterName = m.name;
+function filterMonstersByCR(monsters, filter) {
+    if (filter === 'all') return monsters;
+    
+    var parts = filter.split('-');
+    var min = parseInt(parts[0]);
+    var max = parseInt(parts[1]);
+    
+    return monsters.filter(function(m) {
+        return m.cr >= min && m.cr <= max;
+    });
+}
 
-            var imgUrl = getMonsterImageUrl(m.name);
-            
-            div.innerHTML = `
-                <div class="monster-card-band">
-                    <span class="monster-card-icon">🐉</span>
-                    <div class="monster-card-cr">CR ${m.cr}</div>
+function renderFilteredMonsters(filtered) {
+    var container = document.getElementById('monsterGrid');
+    if (!container) return;
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="monster-empty">🐉 Brak potworów spełniających kryteria</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    filtered.forEach(function(m) {
+        var div = document.createElement('div');
+        div.className = 'monster-card';
+        div.dataset.monsterName = m.name;
+
+        var imgUrl = getMonsterImageUrl(m.name);
+        
+        div.innerHTML = `
+            <div class="monster-card-band">
+                <span class="monster-card-icon">🐉</span>
+                <div class="monster-card-cr">CR ${m.cr}</div>
+            </div>
+            <div class="monster-card-body">
+                <div class="monster-card-name" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">${m.name}</div>
+                <div class="monster-card-type">${m.type}</div>
+                <div class="monster-card-image" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">
+                    <img src="${imgUrl}" onerror="this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
                 </div>
-                <div class="monster-card-body">
-                    <div class="monster-card-name" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">${m.name}</div>
-                    <div class="monster-card-type">${m.type}</div>
-                    <div class="monster-card-image" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">
-                        <img src="${imgUrl}" onerror="this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
-                    </div>
-                    <div class="monster-card-stats">
-                        <span>❤️ HP <b>${m.hp}</b></span>
-                        <span>🛡️ KP <b>${m.ac}</b></span>
-                        <span>💨 <b>${m.speed}</b></span>
-                    </div>
-                    <div class="monster-card-desc">${m.desc || ''}</div>
-                    <div class="monster-card-actions">
-                        <button class="monster-card-btn" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">📖 Szczegóły</button>
-                        <button class="monster-card-btn primary" onclick="addMonsterToCombat('${m.name.replace(/'/g, "\\'")}', ${m.cr}, ${m.hp}, ${m.ac}, '${m.type.replace(/'/g, "\\'")}')">⚔️ Do walki</button>
-                    </div>
+                <div class="monster-card-stats">
+                    <span>❤️ HP <b>${m.hp}</b></span>
+                    <span>🛡️ KP <b>${m.ac}</b></span>
+                    <span>💨 <b>${m.speed}</b></span>
                 </div>
-            `;
-            container.appendChild(div);
-        });
+                <div class="monster-card-desc">${m.desc || ''}</div>
+                <div class="monster-card-actions">
+                    <button class="monster-card-btn" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">📖 Szczegóły</button>
+                    <button class="monster-card-btn primary" onclick="addMonsterToCombat('${m.name.replace(/'/g, "\\'")}', ${m.cr}, ${m.hp}, ${m.ac}, '${m.type.replace(/'/g, "\\'")}')">⚔️ Do walki</button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
     });
 }
 
@@ -139,16 +157,20 @@ function filterMonsters(cr) {
     var searchInput = document.getElementById('monsterSearch');
     var query = searchInput ? searchInput.value : '';
     renderMonsters(cr, query);
+    
     document.querySelectorAll('.monster-filter-btn').forEach(function(btn) {
         btn.classList.toggle('active', btn.dataset.cr == cr);
     });
 }
 
-// ====== SZCZEGÓŁY ======
+// ====== SZCZEGÓŁY POTWORA ======
 function openMonsterDetail(name) {
     loadAllMonsters(function() {
         var monster = MONSTERS.find(function(m) { return m.name === name; });
-        if (!monster) { alert('Nie znaleziono potwora: ' + name); return; }
+        if (!monster) { 
+            alert('Nie znaleziono potwora: ' + name); 
+            return; 
+        }
         selectedMonster = monster;
         
         var popup = document.getElementById('monsterDetailPopup');
@@ -267,7 +289,13 @@ function closeMonsterDetail() {
 
 function addMonsterDetailToCombat() {
     if (!selectedMonster) return;
-    addMonsterToCombat(selectedMonster.name, selectedMonster.cr, selectedMonster.hp, selectedMonster.ac, selectedMonster.type);
+    addMonsterToCombat(
+        selectedMonster.name, 
+        selectedMonster.cr, 
+        selectedMonster.hp, 
+        selectedMonster.ac, 
+        selectedMonster.type
+    );
     closeMonsterDetail();
 }
 
@@ -276,6 +304,19 @@ function addMonsterToCombat(name, cr, hp, ac, type) {
         alert('Moduł potyczki nie jest dostępny!');
         return;
     }
+    
+    // Sprawdź czy już istnieje w potyczce
+    if (typeof combatants !== 'undefined') {
+        var exists = combatants.some(function(c) {
+            return c.name === name && c.role === 'Wróg';
+        });
+        if (exists) {
+            if (!confirm('Potwór "' + name + '" jest już w potyczce. Dodać kolejnego?')) {
+                return;
+            }
+        }
+    }
+    
     var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(cr / 2);
     addCombatant({
         name: name,
@@ -288,7 +329,10 @@ function addMonsterToCombat(name, cr, hp, ac, type) {
         conditions: [],
         exhaustionLevel: 0
     });
+    
     if (typeof playSound === 'function') playSound('add');
+    
+    // Przejdź do zakładki Potyczka
     var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
     if (combatTab) combatTab.click();
 }
@@ -301,10 +345,15 @@ document.addEventListener('DOMContentLoaded', function() {
             renderMonsters(currentMonsterFilter, this.value);
         });
     }
+    
+    // Ustaw aktywny filtr
+    var allBtn = document.querySelector('.monster-filter-btn[data-cr="all"]');
+    if (allBtn) allBtn.classList.add('active');
+    
     renderMonsters('all', '');
 });
 
-// Eksport
+// ====== EKSPORT ======
 window.renderMonsters = renderMonsters;
 window.filterMonsters = filterMonsters;
 window.openMonsterDetail = openMonsterDetail;
@@ -312,3 +361,4 @@ window.closeMonsterDetail = closeMonsterDetail;
 window.addMonsterToCombat = addMonsterToCombat;
 window.addMonsterDetailToCombat = addMonsterDetailToCombat;
 window.MONSTERS = MONSTERS;
+window.getMonsterImageUrl = getMonsterImageUrl;

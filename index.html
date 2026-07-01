@@ -26,20 +26,41 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V24.6.DS</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V24.7.DS</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
   <!-- ===== NAWIGACJA ===== -->
-  <nav class="top-nav">
-    <button class="nav-btn active" data-tab="tools">🧮 Kalkulatory</button>
-    <button class="nav-btn" data-tab="spells">🎨 Obszary</button>
-    <button class="nav-btn" data-tab="players">👥 Postacie</button>
-    <button class="nav-btn" data-tab="combat">⚔️ Potyczka</button>
-    <button class="nav-btn" data-tab="monsters">🐉 Potwory</button>
-    <button class="nav-btn" data-tab="info">📖 Info</button>
-    <button class="nav-btn" data-tab="spellbook">📖 Księga</button>
-  </nav>
+<nav class="top-nav">
+    <button class="nav-btn active" data-tab="tools">
+        <span class="nav-icon">🧮</span>
+        <span class="nav-label">Kalkulatory</span>
+    </button>
+    <button class="nav-btn" data-tab="spells">
+        <span class="nav-icon">🎨</span>
+        <span class="nav-label">Obszary</span>
+    </button>
+    <button class="nav-btn" data-tab="players">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Postacie</span>
+    </button>
+    <button class="nav-btn" data-tab="combat">
+        <span class="nav-icon">⚔️</span>
+        <span class="nav-label">Potyczka</span>
+    </button>
+    <button class="nav-btn" data-tab="monsters">
+        <span class="nav-icon">🐉</span>
+        <span class="nav-label">Potwory</span>
+    </button>
+    <button class="nav-btn" data-tab="info">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">Info</span>
+    </button>
+    <button class="nav-btn" data-tab="spellbook">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">Księga</span>
+    </button>
+</nav>
 
   <!-- ===== TAB: KALKULATORY ===== -->
   <section class="tab-section active" data-tab="tools">
@@ -163,7 +184,7 @@
       <div class="card-title">👥 Postacie</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn outline" onclick="importPlayer()">📥 Import</button>
-        <button class="btn outline" onclick="exportState()">📤 Eksport wszystkich</button>
+        <button class="btn outline" onclick="exportState()">📤 Eksport</button>
         <button class="btn add-player-btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
       </div>
     </div>
@@ -218,18 +239,12 @@
     </div>
     
     <div class="monster-filters">
-      <button class="monster-filter-btn active" data-cr="all" onclick="filterMonsters('all')">Wszystkie</button>
-      <button class="monster-filter-btn" data-cr="0" onclick="filterMonsters(0)">CR 0</button>
-      <button class="monster-filter-btn" data-cr="1" onclick="filterMonsters(1)">CR 1</button>
-      <button class="monster-filter-btn" data-cr="2" onclick="filterMonsters(2)">CR 2</button>
-      <button class="monster-filter-btn" data-cr="3" onclick="filterMonsters(3)">CR 3</button>
-      <button class="monster-filter-btn" data-cr="4" onclick="filterMonsters(4)">CR 4</button>
-      <button class="monster-filter-btn" data-cr="5" onclick="filterMonsters(5)">CR 5</button>
-      <button class="monster-filter-btn" data-cr="6" onclick="filterMonsters(6)">CR 6</button>
-      <button class="monster-filter-btn" data-cr="7" onclick="filterMonsters(7)">CR 7</button>
-      <button class="monster-filter-btn" data-cr="8" onclick="filterMonsters(8)">CR 8</button>
-      <button class="monster-filter-btn" data-cr="9" onclick="filterMonsters(9)">CR 9</button>
-      <button class="monster-filter-btn" data-cr="10" onclick="filterMonsters(10)">CR 10+</button>
+        <button class="monster-filter-btn active" data-cr="all" onclick="filterMonsters('all')">🌐 Wszystkie</button>
+        <button class="monster-filter-btn" data-cr="0-4" onclick="filterMonsters('0-4')">🟢 CR 0-4</button>
+        <button class="monster-filter-btn" data-cr="5-8" onclick="filterMonsters('5-8')">🟡 CR 5-8</button>
+        <button class="monster-filter-btn" data-cr="9-12" onclick="filterMonsters('9-12')">🟠 CR 9-12</button>
+        <button class="monster-filter-btn" data-cr="13-16" onclick="filterMonsters('13-16')">🔴 CR 13-16</button>
+        <button class="monster-filter-btn" data-cr="17-30" onclick="filterMonsters('17-30')">💀 CR 17+</button>
     </div>
     
     <input type="text" class="spell-search" id="monsterSearch" placeholder="🔍 Szukaj potwora...">
@@ -241,7 +256,9 @@
   <section class="tab-section" data-tab="info">
     <div class="card">
       <div class="card-title">📖 Informacje z podręcznika</div>
-      <div class="info-tabs">
+      <div class="info-tabs-wrapper">
+    <button class="info-hamburger" onclick="toggleInfoMenu()">☰ Zakładki</button>
+    <div class="info-tabs" id="infoTabs">
         <button class="info-tab-btn active" data-info="states">Stany</button>
         <button class="info-tab-btn" data-info="actions">Akcje</button>
         <button class="info-tab-btn" data-info="move">Ruch</button>
@@ -250,7 +267,8 @@
         <button class="info-tab-btn" data-info="fall">Spadanie</button>
         <button class="info-tab-btn" data-info="conc">Koncentracja</button>
         <button class="info-tab-btn" data-info="travel">Podróż</button>
-      </div>
+    </div>
+</div>
 
       <div class="info-content active" data-info="states">
         <div class="info-list" id="statesInfoList"></div>

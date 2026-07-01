@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grimuar Bohaterów</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#121009;
+  --bg-vignette: radial-gradient(ellipse at 50% -10%, #241d10 0%, #121009 55%);
+  --panel:#1b170f;
+  --panel-raised:#221c12;
+  --hairline: rgba(201,162,75,0.28);
+  --hairline-soft: rgba(201,162,75,0.14);
+  --ink:#ece3cd;
+  --ink-dim:#a89a7c;
+  --ink-faint:#786c53;
+  --gold:#c9a24b;
+  --gold-bright:#e9cd85;
+  --wax:#8a3a3a;
+  --accent: #c9a24b;
+  --accent-dim: #6b5325;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+html,body{
+  min-height:100%;
+  background:var(--bg-vignette), var(--bg);
+  color:var(--ink);
+  font-family:'Spectral', serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+body{
+  padding: 48px 24px 96px;
+  overflow-x:hidden;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+
+::selection{ background:var(--gold); color:#1b170f; }
+
+/* ---------- utility ---------- */
+.cut{
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+.cut-sm{
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+}
+.wrap{ max-width:1180px; margin:0 auto; }
+
+/* ================= HEADER / MASTHEAD ================= */
+.masthead{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:24px; flex-wrap:wrap;
+  padding-bottom:28px; margin-bottom:36px;
+  border-bottom:1px solid var(--hairline);
+  position:relative;
+}
+.masthead::after{
+  content:"";
+  position:absolute; left:0; bottom:-2px; width:64px; height:2px;
+  background:var(--gold);
+}
+.masthead h1{
+  font-family:'Cinzel', serif;
+  font-weight:700;
+  font-size:clamp(28px,4vw,42px);
+  letter-spacing:.03em;
+  color:var(--gold-bright);
+  text-shadow: 0 0 24px rgba(201,162,75,0.18);
+}
+.masthead .sub{
+  margin-top:6px;
+  color:var(--ink-dim);
+  font-style:italic;
+  font-size:15px;
+}
+.new-btn{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  background:transparent;
+  color:var(--gold-bright);
+  border:1px solid var(--hairline);
+  padding:12px 18px;
+  cursor:pointer;
+  display:flex; align-items:center; gap:10px;
+  transition:border-color .25s ease, background .25s ease, transform .2s ease;
+}
+.new-btn:hover{ border-color:var(--gold); background:rgba(201,162,75,0.08); transform:translateY(-1px); }
+.new-btn:focus-visible{ outline:2px solid var(--gold-bright); outline-offset:3px; }
+
+/* ================= LIBRARY GRID ================= */
+#library{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(230px,1fr));
+  gap:20px;
+}
+.tile{
+  --accent:#c9a24b; --accent-dim:#6b5325;
+  position:relative;
+  background:var(--panel);
+  border:1px solid var(--hairline);
+  padding:0;
+  cursor:pointer;
+  text-align:left;
+  color:var(--ink);
+  font-family:inherit;
+  opacity:0; transform:translateY(14px);
+  animation:tileIn .5s ease forwards;
+  transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+}
+.tile:hover, .tile:focus-visible{
+  border-color:var(--accent);
+  transform:translateY(-4px);
+  box-shadow: 0 18px 40px -20px rgba(0,0,0,0.7), 0 0 0 1px var(--accent) inset;
+}
+.tile:focus-visible{ outline:none; }
+@keyframes tileIn{ to{ opacity:1; transform:translateY(0);} }
+
+.tile-band{
+  height:72px;
+  background: linear-gradient(135deg, var(--accent-dim), var(--accent) 145%);
+  position:relative;
+  overflow:hidden;
+  border-bottom:1px solid var(--hairline);
+}
+.tile-band::before{
+  content:"";
+  position:absolute; inset:0;
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.055) 0 1px, transparent 1px 11px);
+  mix-blend-mode:overlay;
+}
+.tile-band::after{
+  content:"";
+  position:absolute; left:0; right:0; bottom:0; height:40%;
+  background:linear-gradient(to top, rgba(0,0,0,0.28), transparent);
+}
+.avatar-slot{
+  position:absolute; left:14px; top:14px; z-index:1;
+  width:44px; height:44px;
+  background:var(--panel-raised);
+  border:1.5px solid var(--hairline);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(0,0,0,0.4);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.avatar-slot .initial{
+  font-family:'Cinzel', serif; font-size:16px; font-weight:600; color:var(--ink-faint);
+}
+.band-icon{
+  position:absolute; right:14px; top:14px; z-index:1;
+  width:38px; height:38px;
+  background:rgba(0,0,0,0.22);
+  border:1px solid rgba(255,255,255,0.28);
+  display:flex; align-items:center; justify-content:center;
+}
+.band-icon svg{ width:21px; height:21px; color:#f0e6c8; }
+.tile-body{ padding:16px 16px 18px; }
+.tile-body h3{
+  font-family:'Cinzel', serif; font-size:17px; font-weight:600;
+  color:var(--ink); letter-spacing:.01em; margin-bottom:4px;
+}
+.tile-body .race-class{ font-size:13px; color:var(--ink-dim); font-style:italic; }
+.tile-stats{
+  display:flex; gap:10px 14px; flex-wrap:wrap;
+  margin-top:14px;
+  border-top:1px solid var(--hairline-soft); padding-top:12px;
+}
+.tile-stats span{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+.tile-stats b{ color:var(--gold-bright); font-weight:600; }
+
+/* ================= SHEET VIEW ================= */
+#sheet{ display:none; }
+#sheet.active{ display:block; animation:sheetIn .45s cubic-bezier(.2,.8,.2,1); }
+@keyframes sheetIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+.back-btn{
+  font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  background:none; border:none; color:var(--ink-dim); cursor:pointer;
+  display:flex; align-items:center; gap:8px; margin-bottom:22px;
+  transition:color .2s ease, gap .2s ease;
+}
+.back-btn:hover{ color:var(--gold-bright); gap:12px; }
+.back-btn:focus-visible{ outline:2px solid var(--gold-bright); outline-offset:3px; }
+
+.sheet-head{
+  display:flex; gap:24px; align-items:center; flex-wrap:wrap;
+  padding:28px; margin-bottom:22px;
+  background: linear-gradient(120deg, var(--accent-dim) 0%, transparent 65%), var(--panel);
+  border:1px solid var(--hairline);
+}
+.medal{
+  width:78px; height:78px; border-radius:50%; flex-shrink:0;
+  background: radial-gradient(circle at 32% 28%, var(--accent), var(--accent-dim) 75%);
+  display:flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,255,255,0.15);
+}
+.medal svg{ width:36px; height:36px; color:#1b170f; }
+.sheet-head h2{
+  font-family:'Cinzel', serif; font-size:clamp(24px,3vw,32px); font-weight:700; color:var(--gold-bright);
+}
+.sheet-head .meta{ margin-top:6px; color:var(--ink-dim); font-style:italic; font-size:14.5px; }
+.sheet-head .align{ margin-top:2px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.1em; color:var(--ink-faint); text-transform:uppercase; }
+
+/* seals row */
+.seals{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:26px; }
+.seal{
+  flex:1 1 110px; min-width:104px;
+  background:var(--panel); border:1px solid var(--hairline);
+  padding:16px 12px; text-align:center; position:relative;
+}
+.seal .val{ font-family:'Cinzel', serif; font-size:26px; font-weight:700; color:var(--gold-bright); line-height:1; }
+.seal .lbl{ margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+.seal.hp .val{ color:#c96b6b; }
+.hp-bar{ margin-top:10px; height:4px; background:rgba(255,255,255,0.08); }
+.hp-bar i{ display:block; height:100%; background:#8a3a3a; }
+
+/* section wrapper */
+.section{ margin-bottom:26px; }
+.section > h4{
+  font-family:'Cinzel', serif; font-size:14px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:14px;
+  display:flex; align-items:center; gap:12px;
+}
+.section > h4::after{ content:""; flex:1; height:1px; background:var(--hairline); }
+
+/* ability grid */
+.abilities{ display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:14px; }
+.ability{
+  background:var(--panel); border:1px solid var(--hairline);
+  padding:14px 10px 16px; text-align:center; position:relative;
+}
+.ability .name{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+.ability .mod{ font-family:'Cinzel', serif; font-size:28px; font-weight:700; color:var(--gold-bright); margin:6px 0 4px; }
+.ability .score{
+  font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-dim);
+  border-top:1px solid var(--hairline-soft); padding-top:6px; margin-top:2px;
+}
+
+/* two-col saves/skills */
+.twocol{ display:grid; grid-template-columns:1fr 1.6fr; gap:20px; }
+@media (max-width:760px){ .twocol{ grid-template-columns:1fr; } }
+.listpanel{ background:var(--panel); border:1px solid var(--hairline); padding:18px 20px; }
+.listpanel ul{ list-style:none; }
+.listpanel li{
+  display:flex; align-items:center; gap:10px;
+  font-size:14.5px; padding:6px 0; color:var(--ink-dim);
+  border-bottom:1px dashed var(--hairline-soft);
+}
+.listpanel li:last-child{ border-bottom:none; }
+.dot{ width:8px; height:8px; border-radius:50%; border:1px solid var(--ink-faint); flex-shrink:0; }
+.dot.on{ background:var(--gold); border-color:var(--gold); }
+.dot.exp{ background:var(--gold-bright); border-color:var(--gold-bright); box-shadow:0 0 6px var(--gold-bright); }
+.listpanel li .bonus{ margin-left:auto; font-family:'JetBrains Mono', monospace; color:var(--gold-bright); font-size:13px; }
+.listpanel li .prof-name{ color:var(--ink); }
+
+/* details / accordion */
+details{
+  background:var(--panel); border:1px solid var(--hairline);
+  padding:16px 20px; margin-bottom:10px;
+}
+details + details{ margin-top:10px; }
+summary{
+  cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;
+  font-family:'Cinzel', serif; font-size:15px; color:var(--ink); font-weight:600;
+}
+summary::-webkit-details-marker{ display:none; }
+summary::after{ content:"+"; color:var(--gold); font-family:'JetBrains Mono', monospace; font-size:18px; transition:transform .2s ease; }
+details[open] summary::after{ content:"–"; }
+details .content{ margin-top:14px; color:var(--ink-dim); font-size:14.5px; line-height:1.65; }
+details .content ul{ padding-left:18px; }
+details .content li{ margin-bottom:6px; }
+
+/* personality quote grid */
+.quotes{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+.quote{ background:var(--panel); border-left:2px solid var(--gold); padding:14px 16px; }
+.quote .qlbl{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px; }
+.quote p{ font-style:italic; font-size:14.5px; color:var(--ink-dim); line-height:1.55; }
+
+.backstory{ background:var(--panel); border:1px solid var(--hairline); padding:20px 22px; font-size:15px; line-height:1.75; color:var(--ink-dim); }
+.backstory::first-letter{ font-family:'Cinzel', serif; font-size:2.6em; color:var(--gold-bright); float:left; line-height:.8; margin:4px 8px 0 0; }
+
+.spellslots{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.slot{
+  font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-dim);
+  border:1px solid var(--hairline); padding:6px 10px;
+}
+.slot b{ color:var(--gold-bright); }
+
+footer.credit{
+  max-width:1180px; margin:64px auto 0; text-align:center;
+  color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.08em;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>Grimuar Bohaterów</h1>
+      <div class="sub">Zbiór kart postaci — Dungeons &amp; Dragons, 5. edycja</div>
+    </div>
+    <button class="new-btn" id="newBtn">+ Nowa postać</button>
+  </div>
+
+  <section id="library"></section>
+
+  <section id="sheet">
+    <button class="back-btn" id="backBtn">&larr; Powrót do biblioteki</button>
+    <div id="sheetContent"></div>
+  </section>
+
+</div>
+<footer class="credit">SPORZĄDZONO NA PERGAMINIE CYFROWYM · ZASADY D&amp;D 5E</footer>
+
+<script>
+/* ============== ICONS (proste sygnety klas) ============== */
+const ICONS = {
+  fighter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 18L18 6M18 6l-3 0 0-3M18 6l0 3 3 0" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 18l-2 2M9 15l2 2" stroke-linecap="round"/><circle cx="6" cy="18" r="1.3" fill="currentColor"/></svg>`,
+  wizard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3l1.6 4.2L18 9l-4.4 1.8L12 15l-1.6-4.2L6 9l4.4-1.8L12 3z" stroke-linejoin="round"/><path d="M5 19l1-2 1 2-1 2-1-2z"/><path d="M18 17l.8-1.6.8 1.6-.8 1.6-.8-1.6z"/></svg>`,
+  rogue: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 17L17 7" stroke-linecap="round"/><path d="M17 7h-4M17 7v4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="17" r="1.6" fill="currentColor"/></svg>`,
+  cleric: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 4v16M6 9h12" stroke-linecap="round"/><circle cx="12" cy="9" r="6.5"/></svg>`
+};
+
+/* ============== SŁOWNIKI ============== */
+const AB_LABEL = {str:"Siła",dex:"Zręczność",con:"Kondycja",int:"Inteligencja",wis:"Mądrość",cha:"Charyzma"};
+const AB_SHORT = {str:"SIŁ",dex:"ZRC",con:"KON",int:"INT",wis:"MDR",cha:"CHA"};
+const SKILLS = [
+  {name:"Akrobatyka", ab:"dex"},
+  {name:"Obchodzenie się ze zwierzętami", ab:"wis"},
+  {name:"Wiedza tajemna", ab:"int"},
+  {name:"Atletyka", ab:"str"},
+  {name:"Oszustwo", ab:"cha"},
+  {name:"Historia", ab:"int"},
+  {name:"Wyczucie", ab:"wis"},
+  {name:"Zastraszanie", ab:"cha"},
+  {name:"Dochodzenie", ab:"int"},
+  {name:"Medycyna", ab:"wis"},
+  {name:"Przyroda", ab:"int"},
+  {name:"Percepcja", ab:"wis"},
+  {name:"Występy", ab:"cha"},
+  {name:"Perswazja", ab:"cha"},
+  {name:"Religia", ab:"int"},
+  {name:"Zręczne palce", ab:"dex"},
+  {name:"Skradanie się", ab:"dex"},
+  {name:"Przetrwanie", ab:"wis"}
+];
+const mod = s => Math.floor((s-10)/2);
+const fmt = n => (n>=0? "+"+n : n);
+
+/* ============== DANE POSTACI ============== */
+const DATA = [
+{
+  id:"kaelen", name:"Kaelen Ashvane", race:"Człowiek", cls:"Wojownik", clsKey:"fighter",
+  subclass:"Rycerz Mistrzowski", level:6, background:"Żołnierz", align:"Praworządny Dobry",
+  accent:"#a3453f", accentDim:"#4a1e1c",
+  stats:{str:17,dex:14,con:15,int:10,wis:12,cha:13},
+  ac:18, speed:30, hpMax:58, hpCur:58, hpTemp:0, pb:3,
+  saves:["str","con"],
+  skills:["Atletyka","Zastraszanie","Percepcja"], expertise:[],
+  profs:{armor:"Wszystkie zbroje, tarcze", weapons:"Broń prosta i wojskowa", tools:"Zestaw gracza w kości", langs:"Wspólny, Orkowy"},
+  equipment:["Długi miecz +1","Tarcza kuta ze stali","Kolczuga","Kusza ręczna + 20 bełtów","Zestaw podróżnika","Sakiewka (45 zł)"],
+  features:[
+    {t:"Drugi oddech (Second Wind)", d:"Raz na krótki lub długi odpoczynek: akcja dodatkowa, by odzyskać 1k10 + poziom wojownika PW."},
+    {t:"Przypływ akcji (Action Surge)", d:"Raz na krótki lub długi odpoczynek: dodatkowa akcja w swojej turze."},
+    {t:"Dodatkowy atak", d:"Może atakować dwukrotnie za każdym razem, gdy wykonuje akcję Atak."},
+    {t:"Styl walki: Obrona", d:"Nosząc zbroję, otrzymuje +1 do KP."}
+  ],
+  spellcasting:null,
+  personality:{
+    traits:"Zawsze pierwszy wchodzi do bitwy — i ostatni z niej wychodzi.",
+    ideals:"Honor. Dane słowo jest ważniejsze niż własne życie.",
+    bonds:"Chroni ostatnich żyjących towarzyszy ze swojego oddziału.",
+    flaws:"Nie potrafi się wycofać, nawet gdy rozsądek nakazuje odwrót."
+  },
+  backstory:"Kaelen służył dziesięć lat w straży granicznej Waldemaru, zanim jego oddział został zdradzony i wybity podczas nocnego najazdu. Ocalał tylko on. Od tamtej pory wędruje traktami, szukając tych, którzy sprzedali jego braci wrogowi, a przy okazji broniąc wiosek, których nikt inny bronić nie chce."
+},
+{
+  id:"ilyra", name:"Ilyra Duskwhisper", race:"Wysoki Elf", cls:"Czarodziej", clsKey:"wizard",
+  subclass:"Szkoła Wróżbicka", level:5, background:"Uczony", align:"Neutralny Dobry",
+  accent:"#5a4fae", accentDim:"#241f52",
+  stats:{str:8,dex:15,con:13,int:18,wis:12,cha:11},
+  ac:12, speed:30, hpMax:27, hpCur:21, hpTemp:0, pb:3,
+  saves:["int","wis"],
+  skills:["Wiedza tajemna","Historia","Dochodzenie","Wyczucie"], expertise:[],
+  profs:{armor:"Brak", weapons:"Sztylety, laski, kusze ręczne", tools:"—", langs:"Wspólny, Elfi, Draconic, Sylvan"},
+  equipment:["Laska wróżbity","Księga zaklęć","Zestaw komponentów","Kryształowa kula wieszcza","Sakiewka (12 zł)"],
+  features:[
+    {t:"Wgląd wróżbity", d:"Może dwukrotnie w krótkim odpoczynku spojrzeć na rzut kością ataku, testu lub rzutu obronnego przed ujawnieniem wyniku."},
+    {t:"Odzyskiwanie zaklęć", d:"Raz dziennie po krótkim odpoczynku odzyskuje sloty zaklęć o łącznym poziomie do 3."},
+    {t:"Rytuał", d:"Może rzucać znane zaklęcia oznaczone jako rytualne bez zużywania slotu."}
+  ],
+  spellcasting:{
+    ability:"Inteligencja", dc:14, atk:"+6",
+    slots:[{lvl:1,total:4,used:1},{lvl:2,total:3,used:0},{lvl:3,total:2,used:0}],
+    known:["Pocisk mocy","Tarcza","Wykrycie magii","Mgła kłębiąca się","Niewidzialność","Błyskawica","Kula ognista","Powolność","Wróżba"]
+  },
+  personality:{
+    traits:"Notuje każdą anomalię magiczną w skórzanym dzienniku, nawet w środku walki.",
+    ideals:"Wiedza. Nic nie powinno pozostać niezbadane.",
+    bonds:"Poszukuje zaginionej biblioteki swojego mistrza, spalonej podczas wojny domowej.",
+    flaws:"Ciekawość bywa silniejsza niż instynkt samozachowawczy."
+  },
+  backstory:"Wychowana w Wieży Siedmiu Zwierciadeł, Ilyra od dziecka wykazywała talent do przewidywania nadchodzących wydarzeń. Gdy jej mistrz zniknął podczas badania anomalii w Szarych Mokradłach, porzuciła spokojne życie uczonej i wyruszyła w teren, by dokończyć jego pracę."
+},
+{
+  id:"pip", name:"Pip Nimblefoot", race:"Niziołek Lekkostopy", cls:"Łotrzyk", clsKey:"rogue",
+  subclass:"Szpieg", level:4, background:"Przestępca", align:"Chaotyczny Dobry",
+  accent:"#3f7a5a", accentDim:"#183526",
+  stats:{str:9,dex:18,con:13,int:12,wis:14,cha:15},
+  ac:15, speed:25, hpMax:27, hpCur:27, hpTemp:0, pb:2,
+  saves:["dex","int"],
+  skills:["Skradanie się","Zręczne palce","Perswazja","Oszustwo","Percepcja","Akrobatyka"], expertise:["Skradanie się","Zręczne palce"],
+  profs:{armor:"Lekkie zbroje", weapons:"Broń prosta, kusze ręczne, rapiery, rapiery krótkie", tools:"Wytrychy, zestaw gracza w karty", langs:"Wspólny, Złodziejski Żargon, Halflingowy"},
+  equipment:["Dwa sztylety zaczarowane","Kusza ręczna + 20 bełtów","Wytrychy mistrzowskie","Peleryna tłumiąca dźwięk","Sakiewka (60 zł)"],
+  features:[
+    {t:"Atak z zaskoczenia (Sneak Attack)", d:"Raz na turę zadaje dodatkowe 2k6 obrażeń, gdy ma przewagę lub sojusznika w zasięgu celu."},
+    {t:"Cwana akcja (Cunning Action)", d:"Akcja dodatkowa: Pościg, Wycofanie się lub Ukrycie się."},
+    {t:"Żargon złodziei", d:"Zna sekretny język i system znaków używany przez przestępczy półświatek."},
+    {t:"Fortel (Uncanny Dodge, od 5 poz.)", d:"—"}
+  ],
+  spellcasting:null,
+  personality:{
+    traits:"Rozmawia z zamkami, zanim je otworzy — twierdzi, że to przynosi szczęście.",
+    ideals:"Wolność. Łańcuchy, prawa i mury są dla innych.",
+    bonds:"Winna jest przysługę gildii, która uratowała jej rodzinę.",
+    flaws:"Nie potrafi oprzeć się dobrze zabezpieczonemu zamkowi ani cudzej kieszeni."
+  },
+  backstory:"Pip dorastała w Dolnym Mieście, ucząc się fachu od najlepszych — i najgorszych. Dziś pracuje jako niezależna informatorka, sprzedając sekrety temu, kto zapłaci najwięcej, choć zawsze zostawia sobie furtkę do ucieczki, zanim transakcja dojdzie do skutku."
+},
+{
+  id:"borin", name:"Borin Stonehelm", race:"Krasnolud Górski", cls:"Kapłan", clsKey:"cleric",
+  subclass:"Domena Życia", level:6, background:"Akolita", align:"Praworządny Dobry",
+  accent:"#b8912f", accentDim:"#4f3c12",
+  stats:{str:14,dex:10,con:16,int:11,wis:18,cha:12},
+  ac:18, speed:25, hpMax:52, hpCur:52, hpTemp:0, pb:3,
+  saves:["wis","cha"],
+  skills:["Medycyna","Religia","Wyczucie","Perswazja"], expertise:[],
+  profs:{armor:"Wszystkie zbroje, tarcze", weapons:"Broń prosta i wojskowa", tools:"Narzędzia kowalskie", langs:"Wspólny, Krasnoludzki"},
+  equipment:["Młot bojowy","Tarcza z symbolem Moradina","Kolczuga","Święty symbol (medalion)","Zestaw uzdrowiciela"],
+  features:[
+    {t:"Kanałowanie boskości: Odparcie nieumarłych", d:"Prezentuje święty symbol, zmuszając nieumarłych w pobliżu do testu MDR lub ucieczki."},
+    {t:"Uderzenie życiodajne", d:"Zaklęcia leczące przywracają dodatkowe 2 + poziom zaklęcia PW."},
+    {t:"Błogosławione uzdrowienie", d:"Cele leczonych zaklęć odzyskują dodatkowo 2k8 PW."},
+    {t:"Rzemiosło krasnoludzkie", d:"Podwójna biegłość przy testach rzemiosła związanych z kamieniem i metalem."}
+  ],
+  spellcasting:{
+    ability:"Mądrość", dc:15, atk:"+6",
+    slots:[{lvl:1,total:4,used:2},{lvl:2,total:3,used:1},{lvl:3,total:3,used:0}],
+    known:["Lecz rany","Błogosławieństwo","Ochrona przed dobrem i złem","Więzy duchowe","Rozwiej magię","Przywróć żywotność","Kula światła","Modlitwa uzdrowienia"]
+  },
+  personality:{
+    traits:"Śpiewa niskim głosem stare hymny kuźni, gdy opatruje rannych.",
+    ideals:"Wspólnota. Klan i sojusznicy są ważniejsi niż jednostka.",
+    bonds:"Odbudowuje zniszczoną świątynię Moradina w rodzinnych górach.",
+    flaws:"Zbyt ufny wobec tych, którzy noszą symbole jego wiary."
+  },
+  backstory:"Borin porzucił kuźnię ojca, by służyć jako kapłan wędrowny po tym, jak Moradin ocalił go z zawalonej kopalni. Od tamtej pory łączy rzemiosło z kapłaństwem, niosąc pomoc i stal tym, których mija na szlaku."
+}
+];
+
+/* ============== RENDER: BIBLIOTEKA ============== */
+const library = document.getElementById("library");
+const sheet = document.getElementById("sheet");
+const sheetContent = document.getElementById("sheetContent");
+
+function renderLibrary(){
+  library.innerHTML = DATA.map((c,i)=>`
+    <button class="tile cut" style="--accent:${c.accent}; --accent-dim:${c.accentDim}; animation-delay:${i*70}ms" data-id="${c.id}">
+      <div class="tile-band">
+        <div class="avatar-slot"><span class="initial">${c.name.charAt(0)}</span></div>
+        <div class="band-icon">${ICONS[c.clsKey]}</div>
+      </div>
+      <div class="tile-body">
+        <h3>${c.name}</h3>
+        <div class="race-class">${c.race} · ${c.cls}</div>
+        <div class="tile-stats">
+          <span>Poz. <b>${c.level}</b></span>
+          <span>KP <b>${c.ac}</b></span>
+          <span>PW <b>${c.hpCur}/${c.hpMax}</b></span>
+          <span>SZ <b>${c.speed}′</b></span>
+        </div>
+      </div>
+    </button>
+  `).join("");
+}
+
+/* ============== RENDER: PEŁNA KARTA ============== */
+function renderSheet(id){
+  const c = DATA.find(x=>x.id===id);
+  const initMod = mod(c.stats.dex);
+  const passivePerc = 10 + (c.skills.includes("Percepcja")? mod(c.stats.wis)+c.pb : mod(c.stats.wis));
+
+  const abilitiesHtml = Object.keys(AB_LABEL).map(ab=>`
+    <div class="ability">
+      <div class="name">${AB_LABEL[ab]}</div>
+      <div class="mod">${fmt(mod(c.stats[ab]))}</div>
+      <div class="score">${c.stats[ab]} — ${AB_SHORT[ab]}</div>
+    </div>
+  `).join("");
+
+  const savesHtml = Object.keys(AB_LABEL).map(ab=>{
+    const prof = c.saves.includes(ab);
+    const bonus = mod(c.stats[ab]) + (prof? c.pb:0);
+    return `<li><span class="dot ${prof?'on':''}"></span><span class="prof-name">${AB_LABEL[ab]}</span><span class="bonus">${fmt(bonus)}</span></li>`;
+  }).join("");
+
+  const skillsHtml = SKILLS.map(s=>{
+    const prof = c.skills.includes(s.name);
+    const exp = c.expertise.includes(s.name);
+    const bonus = mod(c.stats[s.ab]) + (exp? c.pb*2 : prof? c.pb:0);
+    return `<li><span class="dot ${exp?'exp':(prof?'on':'')}"></span><span class="prof-name">${s.name}</span><span class="eyebrow" style="margin-left:2px;">(${AB_SHORT[s.ab]})</span><span class="bonus">${fmt(bonus)}</span></li>`;
+  }).join("");
+
+  const equipHtml = c.equipment.map(e=>`<li>${e}</li>`).join("");
+  const featuresHtml = c.features.map(f=>`<li><strong style="color:var(--ink)">${f.t}.</strong> ${f.d}</li>`).join("");
+
+  const spellHtml = c.spellcasting ? `
+    <div class="section">
+      <h4>Rzucanie zaklęć</h4>
+      <div class="listpanel">
+        <div class="eyebrow" style="margin-bottom:10px;">Atrybut: ${c.spellcasting.ability} · KT ${c.spellcasting.dc} · Atak ${c.spellcasting.atk}</div>
+        <div class="spellslots">
+          ${c.spellcasting.slots.map(s=>`<div class="slot">Poz. ${s.lvl}: <b>${s.total - s.used}/${s.total}</b></div>`).join("")}
+        </div>
+        <details>
+          <summary>Znane / przygotowane zaklęcia</summary>
+          <div class="content"><ul>${c.spellcasting.known.map(z=>`<li>${z}</li>`).join("")}</ul></div>
+        </details>
+      </div>
+    </div>` : "";
+
+  sheetContent.innerHTML = `
+    <div class="sheet-head cut" style="--accent:${c.accent}; --accent-dim:${c.accentDim}">
+      <div class="medal" style="--accent:${c.accent}; --accent-dim:${c.accentDim}">${ICONS[c.clsKey]}</div>
+      <div>
+        <h2>${c.name}</h2>
+        <div class="meta">${c.race} · ${c.cls} (${c.subclass}) · Poziom ${c.level} · ${c.background}</div>
+        <div class="align">${c.align}</div>
+      </div>
+    </div>
+
+    <div class="seals">
+      <div class="seal cut-sm"><div class="val">${c.ac}</div><div class="lbl">Klasa Pancerza</div></div>
+      <div class="seal cut-sm hp">
+        <div class="val">${c.hpCur}/${c.hpMax}</div><div class="lbl">Punkty Wytrzymałości</div>
+        <div class="hp-bar"><i style="width:${(c.hpCur/c.hpMax*100).toFixed(0)}%"></i></div>
+      </div>
+      <div class="seal cut-sm"><div class="val">${fmt(initMod)}</div><div class="lbl">Inicjatywa</div></div>
+      <div class="seal cut-sm"><div class="val">${c.speed}′</div><div class="lbl">Prędkość</div></div>
+      <div class="seal cut-sm"><div class="val">${fmt(c.pb)}</div><div class="lbl">Bonus Biegłości</div></div>
+      <div class="seal cut-sm"><div class="val">${passivePerc}</div><div class="lbl">Pasywna Percepcja</div></div>
+    </div>
+
+    <div class="section">
+      <h4>Atrybuty</h4>
+      <div class="abilities">${abilitiesHtml}</div>
+    </div>
+
+    <div class="section">
+      <h4>Ratunki i umiejętności</h4>
+      <div class="twocol">
+        <div class="listpanel"><ul>${savesHtml}</ul></div>
+        <div class="listpanel"><ul>${skillsHtml}</ul></div>
+      </div>
+    </div>
+
+    ${spellHtml}
+
+    <div class="section">
+      <h4>Ekwipunek i biegłości</h4>
+      <details open>
+        <summary>Wyposażenie</summary>
+        <div class="content"><ul>${equipHtml}</ul></div>
+      </details>
+      <details>
+        <summary>Biegłości i języki</summary>
+        <div class="content">
+          <p><strong style="color:var(--ink)">Zbroje:</strong> ${c.profs.armor}</p>
+          <p><strong style="color:var(--ink)">Broń:</strong> ${c.profs.weapons}</p>
+          <p><strong style="color:var(--ink)">Narzędzia:</strong> ${c.profs.tools}</p>
+          <p><strong style="color:var(--ink)">Języki:</strong> ${c.profs.langs}</p>
+        </div>
+      </details>
+      <details>
+        <summary>Cechy i zdolności</summary>
+        <div class="content"><ul>${featuresHtml}</ul></div>
+      </details>
+    </div>
+
+    <div class="section">
+      <h4>Osobowość</h4>
+      <div class="quotes">
+        <div class="quote"><div class="qlbl">Cecha charakteru</div><p>${c.personality.traits}</p></div>
+        <div class="quote"><div class="qlbl">Ideał</div><p>${c.personality.ideals}</p></div>
+        <div class="quote"><div class="qlbl">Więź</div><p>${c.personality.bonds}</p></div>
+        <div class="quote"><div class="qlbl">Wada</div><p>${c.personality.flaws}</p></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Historia</h4>
+      <div class="backstory">${c.backstory}</div>
+    </div>
+  `;
+}
+
+/* ============== NAWIGACJA ============== */
+function openSheet(id){
+  renderSheet(id);
+  library.style.display = "none";
+  document.querySelector(".masthead").style.display = "none";
+  sheet.classList.add("active");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function closeSheet(){
+  sheet.classList.remove("active");
+  library.style.display = "grid";
+  document.querySelector(".masthead").style.display = "flex";
+}
+
+library.addEventListener("click", e=>{
+  const tile = e.target.closest(".tile");
+  if(tile) openSheet(tile.dataset.id);
+});
+document.getElementById("backBtn").addEventListener("click", closeSheet);
+document.getElementById("newBtn").addEventListener("click", ()=>{
+  alert("Tworzenie nowej postaci pojawi się w przyszłej wersji grimuaru. Na razie przeglądaj istniejące karty bohaterów.");
+});
+
+renderLibrary();
+</script>
+</body>
+</html>
