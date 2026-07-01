@@ -167,6 +167,7 @@ function renderPlayers() {
   players.forEach(function(p, i) {
     var div = document.createElement('div');
     div.className = 'player-card';
+    div.onclick = function() { openCharacterDetail(i); };
     div.dataset.role = p.role;
     var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
     var hpColor = hpPct < 25 ? 'var(--red)' : hpPct < 50 ? 'var(--gold)' : 'var(--green)';
@@ -552,6 +553,209 @@ function initCombatantAvatarPicker() {
     });
   });
 }
+
+// ====== OTWIERANIE SZCZEGÓŁÓW POSTACI ======
+function openCharacterDetail(index) {
+    var p = players[index];
+    if (!p) return;
+    
+    var overlay = document.getElementById('characterDetailOverlay');
+    var content = document.getElementById('characterDetailContent');
+    if (!overlay || !content) return;
+    
+    // Kolor nagłówka w zależności od roli
+    var roleColors = {
+        'Gracz': '#4a6fa5',
+        'Companion': '#4a7a5f',
+        'Wróg': '#8a2a22',
+        'NPC': '#6a5a3a'
+    };
+    var headerColor = roleColors[p.role] || '#5a1a14';
+    
+    // Oblicz procent HP
+    var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
+    var hpColor = hpPct < 25 ? '#ff6b6b' : hpPct < 50 ? '#d4a843' : '#6bff9e';
+    
+    // Stany
+    var condHtml = p.conditions && p.conditions.length > 0 
+        ? p.conditions.map(function(c) { 
+            return '<span class="char-condition-tag">' + getStateEmoji(c) + ' ' + c + '</span>'; 
+          }).join('')
+        : '<span style="color:var(--parchment-dim);font-style:italic;">Brak stanów</span>';
+    
+    // Wyczerpanie
+    var exHtml = p.exhaustionLevel > 0 
+        ? '<span class="char-condition-tag exhaustion">🥱 Wyczerpanie ' + p.exhaustionLevel + '/6</span>'
+        : '';
+    
+    // Death Saves
+    var ds = p.deathSaves || { passes: 0, fails: 0 };
+    var dsHtml = p.hp <= 0 
+        ? '<div style="margin-top:8px;font-size:var(--font-sm);color:var(--parchment-dim);">💀 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails + '</div>'
+        : '';
+    
+    // Atrybuty (jeśli istnieją)
+    var attrs = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+    var attrLabels = {'str':'Siła','dex':'Zręczność','con':'Kondycja','int':'Inteligencja','wis':'Mądrość','cha':'Charyzma'};
+    var attrIcons = {'str':'💪','dex':'🏃','con':'❤️','int':'🧠','wis':'👁️','cha':'💬'};
+    
+    var attrHtml = attrs.map(function(a) {
+        var val = p[a] || 10;
+        var mod = Math.floor((val - 10) / 2);
+        var modStr = mod >= 0 ? '+' + mod : '' + mod;
+        return '<div class="char-attr-box">' +
+            '<div class="char-attr-name">' + attrIcons[a] + ' ' + attrLabels[a] + '</div>' +
+            '<div class="char-attr-mod">' + modStr + '</div>' +
+            '<div class="char-attr-score">' + val + '</div>' +
+        '</div>';
+    }).join('');
+    
+    // Biegłości (jeśli istnieją)
+    var profHtml = '';
+    if (p.proficiencies && p.proficiencies.length > 0) {
+        profHtml = '<div class="char-section"><div class="char-section-title">🎯 Biegłości</div>' +
+            '<div style="display:flex;flex-wrap:wrap;gap:6px;">' +
+            p.proficiencies.map(function(prof) {
+                return '<span style="background:rgba(185,146,74,0.08);border:1px solid var(--line);border-radius:4px;padding:4px 12px;font-size:var(--font-sm);">' + prof + '</span>';
+            }).join('') +
+            '</div></div>';
+    }
+    
+    // Ekwipunek (jeśli istnieje)
+    var equipHtml = '';
+    if (p.weapons || p.armor || p.items) {
+        equipHtml = '<div class="char-section"><div class="char-section-title">🎒 Ekwipunek</div><div class="equipment-list">';
+        if (p.weapons) {
+            equipHtml += '<div class="equipment-category"><div class="equipment-category-title">⚔️ Broń</div><div class="equipment-items">' + p.weapons + '</div></div>';
+        }
+        if (p.armor) {
+            equipHtml += '<div class="equipment-category"><div class="equipment-category-title">🛡️ Zbroja</div><div class="equipment-items">' + p.armor + '</div></div>';
+        }
+        if (p.items) {
+            equipHtml += '<div class="equipment-category"><div class="equipment-category-title">📦 Przedmioty</div><div class="equipment-items">' + p.items + '</div></div>';
+        }
+        if (p.gold !== undefined) {
+            equipHtml += '<div class="equipment-category"><div class="equipment-category-title">💰 Waluta</div><div class="equipment-items">🪙 ' + p.gold + ' sztuk złota</div></div>';
+        }
+        equipHtml += '</div></div>';
+    }
+    
+    // Osobowość (jeśli istnieje)
+    var personalityHtml = '';
+    if (p.personalityTrait || p.personalityIdeal || p.personalityBond || p.personalityFlaw) {
+        personalityHtml = '<div class="char-section"><div class="char-section-title">🎭 Osobowość</div><div class="char-personality-grid">';
+        if (p.personalityTrait) {
+            personalityHtml += '<div class="char-personality-box"><div class="char-personality-label">Cecha</div><div class="char-personality-text">' + p.personalityTrait + '</div></div>';
+        }
+        if (p.personalityIdeal) {
+            personalityHtml += '<div class="char-personality-box"><div class="char-personality-label">Ideał</div><div class="char-personality-text">' + p.personalityIdeal + '</div></div>';
+        }
+        if (p.personalityBond) {
+            personalityHtml += '<div class="char-personality-box"><div class="char-personality-label">Więź</div><div class="char-personality-text">' + p.personalityBond + '</div></div>';
+        }
+        if (p.personalityFlaw) {
+            personalityHtml += '<div class="char-personality-box"><div class="char-personality-label">Wada</div><div class="char-personality-text">' + p.personalityFlaw + '</div></div>';
+        }
+        personalityHtml += '</div></div>';
+    }
+    
+    // Backstory
+    var backstoryHtml = p.backstory 
+        ? '<div class="char-section"><div class="char-section-title">📖 Historia</div><div class="char-history-text">' + p.backstory + '</div></div>'
+        : '';
+    
+    // Awatar
+    var avatarHtml = p.avatar && p.avatar.startsWith('http')
+        ? '<img src="' + p.avatar + '" onerror="this.parentNode.textContent=\'🧙\'">'
+        : (p.avatar || '🧙');
+    
+    content.innerHTML = `
+        <div class="char-header" style="background:linear-gradient(135deg, ${headerColor}, ${headerColor}dd);">
+            <div class="char-avatar-large">${avatarHtml}</div>
+            <div class="char-title-group">
+                <h1 class="char-name">${p.name}</h1>
+                <div class="char-subtitle">${p.role}${p.class ? ' · ' + p.class : ''}${p.level ? ' (poziom ' + p.level + ')' : ''}</div>
+                ${p.race ? '<div class="char-subtitle" style="font-size:var(--font-sm);">' + p.race + (p.background ? ' · ' + p.background : '') + '</div>' : ''}
+                ${p.alignment ? '<div class="char-alignment">' + p.alignment + '</div>' : ''}
+            </div>
+        </div>
+        
+        <div class="char-main-stats">
+            <div class="char-stat-box char-stat-hp">
+                <div class="char-stat-value" style="color:${hpColor};">${p.hp}</div>
+                <div class="char-stat-label">❤️ HP / ${p.maxHp}</div>
+                <div class="char-hp-bar-mini" style="width:${hpPct}%;background:${hpColor};"></div>
+            </div>
+            <div class="char-stat-box">
+                <div class="char-stat-value">${p.ac}</div>
+                <div class="char-stat-label">🛡️ KP (AC)</div>
+            </div>
+            <div class="char-stat-box">
+                <div class="char-stat-value">${p.speed || '30'}</div>
+                <div class="char-stat-label">💨 Prędkość</div>
+            </div>
+            <div class="char-stat-box">
+                <div class="char-stat-value">${p.passivePerception || 10}</div>
+                <div class="char-stat-label">👁️ Pasywna Percepcja</div>
+            </div>
+        </div>
+        
+        ${dsHtml}
+        
+        <div class="char-section">
+            <div class="char-section-title">💪 Atrybuty</div>
+            <div class="char-attributes-grid">${attrHtml}</div>
+        </div>
+        
+        <div class="char-section">
+            <div class="char-section-title">⚡ Stany i efekty</div>
+            <div class="char-conditions-list">${condHtml} ${exHtml}</div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="char-action-btn" onclick="closeCharacterDetail();showPlayerCondPopup(${index});">⚙️ Zarządzaj stanami</button>
+                <button class="char-action-btn" onclick="closeCharacterDetail();showDamagePopup('${p.name}');">⚔️ Zadaj obrażenia</button>
+                ${p.hp <= 0 ? '<button class="char-action-btn" onclick="closeCharacterDetail();deathSave(' + index + ');">💀 Death Save</button>' : ''}
+            </div>
+        </div>
+        
+        ${profHtml}
+        ${equipHtml}
+        ${personalityHtml}
+        ${backstoryHtml}
+        
+        <div class="char-actions">
+            <button class="char-action-btn primary" onclick="closeCharacterDetail();addPlayerToInitiative(${index});">⚔️ Do potyczki</button>
+            <button class="char-action-btn" onclick="closeCharacterDetail();shortRestPlayer(${index});">☕ Krótki odpoczynek</button>
+            <button class="char-action-btn" onclick="closeCharacterDetail();longRestPlayer(${index});">🛏️ Długi odpoczynek</button>
+            <button class="char-action-btn danger" onclick="if(confirm('Usunąć ${p.name}?')){closeCharacterDetail();removePlayer(${index});}">🗑️ Usuń</button>
+        </div>
+    `;
+    
+    overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCharacterDetail() {
+    var overlay = document.getElementById('characterDetailOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+// Zamknij ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCharacterDetail();
+    }
+});
+
+// Kliknięcie w tło
+document.addEventListener('click', function(e) {
+    var overlay = document.getElementById('characterDetailOverlay');
+    if (overlay && e.target === overlay) {
+        closeCharacterDetail();
+    }
+});
 
 // ====== EKSPORT GLOBALNY ======
 window.openAddPlayerModal = openAddPlayerModal;

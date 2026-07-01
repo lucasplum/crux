@@ -1,0 +1,184 @@
+{
+  "players": [
+    {
+      "name": "Faen",
+      "hp": 50,
+      "maxHp": 50,
+      "ac": 17,
+      "role": "Gracz",
+      "conditions": [
+        "pochwycony"
+      ],
+      "deathSaves": {
+        "passes": 0,
+        "fails": 0
+      },
+      "avatar": "🧙",
+      "exhaustionLevel": 1
+    },
+    {
+      "name": "Ara",
+      "hp": 45,
+      "maxHp": 45,
+      "ac": 16,
+      "role": "Gracz",
+      "conditions": [],
+      "deathSaves": {
+        "passes": 0,
+        "fails": 0
+      },
+      "avatar": "🧝",
+      "exhaustionLevel": 1
+    },
+    {
+      "name": "Bojownik",
+      "hp": 40,
+      "maxHp": 40,
+      "ac": 18,
+      "role": "Wróg",
+      "conditions": [
+        "niewidzialny"
+      ],
+      "deathSaves": {
+        "passes": 0,
+        "fails": 0
+      },
+      "avatar": "⚔️",
+      "exhaustionLevel": 2
+    },
+    {
+      "name": "Duch",
+      "hp": 30,
+      "maxHp": 30,
+      "ac": 21,
+      "role": "Wróg",
+      "conditions": [],
+      "deathSaves": {
+        "passes": 0,
+        "fails": 0
+      },
+      "avatar": "👻",
+      "exhaustionLevel": 0
+    }
+  ],
+  "combatants": [
+    {
+      "id": "1782826302586_y7ou",
+      "name": "Duch",
+      "init": 18,
+      "hp": 30,
+      "maxHp": 30,
+      "tempHp": 0,
+      "ac": 21,
+      "role": "Wróg",
+      "conditions": [],
+      "exhaustionLevel": 0,
+      "roundDamage": 0,
+      "totalDamage": 0,
+      "avatar": "👻",
+      "status": "active",
+      "initiativeBonus": 0,
+      "notes": "",
+      "effects": [],
+      "timers": []
+    },
+    {
+      "id": "1782826302583_i3pr",
+      "name": "Faen",
+      "init": 15,
+      "hp": 50,
+      "maxHp": 50,
+      "tempHp": 0,
+      "ac": 17,
+      "role": "Gracz",
+      "conditions": [
+        "pochwycony"
+      ],
+      "exhaustionLevel": 1,
+      "roundDamage": 0,
+      "totalDamage": 0,
+      "avatar": "🧙",
+      "status": "active",
+      "initiativeBonus": 0,
+      "notes": "",
+      "effects": [],
+      "timers": []
+    },
+    {
+      "id": "1782826302584_c32k",
+      "name": "Ara",
+      "init": 11,
+      "hp": 45,
+      "maxHp": 45,
+      "tempHp": 0,
+      "ac": 16,
+      "role": "Gracz",
+      "conditions": [],
+      "exhaustionLevel": 1,
+      "roundDamage": 0,
+      "totalDamage": 0,
+      "avatar": "🧝",
+      "status": "active",
+      "initiativeBonus": 0,
+      "notes": "",
+      "effects": [],
+      "timers": []
+    },
+    {
+      "id": "1782826302585_lgc0",
+      "name": "Bojownik",
+      "init": 6,
+      "hp": 40,
+      "maxHp": 40,
+      "tempHp": 0,
+      "ac": 18,
+      "role": "Wróg",
+      "conditions": [
+        "niewidzialny"
+      ],
+      "exhaustionLevel": 2,
+      "roundDamage": 0,
+      "totalDamage": 0,
+      "avatar": "⚔️",
+      "status": "active",
+      "initiativeBonus": 0,
+      "notes": "",
+      "effects": [],
+      "timers": []
+    },
+    {
+      "id": "1782826456738_cozg",
+      "name": "Młody Smok Miedziany (kompan Faen)",
+      "init": 4,
+      "hp": 119,
+      "maxHp": 119,
+      "tempHp": 0,
+      "ac": 18,
+      "role": "Companion",
+      "conditions": [],
+      "exhaustionLevel": 0,
+      "roundDamage": 0,
+      "totalDamage": 0,
+      "avatar": "🐾",
+      "status": "active",
+      "initiativeBonus": 0,
+      "notes": "",
+      "effects": [],
+      "timers": []
+    }
+  ],
+  "round": 6,
+  "currentTurn": 4,
+  "focusFire": [],
+  "turnLog": [
+    {
+      "name": "⚔️",
+      "action": "🔄 Rozpoczęcie rundy 6",
+      "turn": 6
+    }
+  ],
+  "timers": [],
+  "version": "1.0",
+  "timestamp": "2026-07-01T12:20:36.967Z",
+  "exportDate": "2026-07-01T12:20:36.968Z"
+}
