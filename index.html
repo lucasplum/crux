@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V21Q</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -157,19 +157,22 @@
   </section>
 
   <!-- ===== TAB: POSTACIE ===== -->
-  <section class="tab-section" data-tab="players">
-    <div class="card players-card">
-      <div class="card-header-row">
-        <div class="card-title">👥 Postacie</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn add-player-btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
-          <button class="btn outline" onclick="exportState()" title="Eksport danych">📤 Eksport</button>
-          <button class="btn outline" onclick="importState()" title="Import danych">📥 Import</button>
-        </div>
+<section class="tab-section" data-tab="players">
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">👥 Postacie</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn outline" onclick="exportState()">📤 Eksport</button>
+        <button class="btn outline" onclick="importState()">📥 Import</button>
+        <button class="btn add-player-btn" onclick="openAddPlayerModal()">➕ Dodaj postać</button>
       </div>
-      <div class="player-grid" id="playerTracker"></div>
     </div>
-  </section>
+    
+    <div id="playerTracker" class="player-grid">
+      <!-- Tutaj będą renderowane karty postaci -->
+    </div>
+  </div>
+</section>
 
   <!-- ===== TAB: POTYCZKA ===== -->
   <section class="tab-section" data-tab="combat">

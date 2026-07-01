@@ -1,87 +1,344 @@
 // ============================================================
-//  PLAYERS - Z KRÓTKIM I DŁUGIM ODPOCZYNKEM
+//  PLAYERS - ROZBUDOWANY SYSTEM POSTACI
 // ============================================================
 var players = [];
 var selectedAvatar = '🧙';
 var selectedAvatarUrl = '';
-var conditionPopupTarget = null;
-var dmgPopupTarget = null;
+var currentDetailPlayer = null;
 
-function syncToCombat() {
-  if (typeof combatants === 'undefined' || !combatants) return;
-  players.forEach(function(p) {
-    var combatant = combatants.find(function(c) { return c.name === p.name && c.role === p.role; });
-    if (combatant) {
-      if (combatant.hp !== p.hp) p.hp = combatant.hp;
-      if (JSON.stringify(combatant.conditions) !== JSON.stringify(p.conditions)) {
-        p.conditions = combatant.conditions.slice();
-      }
-      if (combatant.exhaustionLevel !== p.exhaustionLevel) {
-        p.exhaustionLevel = combatant.exhaustionLevel;
-      }
-    }
-  });
-  renderPlayers();
-}
-
-function initAvatarPicker() {
-  document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      selectedAvatar = btn.dataset.avatar;
-      selectedAvatarUrl = '';
-      var urlInput = document.getElementById('avatarUrl');
-      if (urlInput) urlInput.value = '';
-      updateAvatarPreview();
-    });
-  });
-  var urlInput = document.getElementById('avatarUrl');
-  if (urlInput) {
-    urlInput.addEventListener('input', function() {
-      var url = this.value.trim();
-      if (url) {
-        selectedAvatarUrl = url;
-        selectedAvatar = '';
-        document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
-      } else {
-        selectedAvatarUrl = '';
-        selectedAvatar = '🧙';
-      }
-      updateAvatarPreview();
-    });
+// ====== RENDER GRID POSTACI ======
+function renderPlayers() {
+  var container = document.getElementById('playerTracker');
+  if (!container) return;
+  
+  if (players.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:var(--parchment-dim);">
+        <div style="font-size:3rem;margin-bottom:16px;">👥</div>
+        <div style="font-family:'Cinzel',serif;font-size:var(--font-lg);margin-bottom:8px;">Brak postaci</div>
+        <div style="font-size:var(--font-sm);">Kliknij "➕ Dodaj postać" aby dodać pierwszą postać</div>
+      </div>
+    `;
+    return;
   }
+  
+  container.innerHTML = '';
+  container.className = 'player-grid';
+  
+  players.forEach(function(player, index) {
+    var card = createPlayerCard(player, index);
+    container.appendChild(card);
+  });
 }
 
-function updateAvatarPreview() {
-  var preview = document.getElementById('avatarPreview');
-  if (!preview) return;
-  if (selectedAvatarUrl) preview.innerHTML = '<img src="' + selectedAvatarUrl + '" onerror="this.parentNode.textContent=\'🧙\'">';
-  else preview.textContent = selectedAvatar;
+function createPlayerCard(player, index) {
+  var div = document.createElement('div');
+  div.className = 'player-card';
+  div.onclick = function(e) {
+    if (!e.target.closest('.player-card-btn')) {
+      openPlayerDetail(index);
+    }
+  };
+  
+  var hpPercent = player.maxHp > 0 ? (player.hp / player.maxHp * 100) : 0;
+  var roleClass = getRoleClass(player.role);
+  var avatar = player.avatar || '🧙';
+  
+  div.innerHTML = `
+    <div class="player-card-header ${roleClass}">
+      <div class="player-card-icon">${getRoleIcon(player.role)}</div>
+      <div class="player-card-name">${player.name}</div>
+      <div class="player-card-subtitle">${player.race || ''} · ${player.class || player.role}</div>
+    </div>
+    <div class="player-card-stats">
+      <div class="player-card-stat">
+        <span class="player-card-stat-label">KP</span>
+        <span class="player-card-stat-value">${player.ac || '—'}</span>
+      </div>
+      <div class="player-card-stat" style="flex:1;">
+        <span class="player-card-stat-label">PW</span>
+        <span class="player-card-stat-value">${player.hp || 0}/${player.maxHp || player.hp || 0}</span>
+        <div class="player-card-hp-bar">
+          <div class="player-card-hp-fill" style="width:${hpPercent}%"></div>
+        </div>
+      </div>
+      <div class="player-card-stat">
+        <span class="player-card-stat-label">SZ</span>
+        <span class="player-card-stat-value">${player.speed || '30'}</span>
+      </div>
+    </div>
+    <div class="player-card-footer">
+      <button class="player-card-btn" onclick="event.stopPropagation();openPlayerDetail(${index})">📋 Szczegóły</button>
+      <button class="player-card-btn danger" onclick="event.stopPropagation();removePlayer(${index})">✕ Usuń</button>
+    </div>
+  `;
+  
+  return div;
 }
 
+function getRoleClass(role) {
+  var map = {
+    'Gracz': 'gracz',
+    'Companion': 'companion',
+    'Wróg': 'wrog',
+    'NPC': 'npc'
+  };
+  return map[role] || 'npc';
+}
+
+function getRoleIcon(role) {
+  var icons = {
+    'Gracz': '⚔️',
+    'Companion': '🐾',
+    'Wróg': '💀',
+    'NPC': '📜'
+  };
+  return icons[role] || '👤';
+}
+
+// ====== SZCZEGÓŁOWY WIDOK POSTACI ======
+function openPlayerDetail(index) {
+  var player = players[index];
+  if (!player) return;
+  
+  currentDetailPlayer = index;
+  
+  var overlay = document.createElement('div');
+  overlay.className = 'player-detail-overlay active';
+  overlay.id = 'playerDetailOverlay';
+  overlay.onclick = function(e) {
+    if (e.target === overlay) closePlayerDetail();
+  };
+  
+  var hpPercent = player.maxHp > 0 ? Math.round((player.hp / player.maxHp) * 100) : 0;
+  
+  overlay.innerHTML = `
+    <div class="player-detail-container">
+      <div class="player-detail-header">
+        <button class="player-detail-close" onclick="closePlayerDetail()">✕</button>
+        
+        <div class="player-detail-title-section">
+          <div class="player-detail-avatar">${player.avatar || '🧙'}</div>
+          <div class="player-detail-title-group">
+            <div class="player-detail-name">${player.name}</div>
+            <div class="player-detail-subtitle">${player.race || 'Człowiek'} · ${player.class || player.role || 'Postać'}</div>
+            <div class="player-detail-alignment">${player.alignment || 'Neutralny'}</div>
+          </div>
+        </div>
+        
+        <div class="player-detail-main-stats">
+          <div class="player-detail-stat-box player-detail-hp-box">
+            <div class="player-detail-stat-value player-detail-hp-value">${player.hp || 0}/${player.maxHp || player.hp || 0}</div>
+            <div class="player-detail-stat-label">Punkty Wytrzymałości</div>
+          </div>
+          <div class="player-detail-stat-box">
+            <div class="player-detail-stat-value">${player.ac || '10'}</div>
+            <div class="player-detail-stat-label">Klasa Pancerza</div>
+          </div>
+          <div class="player-detail-stat-box">
+            <div class="player-detail-stat-value">${player.initiative || '+0'}</div>
+            <div class="player-detail-stat-label">Inicjatywa</div>
+          </div>
+          <div class="player-detail-stat-box">
+            <div class="player-detail-stat-value">${player.speed || '30'}'</div>
+            <div class="player-detail-stat-label">Prędkość</div>
+          </div>
+          <div class="player-detail-stat-box">
+            <div class="player-detail-stat-value">${player.proficiency || '+2'}</div>
+            <div class="player-detail-stat-label">Biegłość</div>
+          </div>
+          <div class="player-detail-stat-box">
+            <div class="player-detail-stat-value">${player.passivePerception || '10'}</div>
+            <div class="player-detail-stat-label">Pasywna Percepcja</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">ATRYBUTY</div>
+        <div class="attributes-grid">
+          ${renderAttribute('Siła', player.str, player.strMod)}
+          ${renderAttribute('Zręczność', player.dex, player.dexMod)}
+          ${renderAttribute('Kondycja', player.con, player.conMod)}
+          ${renderAttribute('Inteligencja', player.int, player.intMod)}
+          ${renderAttribute('Mądrość', player.wis, player.wisMod)}
+          ${renderAttribute('Charyzma', player.cha, player.chaMod)}
+        </div>
+      </div>
+      
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">RATUNKI I UMIEJĘTNOŚCI</div>
+        <div class="skills-grid">
+          ${renderSkill('Siła', player.strMod, player.saveStr)}
+          ${renderSkill('Zręczność', player.dexMod, player.saveDex)}
+          ${renderSkill('Kondycja', player.conMod, player.saveCon)}
+          ${renderSkill('Inteligencja', player.intMod, player.saveInt)}
+          ${renderSkill('Mądrość', player.wisMod, player.saveWis)}
+          ${renderSkill('Charyzma', player.chaMod, player.saveCha)}
+          ${renderSkill('Akrobatyka', player.dexMod, player.skillAcrobatics, true)}
+          ${renderSkill('Atletyka', player.strMod, player.skillAthletics, true)}
+          ${renderSkill('Historia', player.intMod, player.skillHistory, true)}
+          ${renderSkill('Medycyna', player.wisMod, player.skillMedicine, true)}
+          ${renderSkill('Percepcja', player.wisMod, player.skillPerception, true)}
+          ${renderSkill('Perswazja', player.chaMod, player.skillPersuasion, true)}
+        </div>
+      </div>
+      
+      ${player.spells ? `
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">ZAKLĘCIA</div>
+        <div class="spell-slots">
+          <div class="spell-slot-box">
+            <div class="spell-slot-level">Poziom 1</div>
+            <div class="spell-slot-count">${player.spellSlots1 || '4/4'}</div>
+          </div>
+          <div class="spell-slot-box">
+            <div class="spell-slot-level">Poziom 2</div>
+            <div class="spell-slot-count">${player.spellSlots2 || '3/3'}</div>
+          </div>
+          <div class="spell-slot-box">
+            <div class="spell-slot-level">Poziom 3</div>
+            <div class="spell-slot-count">${player.spellSlots3 || '2/2'}</div>
+          </div>
+        </div>
+      </div>
+      ` : ''}
+      
+      ${player.features && player.features.length > 0 ? `
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">CECHY I ZDOLNOŚCI</div>
+        ${player.features.map(function(f) {
+          return `
+            <div class="feature-item">
+              <div class="feature-name">${f.name}</div>
+              <div class="feature-desc">${f.description}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+      ` : ''}
+      
+      ${player.personality ? `
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">OSOBOWOŚĆ</div>
+        <div class="personality-grid">
+          ${player.personality.trait ? `
+          <div class="personality-box">
+            <div class="personality-label">Cecha charakteru</div>
+            <div class="personality-text">${player.personality.trait}</div>
+          </div>
+          ` : ''}
+          ${player.personality.ideal ? `
+          <div class="personality-box">
+            <div class="personality-label">Ideał</div>
+            <div class="personality-text">${player.personality.ideal}</div>
+          </div>
+          ` : ''}
+          ${player.personality.bond ? `
+          <div class="personality-box">
+            <div class="personality-label">Więź</div>
+            <div class="personality-text">${player.personality.bond}</div>
+          </div>
+          ` : ''}
+          ${player.personality.flaw ? `
+          <div class="personality-box">
+            <div class="personality-label">Wada</div>
+            <div class="personality-text">${player.personality.flaw}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      ` : ''}
+      
+      ${player.backstory ? `
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">HISTORIA</div>
+        <div class="history-text">${player.backstory}</div>
+      </div>
+      ` : ''}
+      
+      ${player.equipment ? `
+      <div class="player-detail-section">
+        <div class="player-detail-section-title">EKWIPUNEK</div>
+        <div class="equipment-list">
+          ${player.equipment.weapons ? `
+          <div class="equipment-category">
+            <div class="equipment-category-title">Broń</div>
+            <div class="equipment-items">${player.equipment.weapons}</div>
+          </div>
+          ` : ''}
+          ${player.equipment.armor ? `
+          <div class="equipment-category">
+            <div class="equipment-category-title">Zbroja</div>
+            <div class="equipment-items">${player.equipment.armor}</div>
+          </div>
+          ` : ''}
+          ${player.equipment.items ? `
+          <div class="equipment-category">
+            <div class="equipment-category-title">Przedmioty</div>
+            <div class="equipment-items">${player.equipment.items}</div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+      ` : ''}
+      
+      <div class="player-detail-actions">
+        <button class="btn" onclick="addPlayerToInitiative(${index})">⚡ Dodaj do potyczki</button>
+        <button class="btn outline" onclick="editPlayer(${index})">✏️ Edytuj</button>
+        <button class="btn danger" onclick="removePlayer(${index}); closePlayerDetail();">🗑️ Usuń postać</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function renderAttribute(name, score, mod) {
+  var modStr = mod >= 0 ? '+' + mod : '' + mod;
+  return `
+    <div class="attribute-box">
+      <div class="attribute-name">${name}</div>
+      <div class="attribute-modifier">${modStr}</div>
+      <div class="attribute-score">${score || 10}</div>
+    </div>
+  `;
+}
+
+function renderSkill(name, mod, proficient, isSkill) {
+  var modStr = mod >= 0 ? '+' + mod : '' + mod;
+  var isProf = proficient ? 'proficient' : '';
+  var totalMod = proficient ? (mod + 2) : mod;
+  var totalStr = totalMod >= 0 ? '+' + totalMod : '' + totalMod;
+  
+  return `
+    <div class="skill-item ${isProf}">
+      <span class="skill-name">${name} ${isSkill ? '(ZRC)' : ''}</span>
+      <span class="skill-modifier">${totalStr}</span>
+    </div>
+  `;
+}
+
+function closePlayerDetail() {
+  var overlay = document.getElementById('playerDetailOverlay');
+  if (overlay) {
+    overlay.remove();
+    document.body.style.overflow = '';
+  }
+  currentDetailPlayer = null;
+}
+
+// ====== DODAWANIE POSTACI ======
 function openAddPlayerModal() {
   selectedAvatar = '🧙';
-  selectedAvatarUrl = '';
-  var nameInput = document.getElementById('pName');
-  var hpInput = document.getElementById('pHp');
-  var acInput = document.getElementById('pAc');
-  var roleSelect = document.getElementById('pRole');
-  var urlInput = document.getElementById('avatarUrl');
-  if (nameInput) nameInput.value = '';
-  if (hpInput) hpInput.value = '';
-  if (acInput) acInput.value = '';
-  if (roleSelect) roleSelect.value = 'Gracz';
-  if (urlInput) urlInput.value = '';
-  updateAvatarPreview();
-  document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) {
-    if (b.dataset.avatar === '🧙') b.classList.add('active');
-    else b.classList.remove('active');
-  });
   var popup = document.getElementById('addPlayerPopup');
   if (popup) {
     popup.style.display = 'flex';
-    setTimeout(function() { if (nameInput) nameInput.focus(); }, 100);
+    setTimeout(function() {
+      var input = document.getElementById('pName');
+      if (input) input.focus();
+    }, 100);
   }
 }
 
@@ -91,394 +348,143 @@ function closeAddPlayerModal() {
 }
 
 function confirmAddPlayer() {
-  var nameInput = document.getElementById('pName');
-  var hpInput = document.getElementById('pHp');
-  var acInput = document.getElementById('pAc');
-  var roleSelect = document.getElementById('pRole');
-  var name = nameInput ? nameInput.value.trim() : '';
-  var hp = parseInt(hpInput ? hpInput.value : 0) || 0;
-  var ac = parseInt(acInput ? acInput.value : 0) || 0;
-  var role = roleSelect ? roleSelect.value : 'Gracz';
-  if (!name) { alert('Podaj imię postaci'); return; }
-  players.push({
-    name: name, hp: hp, maxHp: hp, ac: ac, role: role,
-    conditions: [], exhaustionLevel: 0,
-    deathSaves: { passes: 0, fails: 0 },
-    avatar: selectedAvatarUrl || selectedAvatar
-  });
+  var name = document.getElementById('pName').value.trim();
+  var race = document.getElementById('pRace').value;
+  var classs = document.getElementById('pClass').value;
+  var role = document.getElementById('pRole').value;
+  
+  if (!name) {
+    alert('Podaj imię postaci');
+    return;
+  }
+  
+  var player = {
+    name: name,
+    race: race,
+    class: classs,
+    role: role,
+    avatar: selectedAvatar,
+    hp: 20,
+    maxHp: 20,
+    ac: 10,
+    speed: '30',
+    str: 10, strMod: 0,
+    dex: 10, dexMod: 0,
+    con: 10, conMod: 0,
+    int: 10, intMod: 0,
+    wis: 10, wisMod: 0,
+    cha: 10, chaMod: 0,
+    initiative: '+0',
+    proficiency: '+2',
+    passivePerception: '10',
+    alignment: 'Neutralny',
+    features: [],
+    personality: {},
+    equipment: {}
+  };
+  
+  players.push(player);
   closeAddPlayerModal();
   renderPlayers();
-  playSound('add');
+  saveState();
+  
+  // Otwórz szczegóły nowej postaci
+  setTimeout(function() {
+    openPlayerDetail(players.length - 1);
+  }, 300);
 }
 
-function renderPlayers() {
-  var container = document.getElementById('playerTracker');
-  if (!container) return;
-  container.innerHTML = '';
-  if (players.length === 0) {
-    container.innerHTML = '<div style="color:var(--parchment-dim);font-size:.7rem;text-align:center;padding:12px;">👥 Brak postaci – kliknij „➕ Dodaj postać"</div>';
-    return;
-  }
-  players.forEach(function(p, i) {
-    var div = document.createElement('div');
-    div.className = 'player-card';
-    div.dataset.role = p.role;
-    var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
-    var hpColor = hpPct < 25 ? '#ff6b6b' : hpPct < 50 ? 'var(--gold)' : '#6bff9e';
-    var condTags = p.conditions.map(function(c) {
-      return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>';
-    }).join('');
-    var exhaustionTag = '';
-    if (p.exhaustionLevel > 0) {
-      var exLevel = p.exhaustionLevel > 6 ? 6 : p.exhaustionLevel;
-      exhaustionTag = '<span class="tag" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.2);color:#ff6b6b;">🥱 Wyczerpanie ' + exLevel + '/6</span>';
-    }
-    var ds = p.deathSaves || { passes: 0, fails: 0 };
-    var avatarHtml;
-    if (p.avatar && p.avatar.startsWith('http')) {
-      var fallback = (p.avatar && p.avatar.length <= 2) ? p.avatar : '🧙';
-      avatarHtml = '<img src="' + p.avatar + '" onerror="this.parentNode.innerHTML=\'' + fallback + '\'">';
-    } else {
-      avatarHtml = p.avatar || '🧙';
-    }
-    var firstState = p.conditions[0];
-    var stateOverlay = firstState
-      ? '<div class="avatar-state-overlay" style="color:' + getStateColor(firstState) + '">' + getStateEmoji(firstState) + '</div>'
-      : '';
-    var stateBtnClass = p.conditions.length > 0 || p.exhaustionLevel > 0 ? 'p-state-btn has-conds' : 'p-state-btn';
-    var stateBtnText = (p.conditions.length > 0 || p.exhaustionLevel > 0)
-      ? '⚙️ Stany (' + (p.conditions.length + (p.exhaustionLevel > 0 ? 1 : 0)) + ')'
-      : '⚙️ Stany';
-    var isDead = p.hp <= 0;
-    var deathSaveText = isDead ? '💀 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails : '';
-    var roleBadge = getRoleBadge(p.role);
-    var deadIcon = isDead ? ' 💀' : '';
-    var deathDiv = isDead ? '<div style="font-size:.55rem;color:var(--parchment-dim);margin:2px 0;">' + deathSaveText + '</div>' : '';
-    var deathBtn = isDead ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : '';
-    
-    div.innerHTML = 
-      '<div class="p-header">' +
-        '<div class="p-avatar">' + avatarHtml + stateOverlay + '</div>' +
-        '<div class="p-main">' +
-          '<div class="p-name">' + p.name + ' <span class="' + roleBadge + '">' + p.role + '</span>' + deadIcon + '</div>' +
-          '<div class="p-stats-row">' +
-            '<div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">' + p.ac + '</span></div>' +
-            '<div class="p-maxhp-badge"><span class="hp-icon">❤️</span><span class="hp-val">' + p.maxHp + '</span></div>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div class="p-hp-wrap">' +
-        '<div class="p-hp-bar"><div class="p-hp-fill" style="width:' + hpPct + '%;background:' + hpColor + ';"></div></div>' +
-        '<div class="p-hp-text" style="color:' + hpColor + '">' + p.hp + '</div>' +
-      '</div>' +
-      deathDiv +
-      '<div class="p-cond">' + condTags + exhaustionTag + '</div>' +
-      '<button class="' + stateBtnClass + '" onclick="event.stopPropagation();showPlayerCondPopup(' + i + ')">' + stateBtnText + '</button>' +
-      '<div class="p-controls">' +
-        '<button class="primary" onclick="event.stopPropagation();addPlayerToInitiative(' + i + ')">⚡ Do walki</button>' +
-        '<button class="success" onclick="event.stopPropagation();shortRestPlayer(' + i + ')">☕ Krótki</button>' +
-        '<button class="success" onclick="event.stopPropagation();longRestPlayer(' + i + ')">🛏️ Długi</button>' +
-        deathBtn +
-        '<button class="danger" onclick="event.stopPropagation();removePlayer(' + i + ')">✕ Usuń</button>' +
-      '</div>';
-    container.appendChild(div);
-  });
+// ====== EDYCJA POSTACI ======
+function editPlayer(index) {
+  var player = players[index];
+  if (!player) return;
+  
+  // Tutaj można dodać formularz edycji
+  alert('Funkcja edycji w przygotowaniu - otwórz szczegółowy widok i kliknij w pola aby edytować');
 }
 
-function getRoleBadge(role) {
-  var map = { 'Gracz': 'gracz', 'Companion': 'companion', 'Wróg': 'wrog', 'NPC': 'npc' };
-  return 'p-role-badge ' + (map[role] || 'npc');
-}
-
-function shortRestPlayer(index) {
-  var p = players[index];
-  if (!p) return;
-  var healAmount = Math.ceil(p.maxHp / 4);
-  var newHp = Math.min(p.maxHp, p.hp + healAmount);
-  var exhaustionReduction = p.exhaustionLevel > 0 ? 1 : 0;
-  var msg = '☕ Krótki odpoczynek dla ' + p.name + '\n\n';
-  msg += '• Leczenie: +' + healAmount + ' HP (' + p.hp + ' → ' + newHp + ')\n';
-  msg += '• Wyczerpanie: -' + exhaustionReduction + ' poziom' + (exhaustionReduction > 0 ? ' (' + p.exhaustionLevel + ' → ' + (p.exhaustionLevel - 1) + ')' : ' (brak)');
-  if (!confirm(msg)) return;
-  p.hp = newHp;
-  p.exhaustionLevel = Math.max(0, p.exhaustionLevel - exhaustionReduction);
-  syncPlayerAfterRest(p);
-  renderPlayers();
-  playSound('add');
-}
-
-function longRestPlayer(index) {
-  var p = players[index];
-  if (!p) return;
-  if (p.hp >= p.maxHp && p.conditions.length === 0 && p.exhaustionLevel === 0) {
-    alert(p.name + ' jest już w pełni wypoczęty!');
-    return;
-  }
-  if (!confirm('🛏️ Długi odpoczynek dla ' + p.name + '?\n\n• Przywraca pełne HP (' + p.maxHp + ')\n• Usuwa wszystkie stany\n• Resetuje wyczerpanie\n• Resetuje Death Saves')) return;
-  p.hp = p.maxHp;
-  p.conditions = [];
-  p.exhaustionLevel = 0;
-  p.deathSaves = { passes: 0, fails: 0 };
-  syncPlayerAfterRest(p);
-  renderPlayers();
-  playSound('add');
-}
-
-function syncPlayerAfterRest(player) {
-  if (typeof combatants === 'undefined') return;
-  var combatant = combatants.find(function(c) { return c.name === player.name && c.role === player.role; });
-  if (combatant) {
-    combatant.hp = player.hp;
-    combatant.conditions = player.conditions.slice();
-    combatant.exhaustionLevel = player.exhaustionLevel;
-    if (player.hp > 0) combatant.status = 'active';
-    if (typeof renderInit === 'function') renderInit();
-    if (typeof updateCombatStats === 'function') updateCombatStats();
-  }
-}
-
+// ====== USUWANIE POSTACI ======
 function removePlayer(index) {
   if (!players[index]) return;
-  if (confirm('Usunąć ' + players[index].name + '?')) {
-    if (typeof combatants !== 'undefined') {
-      var idx = combatants.findIndex(function(c) { return c.name === players[index].name && c.role === players[index].role; });
-      if (idx > -1) {
-        combatants.splice(idx, 1);
-        if (typeof renderInit === 'function') renderInit();
-        if (typeof updateCombatStats === 'function') updateCombatStats();
-      }
-    }
+  if (confirm('Usunąć postać ' + players[index].name + '?')) {
     players.splice(index, 1);
     renderPlayers();
+    saveState();
   }
 }
 
-function deathSave(index) {
-  var p = players[index];
-  if (!p) return;
-  var roll = rollDice(20);
-  if (roll === 1) { p.deathSaves.fails += 2; playSound('death'); }
-  else if (roll === 20) {
-    p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0;
-    playSound('crit'); renderPlayers(); syncToCombat(); return;
-  }
-  else if (roll >= 10) p.deathSaves.passes++;
-  else p.deathSaves.fails++;
-  if (p.deathSaves.fails >= 3) {
-    playSound('death');
-    if (confirm('💀 ' + p.name + ' umiera! Usunąć?')) { removePlayer(index); return; }
-  }
-  if (p.deathSaves.passes >= 3) {
-    p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0;
-    playSound('add');
-  }
-  renderPlayers();
-  syncToCombat();
-}
-
+// ====== DODAWANIE DO POTYCZKI ======
 function addPlayerToInitiative(index) {
-  var p = players[index];
-  if (!p) return;
+  var player = players[index];
+  if (!player) return;
+  
   if (typeof combatants !== 'undefined') {
-    var exists = combatants.some(function(c) { return c.name === p.name && c.role === p.role; });
-    if (exists) { alert('Ta postać jest już w potyczce!'); return; }
+    var exists = combatants.some(function(c) {
+      return c.name === player.name;
+    });
+    
+    if (exists) {
+      alert('Ta postać jest już w potyczce!');
+      return;
+    }
   }
-  var initVal = prompt('Inicjatywa dla ' + p.name + ':') || '0';
+  
+  var initVal = prompt('Inicjatywa dla ' + player.name + ':', player.initiative || '0');
+  if (initVal === null) return;
+  
   if (typeof addCombatant === 'function') {
     addCombatant({
-      name: p.name, init: parseInt(initVal) || 0, hp: p.hp, maxHp: p.maxHp,
-      ac: p.ac, role: p.role, conditions: p.conditions.slice(),
-      exhaustionLevel: p.exhaustionLevel || 0, roundDamage: 0, avatar: p.avatar
+      name: player.name,
+      init: parseInt(initVal) || 0,
+      hp: player.hp,
+      maxHp: player.maxHp,
+      ac: player.ac,
+      role: player.role || 'Gracz',
+      avatar: player.avatar || '🧙'
     });
-  }
-  playSound('add');
-}
-
-function showPlayerCondPopup(index) {
-  conditionPopupTarget = { type: 'player', index: index };
-  var p = players[index];
-  if (!p) return;
-  showCondPopup(p.name, p.conditions || [], p.exhaustionLevel || 0, function(cond, exhaustionLevel) {
-    if (cond) {
-      var idx = p.conditions.indexOf(cond);
-      if (idx > -1) p.conditions.splice(idx, 1);
-      else { p.conditions.push(cond); if (typeof addTurnLog === 'function') addTurnLog(p.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
-    }
-    if (exhaustionLevel !== undefined) p.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
-    renderPlayers();
-    syncToCombat();
-    var popup = document.getElementById('condPopup');
-    if (popup && typeof updateCondPopup === 'function') updateCondPopup(popup, p.conditions, p.exhaustionLevel);
-  });
-}
-
-function triggerHpHitAnimation(index) {
-  var cards = document.querySelectorAll('.player-card');
-  if (cards[index]) {
-    cards[index].classList.remove('hp-hit');
-    void cards[index].offsetWidth;
-    cards[index].classList.add('hp-hit');
-    setTimeout(function() { cards[index].classList.remove('hp-hit'); }, 600);
+    
+    closePlayerDetail();
+    
+    var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
+    if (combatTab) combatTab.click();
+  } else {
+    alert('Moduł potyczki nie jest dostępny!');
   }
 }
 
-function showDamagePopup(targetName) {
-  var existing = document.getElementById('dmgPopup');
-  if (existing) existing.remove();
-  var popup = document.createElement('div');
-  popup.className = 'popup-overlay';
-  popup.id = 'dmgPopup';
-  popup.innerHTML = '<div class="popup-content dmg-popup-content">' +
-    '<div class="popup-title">⚔️ ' + targetName + '</div>' +
-    '<div class="dmg-sub">Wprowadź obrażenia lub rzuć kością</div>' +
-    '<div class="dmg-input-row"><input type="number" id="dmgAmount" placeholder="0" value="" step="1"/></div>' +
-    '<div class="dmg-btns">' +
-      '<button onclick="rollDmg(4)">🎲 k4</button><button onclick="rollDmg(6)">🎲 k6</button>' +
-      '<button onclick="rollDmg(8)">🎲 k8</button><button onclick="rollDmg(10)">🎲 k10</button>' +
-      '<button onclick="rollDmg(12)">🎲 k12</button><button class="crit" onclick="rollDmg(20)">💀 k20</button>' +
-    '</div>' +
-    '<div class="dmg-check"><input type="checkbox" id="dmgCrit"/><label for="dmgCrit">💀 Krytyk (x2)</label></div>' +
-    '<div class="dmg-actions">' +
-      '<button class="btn-dmg" onclick="applyDamage()">⚔️ Zadaj</button>' +
-      '<button class="btn-cancel" onclick="closeDmgPopup()">Anuluj</button>' +
-    '</div>' +
-  '</div>';
-  document.body.appendChild(popup);
-  var input = document.getElementById('dmgAmount');
-  if (input) { input.focus(); setTimeout(function() { input.select(); }, 100); }
-}
-
-function closeDmgPopup() {
-  var p = document.getElementById('dmgPopup');
-  if (p) p.remove();
-  dmgPopupTarget = null;
-}
-
-function rollDmg(sides) {
-  var input = document.getElementById('dmgAmount');
-  if (input) { input.value = rollDice(sides); playSound('dice'); }
-}
-
-function applyDamage() {
-  var input = document.getElementById('dmgAmount');
-  var critCheck = document.getElementById('dmgCrit');
-  if (!input) return;
-  var dmg = parseInt(input.value);
-  if (isNaN(dmg) || dmg < 0) { alert('Podaj poprawną wartość obrażeń'); return; }
-  if (critCheck && critCheck.checked) dmg *= 2;
-  if (dmgPopupTarget) {
-    if (dmgPopupTarget.type === 'player') {
-      var p = players[dmgPopupTarget.index];
-      if (p) {
-        p.hp = Math.max(0, p.hp - dmg);
-        triggerHpHitAnimation(dmgPopupTarget.index);
-        renderPlayers();
-        syncToCombat();
-        playSound('hit');
-      }
-    } else if (dmgPopupTarget.type === 'init') {
-      var c = combatants[dmgPopupTarget.index];
-      if (c && typeof dealDamage === 'function') {
-        dealDamage(null, dmgPopupTarget.index, dmg, 'obrażenia', false);
-      }
-    }
-  }
-  closeDmgPopup();
-}
-
-function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
-  var existing = document.getElementById('condPopup');
-  if (existing) existing.remove();
-  var popup = document.createElement('div');
-  popup.className = 'popup-overlay';
-  popup.id = 'condPopup';
-  var btns = '';
-  POLISH_STATES.forEach(function(c) {
-    var active = currentConds.indexOf(c) > -1 ? 'active' : '';
-    btns += '<button class="cond-popup-btn ' + active + '" data-cond="' + c + '">' + getStateEmoji(c) + ' ' + c + '</button>';
-  });
-  var exLevel = exhaustionLevel || 0;
-  var exBtns = '';
-  for (var i = 0; i <= 6; i++) {
-    var active = i === exLevel ? 'active' : '';
-    exBtns += '<button class="cond-popup-btn ' + active + '" data-exhaustion="' + i + '" style="min-width:36px;justify-content:center;">' + i + '</button>';
-  }
-  popup.innerHTML = '<div class="popup-content cond-popup-content">' +
-    '<div class="popup-title">🐦‍⬛ ' + name + ' — Stany</div>' +
-    '<div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--parchment-dim);">🥱 Wyczerpanie (0-6):</div>' +
-    '<div class="cond-popup-grid" style="grid-template-columns:repeat(7,1fr);margin-bottom:12px;">' + exBtns + '</div>' +
-    '<div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--parchment-dim);">📋 Stany:</div>' +
-    '<div class="cond-popup-grid">' + btns + '</div>' +
-    '<button class="popup-close" onclick="closeCondPopup()">✕ Zamknij</button>' +
-  '</div>';
-  var currentExhaustion = exLevel;
-  popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(b) {
-    b.onclick = function() {
-      var level = parseInt(b.dataset.exhaustion);
-      currentExhaustion = level;
-      popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(bb) {
-        bb.classList.toggle('active', parseInt(bb.dataset.exhaustion) === level);
-      });
-      onToggle(null, level);
-    };
-  });
-  popup.querySelectorAll('.cond-popup-btn[data-cond]').forEach(function(b) {
-    b.onclick = function() {
-      var cond = b.dataset.cond;
-      onToggle(cond, undefined);
-      b.classList.toggle('active');
-    };
-  });
-  document.body.appendChild(popup);
-}
-
-function updateCondPopup(popup, currentConds, exhaustionLevel) {
-  popup.querySelectorAll('.cond-popup-btn[data-cond]').forEach(function(b) {
-    if (currentConds.indexOf(b.dataset.cond) > -1) b.classList.add('active');
-    else b.classList.remove('active');
-  });
-  popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(b) {
-    var level = parseInt(b.dataset.exhaustion);
-    b.classList.toggle('active', level === (exhaustionLevel || 0));
-  });
-}
-
-function closeCondPopup() {
-  var p = document.getElementById('condPopup');
-  if (p) p.remove();
-  conditionPopupTarget = null;
-}
-
-function initCombatantAvatarPicker() {
-  var grid = document.getElementById('combatantAvatarGrid');
+// ====== INICJALIZACJA AVATARÓW ======
+function initAvatarPicker() {
+  var grid = document.getElementById('avatarGrid');
   if (!grid) return;
-  var buttons = grid.querySelectorAll('.avatar-btn');
-  buttons.forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      buttons.forEach(function(b) { b.classList.remove('active'); });
+  
+  var avatars = ['🧙', '🧝', '🧛', '', '🧞', '🧜', '🦹', '', '🥷', '🧚', '👑', '', '🐺', '🦅', '', '🦁'];
+  
+  grid.innerHTML = '';
+  avatars.forEach(function(avatar) {
+    var btn = document.createElement('button');
+    btn.className = 'avatar-btn' + (avatar === selectedAvatar ? ' active' : '');
+    btn.dataset.avatar = avatar;
+    btn.textContent = avatar;
+    btn.onclick = function() {
+      grid.querySelectorAll('.avatar-btn').forEach(function(b) {
+        b.classList.remove('active');
+      });
       btn.classList.add('active');
-      var preview = document.getElementById('combatantAvatarPreview');
-      if (preview) preview.textContent = btn.dataset.avatar;
-    });
+      selectedAvatar = avatar;
+    };
+    grid.appendChild(btn);
   });
 }
 
-window.initCombatantAvatarPicker = initCombatantAvatarPicker;
+// ====== EKSPORT ======
+window.renderPlayers = renderPlayers;
+window.openPlayerDetail = openPlayerDetail;
+window.closePlayerDetail = closePlayerDetail;
 window.openAddPlayerModal = openAddPlayerModal;
 window.closeAddPlayerModal = closeAddPlayerModal;
 window.confirmAddPlayer = confirmAddPlayer;
+window.editPlayer = editPlayer;
 window.removePlayer = removePlayer;
-window.deathSave = deathSave;
 window.addPlayerToInitiative = addPlayerToInitiative;
-window.showPlayerCondPopup = showPlayerCondPopup;
-window.closeDmgPopup = closeDmgPopup;
-window.closeCondPopup = closeCondPopup;
-window.rollDmg = rollDmg;
-window.showDamagePopup = showDamagePopup;
-window.applyDamage = applyDamage;
+window.initAvatarPicker = initAvatarPicker;
 window.players = players;
-window.renderPlayers = renderPlayers;
-window.syncToCombat = syncToCombat;
-window.shortRestPlayer = shortRestPlayer;
-window.longRestPlayer = longRestPlayer;
-window.syncPlayerAfterRest = syncPlayerAfterRest;
