@@ -85,11 +85,13 @@ function getMonsterImageUrl(monsterData) {
   if (monsterData && monsterData.image) {
     return MONSTER_API.baseUrl + monsterData.image;
   }
+  
   var name = monsterData ? monsterData.name : '';
   if (name) {
     var formattedName = name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
     return MONSTER_API.baseUrl + '/api/images/monsters/' + formattedName + '.png';
   }
+  
   return 'https://api.dicebear.com/7.x/thumbs/svg?seed=' + encodeURIComponent(name || 'monster') + '&size=300&backgroundColor=1c1812';
 }
 

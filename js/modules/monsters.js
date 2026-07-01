@@ -169,7 +169,7 @@ function renderMonsters(filter, query) {
           if (placeholder) {
             var imgContainer = document.createElement('div');
             imgContainer.className = 'bestiary-image';
-            imgContainer.innerHTML = '<img src="' + images[name] + '" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.classList.add(\'bestiary-image-placeholder\')">';
+            imgContainer.innerHTML = '<img src="' + images[name] + '" onerror="var p=this.parentElement; if(p){p.innerHTML=\'🐉\';p.classList.add(\'monster-image-placeholder\');}">';
             placeholder.replaceWith(imgContainer);
           }
         }
@@ -222,7 +222,7 @@ function openMonsterDetail(name) {
     var cacheKey = monster.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
     if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
       var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
-      imageHtml = '<div class="monster-detail-image"><img src="' + imgUrl + '" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.style.fontSize=\'4rem\'"></div>';
+      imageHtml = '<div class="monster-detail-image"><img src="' + imgUrl + '" onerror="var p=this.parentElement; if(p){p.innerHTML=\'🐉\';p.style.fontSize=\'4rem\';}"></div>';
     } else if (typeof getMonsterImage === 'function') {
       getMonsterImage(monster.name, function(imageUrl) {
         if (imageUrl) {

@@ -348,50 +348,36 @@ function closeAddPlayerModal() {
 }
 
 function confirmAddPlayer() {
-  var name = document.getElementById('pName').value.trim();
-  var race = document.getElementById('pRace').value;
-  var classs = document.getElementById('pClass').value;
-  var role = document.getElementById('pRole').value;
+  var nameInput = document.getElementById('pName');
+  var hpInput = document.getElementById('pHp');
+  var acInput = document.getElementById('pAc');
+  var roleSelect = document.getElementById('pRole');
   
-  if (!name) {
-    alert('Podaj imię postaci');
-    return;
+  var name = nameInput ? nameInput.value.trim() : '';
+  var hp = parseInt(hpInput ? hpInput.value : 0) || 0;
+  var ac = parseInt(acInput ? acInput.value : 0) || 0;
+  var role = roleSelect ? roleSelect.value : 'Gracz';
+  
+  if (!name) { 
+    alert('Podaj imię postaci'); 
+    return; 
   }
   
-  var player = {
+  players.push({
     name: name,
-    race: race,
-    class: classs,
+    hp: hp,
+    maxHp: hp,
+    ac: ac,
     role: role,
-    avatar: selectedAvatar,
-    hp: 20,
-    maxHp: 20,
-    ac: 10,
-    speed: '30',
-    str: 10, strMod: 0,
-    dex: 10, dexMod: 0,
-    con: 10, conMod: 0,
-    int: 10, intMod: 0,
-    wis: 10, wisMod: 0,
-    cha: 10, chaMod: 0,
-    initiative: '+0',
-    proficiency: '+2',
-    passivePerception: '10',
-    alignment: 'Neutralny',
-    features: [],
-    personality: {},
-    equipment: {}
-  };
+    conditions: [],
+    exhaustionLevel: 0,
+    deathSaves: { passes: 0, fails: 0 },
+    avatar: selectedAvatarUrl || selectedAvatar
+  });
   
-  players.push(player);
   closeAddPlayerModal();
   renderPlayers();
-  saveState();
-  
-  // Otwórz szczegóły nowej postaci
-  setTimeout(function() {
-    openPlayerDetail(players.length - 1);
-  }, 300);
+  playSound('add');
 }
 
 // ====== EDYCJA POSTACI ======
