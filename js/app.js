@@ -40,6 +40,9 @@ function init() {
         if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
     }, 200);
 
+    if (typeof initAvatarPickers === 'function') initAvatarPickers();
+    if (typeof initEditTabs === 'function') initEditTabs();
+
     var resizeTimeout;
     window.addEventListener('resize', function() {
         clearTimeout(resizeTimeout);

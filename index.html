@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V23.2.DS</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V23.3.DS</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -388,54 +388,280 @@
   </nav>
 </div>
 
-<!-- ===== MODAL: DODAWANIE POSTACI ===== -->
+<!-- ===== MODAL: PROSTE DODAWANIE POSTACI ===== -->
 <div class="popup-overlay" id="addPlayerPopup" style="display:none;">
-  <div class="popup-content add-player-popup">
+  <div class="popup-content add-player-simple">
     <div class="popup-title">➕ Nowa postać</div>
+    
     <div class="avatar-section">
       <div class="avatar-preview" id="avatarPreview">🧙</div>
-      <div class="avatar-grid" id="avatarGrid">
-        <button class="avatar-btn active" data-avatar="🧙">🧙</button>
-        <button class="avatar-btn" data-avatar="🧝">🧝</button>
-        <button class="avatar-btn" data-avatar="🧛">🧛</button>
-        <button class="avatar-btn" data-avatar="🧟">🧟</button>
-        <button class="avatar-btn" data-avatar="🧞">🧞</button>
-        <button class="avatar-btn" data-avatar="🧜">🧜</button>
-        <button class="avatar-btn" data-avatar="🦹">🦹</button>
-        <button class="avatar-btn" data-avatar="🦸">🦸</button>
-        <button class="avatar-btn" data-avatar="🥷">🥷</button>
-        <button class="avatar-btn" data-avatar="🧚">🧚</button>
-        <button class="avatar-btn" data-avatar="👑">👑</button>
-        <button class="avatar-btn" data-avatar="🐉">🐉</button>
-        <button class="avatar-btn" data-avatar="🐺">🐺</button>
-        <button class="avatar-btn" data-avatar="🦅">🦅</button>
-        <button class="avatar-btn" data-avatar="🐻">🐻</button>
-        <button class="avatar-btn" data-avatar="🦁">🦁</button>
-        <button class="avatar-btn" data-avatar="🗡️">🗡️</button>
-        <button class="avatar-btn" data-avatar="🛡️">🛡️</button>
-        <button class="avatar-btn" data-avatar="⚔️">⚔️</button>
-        <button class="avatar-btn" data-avatar="🏹">🏹</button>
-        <button class="avatar-btn" data-avatar="🪄">🪄</button>
-        <button class="avatar-btn" data-avatar="💀">💀</button>
-        <button class="avatar-btn" data-avatar="👹">👹</button>
-        <button class="avatar-btn" data-avatar="👻">👻</button>
-      </div>
+      <div class="avatar-grid" id="avatarGrid"></div>
       <input type="text" id="avatarUrl" class="avatar-url-input" placeholder="lub URL obrazka (opcjonalnie)">
     </div>
-    <input type="text" id="pName" class="modal-input" placeholder="Imię / Nazwa">
+    
+    <input type="text" id="pNameSimple" class="modal-input" placeholder="Imię postaci *" required>
+    
     <div class="modal-row">
-      <input type="number" id="pHp" class="modal-input" placeholder="HP (max)">
-      <input type="number" id="pAc" class="modal-input" placeholder="AC (KP)">
+      <input type="number" id="pHpSimple" class="modal-input" placeholder="HP (max) *" min="1" value="10">
+      <input type="number" id="pAcSimple" class="modal-input" placeholder="KP (AC) *" min="1" value="10">
     </div>
-    <select id="pRole" class="modal-input">
-      <option value="Gracz">🧙 Gracz</option>
-      <option value="Companion">🐾 Companion</option>
-      <option value="Wróg">⚔️ Wróg</option>
-      <option value="NPC">📜 NPC</option>
-    </select>
+    
+    <div class="modal-row">
+      <select id="pRoleSimple" class="modal-input">
+        <option value="Gracz">🧙 Gracz</option>
+        <option value="Companion">🐾 Companion</option>
+        <option value="Wróg">⚔️ Wróg</option>
+        <option value="NPC">📜 NPC</option>
+      </select>
+      <input type="text" id="pClassSimple" class="modal-input" placeholder="Klasa (np. Wojownik)">
+    </div>
+    
     <div class="modal-actions">
-      <button class="btn" onclick="confirmAddPlayer()">✓ Dodaj</button>
+      <button class="btn" onclick="confirmSimpleAdd()">✓ Dodaj</button>
       <button class="btn outline" onclick="closeAddPlayerModal()">Anuluj</button>
+    </div>
+    
+    <div style="margin-top:12px;text-align:center;font-size:0.7rem;color:var(--parchment-dim);">
+      ⚡ Po dodaniu możesz edytować pełną kartę postaci
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ZAAWANSOWANA EDYCJA POSTACI ===== -->
+<div class="popup-overlay" id="editPlayerPopup" style="display:none;">
+  <div class="popup-content edit-player-popup">
+    <div class="popup-title">
+      <span id="editPlayerTitle">✎ Edytuj postać</span>
+      <span style="font-size:0.7rem;color:var(--parchment-dim);font-weight:400;margin-left:auto;" id="editPlayerName"></span>
+    </div>
+    
+    <div class="edit-tabs">
+      <button class="edit-tab active" data-tab="basic">📋 Podstawowe</button>
+      <button class="edit-tab" data-tab="attributes">💪 Atrybuty</button>
+      <button class="edit-tab" data-tab="combat">⚔️ Walka</button>
+      <button class="edit-tab" data-tab="skills">🎯 Umiejętności</button>
+      <button class="edit-tab" data-tab="equipment">🎒 Ekwipunek</button>
+      <button class="edit-tab" data-tab="personality">🎭 Osobowość</button>
+    </div>
+    
+    <div id="editFormContainer" style="max-height:60vh;overflow-y:auto;padding-right:10px;">
+      
+      <!-- BASIC -->
+      <div class="edit-tab-content active" data-tab="basic">
+        <div class="form-section">
+          <h3 class="form-section-title">📋 Podstawowe informacje</h3>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Imię postaci *</label>
+              <input type="text" id="eName" placeholder="np. Kaelen Ashvane">
+            </div>
+            <div class="form-group">
+              <label>Rola</label>
+              <select id="eRole">
+                <option value="Gracz">🧙 Gracz</option>
+                <option value="Companion">🐾 Companion</option>
+                <option value="Wróg">⚔️ Wróg</option>
+                <option value="NPC">📜 NPC</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Rasa</label>
+              <input type="text" id="eRace" placeholder="np. Człowiek, Elf">
+            </div>
+            <div class="form-group">
+              <label>Klasa</label>
+              <input type="text" id="eClass" placeholder="np. Wojownik, Czarodziej">
+            </div>
+            <div class="form-group">
+              <label>Poziom</label>
+              <input type="number" id="eLevel" min="1" max="20" value="1">
+            </div>
+            <div class="form-group">
+              <label>Tło (Background)</label>
+              <input type="text" id="eBackground" placeholder="np. Szlachcic, Żołnierz">
+            </div>
+            <div class="form-group">
+              <label>Światopogląd</label>
+              <select id="eAlignment">
+                <option value="Praworządny Dobry">Praworządny Dobry</option>
+                <option value="Neutralny Dobry">Neutralny Dobry</option>
+                <option value="Chaotyczny Dobry">Chaotyczny Dobry</option>
+                <option value="Praworządny Neutralny">Praworządny Neutralny</option>
+                <option value="Neutralny" selected>Neutralny</option>
+                <option value="Chaotyczny Neutralny">Chaotyczny Neutralny</option>
+                <option value="Praworządny Zły">Praworządny Zły</option>
+                <option value="Neutralny Zły">Neutralny Zły</option>
+                <option value="Chaotyczny Zły">Chaotyczny Zły</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Awatar</label>
+              <div class="avatar-section" style="margin-top:0;">
+                <div class="avatar-preview" id="eAvatarPreview">🧙</div>
+                <div class="avatar-grid" id="eAvatarGrid"></div>
+                <input type="text" id="eAvatarUrl" class="avatar-url-input" placeholder="lub URL obrazka">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- ATTRIBUTES -->
+      <div class="edit-tab-content" data-tab="attributes">
+        <div class="form-section">
+          <h3 class="form-section-title">💪 Atrybuty</h3>
+          <div class="form-grid-3">
+            <div class="form-group"><label>Siła (STR)</label><input type="number" id="eStr" min="1" max="30" value="10"></div>
+            <div class="form-group"><label>Zręczność (DEX)</label><input type="number" id="eDex" min="1" max="30" value="10"></div>
+            <div class="form-group"><label>Kondycja (CON)</label><input type="number" id="eCon" min="1" max="30" value="10"></div>
+            <div class="form-group"><label>Inteligencja (INT)</label><input type="number" id="eInt" min="1" max="30" value="10"></div>
+            <div class="form-group"><label>Mądrość (WIS)</label><input type="number" id="eWis" min="1" max="30" value="10"></div>
+            <div class="form-group"><label>Charyzma (CHA)</label><input type="number" id="eCha" min="1" max="30" value="10"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- COMBAT -->
+      <div class="edit-tab-content" data-tab="combat">
+        <div class="form-section">
+          <h3 class="form-section-title">⚔️ Statystyki bojowe</h3>
+          <div class="form-grid-3">
+            <div class="form-group"><label>HP (aktualne)</label><input type="number" id="eHP" min="0" value="10"></div>
+            <div class="form-group"><label>Max HP</label><input type="number" id="eMaxHP" min="1" value="10"></div>
+            <div class="form-group"><label>Tymczasowe HP</label><input type="number" id="eTempHP" min="0" value="0"></div>
+            <div class="form-group"><label>Klasa Pancerza (AC)</label><input type="number" id="eAC" min="1" value="10"></div>
+            <div class="form-group"><label>Prędkość (ft)</label><input type="number" id="eSpeed" min="1" value="30"></div>
+            <div class="form-group"><label>Pasywna Percepcja</label><input type="number" id="ePassivePerception" min="1" value="10"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SKILLS -->
+      <div class="edit-tab-content" data-tab="skills">
+        <div class="form-section">
+          <h3 class="form-section-title">🛡️ Rzuty obronne</h3>
+          <div class="checkbox-group">
+            <label><input type="checkbox" class="e-saving-throw" data-stat="str"> Siła</label>
+            <label><input type="checkbox" class="e-saving-throw" data-stat="dex"> Zręczność</label>
+            <label><input type="checkbox" class="e-saving-throw" data-stat="con"> Kondycja</label>
+            <label><input type="checkbox" class="e-saving-throw" data-stat="int"> Inteligencja</label>
+            <label><input type="checkbox" class="e-saving-throw" data-stat="wis"> Mądrość</label>
+            <label><input type="checkbox" class="e-saving-throw" data-stat="cha"> Charyzma</label>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3 class="form-section-title">🎯 Biegłości (umiejętności)</h3>
+          <div class="checkbox-group">
+            <label><input type="checkbox" class="e-skill" data-skill="Akrobatyka"> Akrobatyka</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Atletyka"> Atletyka</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Historia"> Historia</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Medycyna"> Medycyna</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Percepcja"> Percepcja</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Perswazja"> Perswazja</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Oszustwo"> Oszustwo</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Wyczucie"> Wyczucie</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Zastraszanie"> Zastraszanie</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Dochodzenie"> Dochodzenie</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Przyroda"> Przyroda</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Religia"> Religia</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Skradanie"> Skradanie</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Zręczne palce"> Zręczne palce</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Przetrwanie"> Przetrwanie</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Wiedza tajemna"> Wiedza tajemna</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Występy"> Występy</label>
+            <label><input type="checkbox" class="e-skill" data-skill="Obchodzenie ze zwierzętami"> Obchodzenie ze zwierzętami</label>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3 class="form-section-title">📜 Inne biegłości</h3>
+          <div class="form-group">
+            <label>Biegłości (oddziel przecinkami)</label>
+            <input type="text" id="eOtherProfs" placeholder="np. Zbroje ciężkie, Broń wojskowa, Narzędzia złodziejskie">
+          </div>
+          <div class="form-group">
+            <label>Języki</label>
+            <input type="text" id="eLanguages" placeholder="np. Wspólny, Elfi, Draconic">
+          </div>
+        </div>
+      </div>
+      
+      <!-- EQUIPMENT -->
+      <div class="edit-tab-content" data-tab="equipment">
+        <div class="form-section">
+          <h3 class="form-section-title">🎒 Ekwipunek</h3>
+          <div class="form-group">
+            <label>Broń</label>
+            <textarea id="eWeapons" rows="2" placeholder="np. Długi miecz +1, Łuk krótki"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Zbroja</label>
+            <textarea id="eArmor" rows="2" placeholder="np. Kolczuga, Tarcza"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Przedmioty</label>
+            <textarea id="eItems" rows="3" placeholder="np. Lina (50 ft), Pochodnie (5), Racje żywności (10)"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Złoto (sztuki złota)</label>
+            <input type="number" id="eGold" min="0" value="0">
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3 class="form-section-title">⚡ Cechy i zdolności</h3>
+          <div class="form-group">
+            <label>Cechy (jedna na linię)</label>
+            <textarea id="eFeatures" rows="4" placeholder="np. Drugi oddech: Raz na krótki odpoczynek...&#10;Przypływ akcji: Dodatkowa akcja..."></textarea>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3 class="form-section-title">🔮 Zaklęcia</h3>
+          <div class="form-group">
+            <label>Znane zaklęcia (jedno na linię)</label>
+            <textarea id="eSpells" rows="4" placeholder="np. Ognista kula&#10;Tarcza&#10;Niewidzialność"></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- PERSONALITY -->
+      <div class="edit-tab-content" data-tab="personality">
+        <div class="form-section">
+          <h3 class="form-section-title">🎭 Osobowość</h3>
+          <div class="form-group">
+            <label>Cecha charakteru</label>
+            <textarea id="ePersonalityTrait" rows="2" placeholder="np. Zawsze pomagam potrzebującym"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Ideał</label>
+            <textarea id="ePersonalityIdeal" rows="2" placeholder="np. Wolność - nikt nie powinien być niewolnikiem"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Więź</label>
+            <textarea id="ePersonalityBond" rows="2" placeholder="np. Moja rodzina została zabita przez kultystów"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Wada</label>
+            <textarea id="ePersonalityFlaw" rows="2" placeholder="np. Mam problem z zaufaniem obcym"></textarea>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <h3 class="form-section-title">📖 Historia</h3>
+          <div class="form-group">
+            <label>Backstory</label>
+            <textarea id="eBackstory" rows="4" placeholder="Opisz historię swojej postaci..."></textarea>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div style="display:flex;gap:10px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line);">
+      <button class="btn" onclick="confirmEditPlayer()" style="flex:1;">✓ Zapisz zmiany</button>
+      <button class="btn outline" onclick="closeEditPlayerModal()" style="flex:1;">Anuluj</button>
     </div>
   </div>
 </div>

@@ -1,10 +1,9 @@
 // ============================================================
-//  PLAYERS - NOWY SYSTEM Z PEŁNYMI KARTAMI
+//  PLAYERS - PROSTE DODAWANIE + ZAAWANSOWANA EDYCJA
 // ============================================================
 
 var players = [];
-var currentPlayerId = null;
-var editingPlayerId = null;
+var editingPlayerIndex = null;
 var selectedAvatar = '🧙';
 var selectedAvatarUrl = '';
 
@@ -13,7 +12,7 @@ function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
 }
 
-// ====== IKONY KLAS ======
+// ====== STAŁE ======
 var CLASS_ICONS = {
     'Wojownik': '⚔️',
     'Czarodziej': '🔮',
@@ -36,14 +35,13 @@ var ROLE_COLORS = {
     'NPC': '#6a5a3a'
 };
 
-// ====== ATrybuty ======
 var AB_LABEL = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
 var AB_SHORT = { str: 'SIŁ', dex: 'ZRC', con: 'KON', int: 'INT', wis: 'MDR', cha: 'CHA' };
 
 function mod(score) { return Math.floor((score - 10) / 2); }
 function fmt(n) { return n >= 0 ? '+' + n : '' + n; }
 
-// ====== UMIEJĘTNOŚCI ======
+// ====== SKILLS ======
 var SKILLS = [
     { name: 'Akrobatyka', ab: 'dex' },
     { name: 'Atletyka', ab: 'str' },
@@ -64,6 +62,395 @@ var SKILLS = [
     { name: 'Występy', ab: 'cha' },
     { name: 'Obchodzenie ze zwierzętami', ab: 'wis' }
 ];
+
+// ====== AWATAR PICKER ======
+function initAvatarPickers() {
+    var avatars = ['🧙', '🧝', '🧛', '🧟', '🧞', '🧜', '🦹', '🦸', '🥷', '🧚', '👑', '🐉', '🐺', '🦅', '🐻', '🦁', '🗡️', '🛡️', '⚔️', '🏹', '🪄', '💀', '👹', '👻'];
+    
+    // Dla prostego dodawania
+    var grid1 = document.getElementById('avatarGrid');
+    if (grid1) {
+        grid1.innerHTML = '';
+        avatars.forEach(function(a) {
+            var btn = document.createElement('button');
+            btn.className = 'avatar-btn' + (a === '🧙' ? ' active' : '');
+            btn.dataset.avatar = a;
+            btn.textContent = a;
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                selectedAvatar = a;
+                selectedAvatarUrl = '';
+                document.getElementById('avatarUrl').value = '';
+                updateAvatarPreview();
+            });
+            grid1.appendChild(btn);
+        });
+    }
+    
+    // Dla edycji
+    var grid2 = document.getElementById('eAvatarGrid');
+    if (grid2) {
+        grid2.innerHTML = '';
+        avatars.forEach(function(a) {
+            var btn = document.createElement('button');
+            btn.className = 'avatar-btn' + (a === '🧙' ? ' active' : '');
+            btn.dataset.avatar = a;
+            btn.textContent = a;
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#eAvatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                document.getElementById('eAvatarPreview').textContent = a;
+                document.getElementById('eAvatarUrl').value = '';
+            });
+            grid2.appendChild(btn);
+        });
+    }
+    
+    // URL dla prostego
+    var urlInput1 = document.getElementById('avatarUrl');
+    if (urlInput1) {
+        urlInput1.addEventListener('input', function() {
+            var url = this.value.trim();
+            if (url) {
+                selectedAvatarUrl = url;
+                selectedAvatar = '';
+                document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
+            } else {
+                selectedAvatarUrl = '';
+                selectedAvatar = '';
+            }
+            updateAvatarPreview();
+        });
+    }
+    
+    // URL dla edycji
+    var urlInput2 = document.getElementById('eAvatarUrl');
+    if (urlInput2) {
+        urlInput2.addEventListener('input', function() {
+            var url = this.value.trim();
+            var preview = document.getElementById('eAvatarPreview');
+            if (url) {
+                preview.innerHTML = '<img src="' + url + '" onerror="this.parentNode.textContent=\'🧙\'">';
+                document.querySelectorAll('#eAvatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
+            } else {
+                preview.textContent = '🧙';
+            }
+        });
+    }
+}
+
+function updateAvatarPreview() {
+    var preview = document.getElementById('avatarPreview');
+    if (!preview) return;
+    if (selectedAvatarUrl) {
+        preview.innerHTML = '<img src="' + selectedAvatarUrl + '" onerror="this.parentNode.textContent=\'🧙\'">';
+    } else {
+        preview.textContent = selectedAvatar || '🧙';
+    }
+}
+
+// ====== ZAKŁADKI EDYCJI ======
+function initEditTabs() {
+    document.querySelectorAll('.edit-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            var target = this.dataset.tab;
+            document.querySelectorAll('.edit-tab').forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            document.querySelectorAll('.edit-tab-content').forEach(function(c) {
+                c.classList.toggle('active', c.dataset.tab === target);
+            });
+        });
+    });
+}
+
+// ====== PROSTE DODAWANIE ======
+function openAddPlayerModal() {
+    selectedAvatar = '🧙';
+    selectedAvatarUrl = '';
+    
+    document.getElementById('pNameSimple').value = '';
+    document.getElementById('pHpSimple').value = 10;
+    document.getElementById('pAcSimple').value = 10;
+    document.getElementById('pRoleSimple').value = 'Gracz';
+    document.getElementById('pClassSimple').value = '';
+    document.getElementById('avatarUrl').value = '';
+    updateAvatarPreview();
+    
+    document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.avatar === '🧙');
+    });
+    
+    var popup = document.getElementById('addPlayerPopup');
+    if (popup) popup.style.display = 'flex';
+}
+
+function closeAddPlayerModal() {
+    var popup = document.getElementById('addPlayerPopup');
+    if (popup) popup.style.display = 'none';
+}
+
+function confirmSimpleAdd() {
+    var name = document.getElementById('pNameSimple').value.trim();
+    var hp = parseInt(document.getElementById('pHpSimple').value) || 10;
+    var ac = parseInt(document.getElementById('pAcSimple').value) || 10;
+    var role = document.getElementById('pRoleSimple').value;
+    var cls = document.getElementById('pClassSimple').value.trim();
+    var avatar = selectedAvatarUrl || selectedAvatar || '🧙';
+    
+    if (!name) {
+        alert('Podaj imię postaci!');
+        return;
+    }
+    if (hp < 1) {
+        alert('HP musi być większe niż 0!');
+        return;
+    }
+    
+    var newPlayer = {
+        id: generateId(),
+        name: name,
+        role: role,
+        class: cls,
+        level: 1,
+        hp: hp,
+        maxHp: hp,
+        tempHp: 0,
+        ac: ac,
+        speed: 30,
+        passivePerception: 10,
+        pb: 2,
+        avatar: avatar,
+        conditions: [],
+        exhaustionLevel: 0,
+        deathSaves: { passes: 0, fails: 0 },
+        race: '',
+        background: '',
+        alignment: 'Neutralny',
+        str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10,
+        savingThrows: [],
+        proficiencies: [],
+        expertise: [],
+        otherProficiencies: [],
+        languages: [],
+        weapons: '',
+        armor: '',
+        items: '',
+        gold: 0,
+        features: [],
+        spells: [],
+        personality: { traits: '', ideals: '', bonds: '', flaws: '' },
+        backstory: ''
+    };
+    
+    players.push(newPlayer);
+    closeAddPlayerModal();
+    renderPlayers();
+    if (typeof saveState === 'function') saveState();
+    if (typeof playSound === 'function') playSound('add');
+}
+
+// ====== ZAAWANSOWANA EDYCJA ======
+function openEditPlayer(index) {
+    var p = players[index];
+    if (!p) return;
+    
+    editingPlayerIndex = index;
+    document.getElementById('editPlayerName').textContent = p.name;
+    document.getElementById('editPlayerTitle').textContent = '✎ Edytuj postać';
+    
+    // Podstawowe
+    document.getElementById('eName').value = p.name || '';
+    document.getElementById('eRole').value = p.role || 'Gracz';
+    document.getElementById('eRace').value = p.race || '';
+    document.getElementById('eClass').value = p.class || '';
+    document.getElementById('eLevel').value = p.level || 1;
+    document.getElementById('eBackground').value = p.background || '';
+    document.getElementById('eAlignment').value = p.alignment || 'Neutralny';
+    
+    // Atrybuty
+    document.getElementById('eStr').value = p.str || 10;
+    document.getElementById('eDex').value = p.dex || 10;
+    document.getElementById('eCon').value = p.con || 10;
+    document.getElementById('eInt').value = p.int || 10;
+    document.getElementById('eWis').value = p.wis || 10;
+    document.getElementById('eCha').value = p.cha || 10;
+    
+    // Walka
+    document.getElementById('eHP').value = p.hp || 0;
+    document.getElementById('eMaxHP').value = p.maxHp || 10;
+    document.getElementById('eTempHP').value = p.tempHp || 0;
+    document.getElementById('eAC').value = p.ac || 10;
+    document.getElementById('eSpeed').value = p.speed || 30;
+    document.getElementById('ePassivePerception').value = p.passivePerception || 10;
+    
+    // Rzuty obronne
+    document.querySelectorAll('.e-saving-throw').forEach(function(cb) {
+        cb.checked = p.savingThrows && p.savingThrows.includes(cb.dataset.stat);
+    });
+    
+    // Umiejętności
+    document.querySelectorAll('.e-skill').forEach(function(cb) {
+        cb.checked = p.proficiencies && p.proficiencies.includes(cb.dataset.skill);
+    });
+    
+    // Inne biegłości
+    document.getElementById('eOtherProfs').value = (p.otherProficiencies || []).join(', ');
+    document.getElementById('eLanguages').value = (p.languages || []).join(', ');
+    
+    // Ekwipunek
+    document.getElementById('eWeapons').value = p.weapons || '';
+    document.getElementById('eArmor').value = p.armor || '';
+    document.getElementById('eItems').value = p.items || '';
+    document.getElementById('eGold').value = p.gold || 0;
+    document.getElementById('eFeatures').value = (p.features || []).join('\n');
+    document.getElementById('eSpells').value = (p.spells || []).join('\n');
+    
+    // Osobowość
+    var pers = p.personality || {};
+    document.getElementById('ePersonalityTrait').value = pers.traits || '';
+    document.getElementById('ePersonalityIdeal').value = pers.ideals || '';
+    document.getElementById('ePersonalityBond').value = pers.bonds || '';
+    document.getElementById('ePersonalityFlaw').value = pers.flaws || '';
+    document.getElementById('eBackstory').value = p.backstory || '';
+    
+    // Awatar
+    if (p.avatar) {
+        if (p.avatar.startsWith('http')) {
+            document.getElementById('eAvatarUrl').value = p.avatar;
+            document.getElementById('eAvatarPreview').innerHTML = '<img src="' + p.avatar + '" onerror="this.parentNode.textContent=\'🧙\'">';
+        } else {
+            document.getElementById('eAvatarPreview').textContent = p.avatar;
+            document.querySelectorAll('#eAvatarGrid .avatar-btn').forEach(function(b) {
+                b.classList.toggle('active', b.dataset.avatar === p.avatar);
+            });
+        }
+    }
+    
+    // Reset tabów - pokaż pierwszy
+    document.querySelectorAll('.edit-tab').forEach(function(tab, i) {
+        if (i === 0) tab.classList.add('active');
+        else tab.classList.remove('active');
+    });
+    document.querySelectorAll('.edit-tab-content').forEach(function(content, i) {
+        if (i === 0) content.classList.add('active');
+        else content.classList.remove('active');
+    });
+    
+    var popup = document.getElementById('editPlayerPopup');
+    if (popup) popup.style.display = 'flex';
+}
+
+function closeEditPlayerModal() {
+    var popup = document.getElementById('editPlayerPopup');
+    if (popup) popup.style.display = 'none';
+    editingPlayerIndex = null;
+}
+
+function confirmEditPlayer() {
+    if (editingPlayerIndex === null) return;
+    
+    var p = players[editingPlayerIndex];
+    if (!p) return;
+    
+    var name = document.getElementById('eName').value.trim();
+    if (!name) { alert('Podaj imię postaci!'); return; }
+    
+    // Atrybuty
+    var str = parseInt(document.getElementById('eStr').value) || 10;
+    var dex = parseInt(document.getElementById('eDex').value) || 10;
+    var con = parseInt(document.getElementById('eCon').value) || 10;
+    var int = parseInt(document.getElementById('eInt').value) || 10;
+    var wis = parseInt(document.getElementById('eWis').value) || 10;
+    var cha = parseInt(document.getElementById('eCha').value) || 10;
+    
+    // Walka
+    var hp = parseInt(document.getElementById('eHP').value) || 0;
+    var maxHp = parseInt(document.getElementById('eMaxHP').value) || 10;
+    var tempHp = parseInt(document.getElementById('eTempHP').value) || 0;
+    var ac = parseInt(document.getElementById('eAC').value) || 10;
+    var speed = parseInt(document.getElementById('eSpeed').value) || 30;
+    var passivePerception = parseInt(document.getElementById('ePassivePerception').value) || 10;
+    var level = parseInt(document.getElementById('eLevel').value) || 1;
+    
+    // Rzuty obronne
+    var savingThrows = [];
+    document.querySelectorAll('.e-saving-throw:checked').forEach(function(cb) {
+        savingThrows.push(cb.dataset.stat);
+    });
+    
+    // Umiejętności
+    var proficiencies = [];
+    document.querySelectorAll('.e-skill:checked').forEach(function(cb) {
+        proficiencies.push(cb.dataset.skill);
+    });
+    
+    // Inne biegłości
+    var otherProfs = document.getElementById('eOtherProfs').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    var languages = document.getElementById('eLanguages').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+    
+    // Ekwipunek
+    var weapons = document.getElementById('eWeapons').value.trim();
+    var armor = document.getElementById('eArmor').value.trim();
+    var items = document.getElementById('eItems').value.trim();
+    var gold = parseInt(document.getElementById('eGold').value) || 0;
+    
+    var features = document.getElementById('eFeatures').value.split('\n').map(function(s) { return s.trim(); }).filter(Boolean);
+    var spells = document.getElementById('eSpells').value.split('\n').map(function(s) { return s.trim(); }).filter(Boolean);
+    
+    // Osobowość
+    var personality = {
+        traits: document.getElementById('ePersonalityTrait').value.trim(),
+        ideals: document.getElementById('ePersonalityIdeal').value.trim(),
+        bonds: document.getElementById('ePersonalityBond').value.trim(),
+        flaws: document.getElementById('ePersonalityFlaw').value.trim()
+    };
+    
+    var backstory = document.getElementById('eBackstory').value.trim();
+    
+    // Awatar
+    var avatarUrl = document.getElementById('eAvatarUrl').value.trim();
+    var avatar = avatarUrl || document.getElementById('eAvatarPreview').textContent || '🧙';
+    
+    // Aktualizuj
+    p.name = name;
+    p.role = document.getElementById('eRole').value;
+    p.race = document.getElementById('eRace').value.trim();
+    p.class = document.getElementById('eClass').value.trim();
+    p.level = level;
+    p.background = document.getElementById('eBackground').value.trim();
+    p.alignment = document.getElementById('eAlignment').value;
+    
+    p.str = str; p.dex = dex; p.con = con; p.int = int; p.wis = wis; p.cha = cha;
+    p.hp = hp;
+    p.maxHp = maxHp;
+    p.tempHp = tempHp;
+    p.ac = ac;
+    p.speed = speed;
+    p.passivePerception = passivePerception;
+    p.pb = Math.floor((level + 7) / 4);
+    
+    p.savingThrows = savingThrows;
+    p.proficiencies = proficiencies;
+    p.otherProficiencies = otherProfs;
+    p.languages = languages;
+    
+    p.weapons = weapons;
+    p.armor = armor;
+    p.items = items;
+    p.gold = gold;
+    p.features = features;
+    p.spells = spells;
+    
+    p.personality = personality;
+    p.backstory = backstory;
+    p.avatar = avatar;
+    
+    closeEditPlayerModal();
+    renderPlayers();
+    if (typeof saveState === 'function') saveState();
+    if (typeof playSound === 'function') playSound('add');
+}
 
 // ====== RENDER BIBLIOTEKI ======
 function renderPlayers() {
@@ -87,12 +474,12 @@ function renderPlayers() {
         var tile = document.createElement('button');
         tile.className = 'player-tile';
         tile.dataset.index = index;
-        tile.style.setProperty('--accent', ROLE_COLORS[p.role] || '#5a1a14');
-        tile.style.setProperty('--accent-dim', ROLE_COLORS[p.role] ? ROLE_COLORS[p.role] + '88' : '#5a1a1488');
+        var roleColor = ROLE_COLORS[p.role] || '#5a1a14';
+        tile.style.setProperty('--accent', roleColor);
+        tile.style.setProperty('--accent-dim', roleColor + '88');
         tile.style.animationDelay = (index * 70) + 'ms';
         
         var classIcon = CLASS_ICONS[p.class] || '⚔️';
-        var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
         
         tile.innerHTML = `
             <div class="player-tile-band">
@@ -107,7 +494,7 @@ function renderPlayers() {
                     <span>HP <b>${p.hp || 0}/${p.maxHp || 0}</b></span>
                     <span>⚡ <b>${p.speed || 30}'</b></span>
                 </div>
-                ${p.role ? `<div class="player-tile-role" style="background:${ROLE_COLORS[p.role]}44;color:${ROLE_COLORS[p.role]};">${p.role}</div>` : ''}
+                ${p.role ? `<div class="player-tile-role" style="background:${roleColor}44;color:${roleColor};">${p.role}</div>` : ''}
             </div>
         `;
         
@@ -123,8 +510,6 @@ function renderPlayers() {
 function openCharacterDetail(index) {
     var p = players[index];
     if (!p) return;
-    
-    currentPlayerId = p.id;
     
     var overlay = document.getElementById('characterDetailOverlay');
     var content = document.getElementById('characterDetailContent');
@@ -176,22 +561,22 @@ function openCharacterDetail(index) {
     }).join('');
     
     // Ekwipunek
-    var equipHtml = '';
-    if (p.equipment && p.equipment.length > 0) {
-        equipHtml = '<ul>' + p.equipment.map(function(e) { return '<li>' + e + '</li>'; }).join('') + '</ul>';
-    } else {
-        equipHtml = '<p style="color:var(--parchment-dim);font-style:italic;">Brak ekwipunku</p>';
-    }
+    var equipItems = [];
+    if (p.weapons) equipItems.push(p.weapons);
+    if (p.armor) equipItems.push(p.armor);
+    if (p.items) equipItems.push(p.items);
+    if (p.gold > 0) equipItems.push('🪙 ' + p.gold + ' sztuk złota');
+    
+    var equipHtml = equipItems.length > 0 
+        ? '<ul>' + equipItems.map(function(e) { return '<li>' + e + '</li>'; }).join('') + '</ul>'
+        : '<p style="color:var(--parchment-dim);font-style:italic;">Brak ekwipunku</p>';
     
     // Cechy
-    var featuresHtml = '';
-    if (p.features && p.features.length > 0) {
-        featuresHtml = '<ul>' + p.features.map(function(f) {
-            return '<li><strong style="color:var(--gold);">' + f.name + '.</strong> ' + f.desc + '</li>';
-        }).join('') + '</ul>';
-    } else {
-        featuresHtml = '<p style="color:var(--parchment-dim);font-style:italic;">Brak cech</p>';
-    }
+    var featuresHtml = p.features && p.features.length > 0
+        ? '<ul>' + p.features.map(function(f) {
+            return '<li><strong style="color:var(--gold);">' + f + '</strong></li>';
+        }).join('') + '</ul>'
+        : '<p style="color:var(--parchment-dim);font-style:italic;">Brak cech</p>';
     
     // Zaklęcia
     var spellHtml = '';
@@ -207,25 +592,37 @@ function openCharacterDetail(index) {
     }
     
     // Osobowość
-    var personality = p.personality || {};
+    var pers = p.personality || {};
     var personalityHtml = `
         <div class="char-quotes">
-            ${personality.traits ? `<div class="char-quote"><div class="char-quote-label">Cecha charakteru</div><p>${personality.traits}</p></div>` : ''}
-            ${personality.ideals ? `<div class="char-quote"><div class="char-quote-label">Ideał</div><p>${personality.ideals}</p></div>` : ''}
-            ${personality.bonds ? `<div class="char-quote"><div class="char-quote-label">Więź</div><p>${personality.bonds}</p></div>` : ''}
-            ${personality.flaws ? `<div class="char-quote"><div class="char-quote-label">Wada</div><p>${personality.flaws}</p></div>` : ''}
+            ${pers.traits ? `<div class="char-quote"><div class="char-quote-label">Cecha charakteru</div><p>${pers.traits}</p></div>` : ''}
+            ${pers.ideals ? `<div class="char-quote"><div class="char-quote-label">Ideał</div><p>${pers.ideals}</p></div>` : ''}
+            ${pers.bonds ? `<div class="char-quote"><div class="char-quote-label">Więź</div><p>${pers.bonds}</p></div>` : ''}
+            ${pers.flaws ? `<div class="char-quote"><div class="char-quote-label">Wada</div><p>${pers.flaws}</p></div>` : ''}
         </div>
     `;
     
-    // Backstory
-    var backstoryHtml = p.backstory ? 
-        `<div class="char-backstory">${p.backstory}</div>` : 
-        '<p style="color:var(--parchment-dim);font-style:italic;">Brak historii</p>';
+    var backstoryHtml = p.backstory 
+        ? '<div class="char-backstory">' + p.backstory + '</div>'
+        : '<p style="color:var(--parchment-dim);font-style:italic;">Brak historii</p>';
     
     // Awatar
     var avatarHtml = p.avatar && p.avatar.startsWith('http') 
         ? '<img src="' + p.avatar + '" onerror="this.parentNode.textContent=\'🧙\'">' 
         : (p.avatar || '🧙');
+    
+    // Biegłości
+    var profsHtml = '';
+    var allProfs = (p.proficiencies || []).concat(p.otherProficiencies || []);
+    if (allProfs.length > 0) {
+        profsHtml = '<ul>' + allProfs.map(function(prof) { return '<li>' + prof + '</li>'; }).join('') + '</ul>';
+    } else {
+        profsHtml = '<p style="color:var(--parchment-dim);font-style:italic;">Brak</p>';
+    }
+    
+    var languagesHtml = p.languages && p.languages.length > 0
+        ? '<ul>' + p.languages.map(function(lang) { return '<li>' + lang + '</li>'; }).join('') + '</ul>'
+        : '<p style="color:var(--parchment-dim);font-style:italic;">Brak</p>';
     
     content.innerHTML = `
         <div class="char-sheet-head" style="background:linear-gradient(120deg, ${headerColor} 0%, transparent 65%), var(--panel);">
@@ -238,7 +635,7 @@ function openCharacterDetail(index) {
                 <div class="char-sheet-align">${p.alignment || 'Neutralny'}</div>
             </div>
             <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="char-action-btn" onclick="editPlayer(${index})">✎ Edytuj</button>
+                <button class="char-action-btn" onclick="openEditPlayer(${index})">✎ Edytuj</button>
                 <button class="char-action-btn" onclick="if(confirm('Usunąć ${p.name}?')){removePlayer(${index});}">🗑️</button>
             </div>
         </div>
@@ -279,9 +676,11 @@ function openCharacterDetail(index) {
             </details>
             <details>
                 <summary>Biegłości</summary>
-                <div class="char-content">
-                    ${p.proficiencies && p.proficiencies.length > 0 ? '<ul>' + p.proficiencies.map(function(prof) { return '<li>' + prof + '</li>'; }).join('') + '</ul>' : '<p style="color:var(--parchment-dim);font-style:italic;">Brak</p>'}
-                </div>
+                <div class="char-content">${profsHtml}</div>
+            </details>
+            <details>
+                <summary>Języki</summary>
+                <div class="char-content">${languagesHtml}</div>
             </details>
             <details>
                 <summary>Cechy i zdolności</summary>
@@ -317,199 +716,9 @@ function closeCharacterDetail() {
         overlay.style.display = 'none';
         document.body.style.overflow = '';
     }
-    currentPlayerId = null;
 }
 
-// ====== EDYCJA POSTACI ======
-function editPlayer(index) {
-    var p = players[index];
-    if (!p) return;
-    
-    editingPlayerId = index;
-    
-    // Wypełnij formularz danymi
-    document.getElementById('pName').value = p.name || '';
-    document.getElementById('pRole').value = p.role || 'Gracz';
-    document.getElementById('pRace').value = p.race || '';
-    document.getElementById('pClass').value = p.class || '';
-    document.getElementById('pLevel').value = p.level || 1;
-    document.getElementById('pBackground').value = p.background || '';
-    document.getElementById('pAlignment').value = p.alignment || 'Neutralny';
-    
-    document.getElementById('pStr').value = p.str || 10;
-    document.getElementById('pDex').value = p.dex || 10;
-    document.getElementById('pCon').value = p.con || 10;
-    document.getElementById('pInt').value = p.int || 10;
-    document.getElementById('pWis').value = p.wis || 10;
-    document.getElementById('pCha').value = p.cha || 10;
-    
-    document.getElementById('pHP').value = p.hp || 0;
-    document.getElementById('pMaxHP').value = p.maxHp || 0;
-    document.getElementById('pTempHP').value = p.tempHp || 0;
-    document.getElementById('pAC').value = p.ac || 10;
-    document.getElementById('pSpeed').value = p.speed || 30;
-    document.getElementById('pPassivePerception').value = p.passivePerception || 10;
-    
-    // Biegłości
-    document.querySelectorAll('.saving-throw-checkbox').forEach(function(cb) {
-        cb.checked = p.savingThrows && p.savingThrows.includes(cb.dataset.stat);
-    });
-    document.querySelectorAll('.skill-checkbox').forEach(function(cb) {
-        cb.checked = p.proficiencies && p.proficiencies.includes(cb.dataset.skill);
-    });
-    
-    // Awatar
-    if (p.avatar) {
-        if (p.avatar.startsWith('http')) {
-            document.getElementById('avatarUrl').value = p.avatar;
-            document.getElementById('avatarPreview').innerHTML = '<img src="' + p.avatar + '" onerror="this.parentNode.textContent=\'🧙\'">';
-        } else {
-            selectedAvatar = p.avatar || '🧙';
-            document.getElementById('avatarPreview').textContent = selectedAvatar;
-            document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) {
-                b.classList.toggle('active', b.dataset.avatar === selectedAvatar);
-            });
-        }
-    }
-    
-    // Ekwipunek
-    document.getElementById('pWeapons').value = p.weapons || '';
-    document.getElementById('pArmor').value = p.armor || '';
-    document.getElementById('pItems').value = p.items || '';
-    document.getElementById('pGold').value = p.gold || 0;
-    
-    // Osobowość
-    var pers = p.personality || {};
-    document.getElementById('pPersonalityTrait').value = pers.traits || '';
-    document.getElementById('pPersonalityIdeal').value = pers.ideals || '';
-    document.getElementById('pPersonalityBond').value = pers.bonds || '';
-    document.getElementById('pPersonalityFlaw').value = pers.flaws || '';
-    
-    // Historia
-    document.getElementById('pBackstory').value = p.backstory || '';
-    
-    // Zmień tytuł
-    document.querySelector('#playerModalTitle').textContent = '✎ Edytuj postać';
-    
-    var popup = document.getElementById('addPlayerPopup');
-    if (popup) {
-        popup.style.display = 'flex';
-    }
-}
-
-// ====== ZAPISZ POSTAĆ (dodawanie/edycja) ======
-function confirmAddPlayer() {
-    var isEdit = editingPlayerId !== null;
-    var index = editingPlayerId;
-    
-    // Pobierz dane z formularza
-    var name = document.getElementById('pName').value.trim();
-    if (!name) { alert('Podaj imię postaci'); return; }
-    
-    var role = document.getElementById('pRole').value;
-    var race = document.getElementById('pRace').value.trim();
-    var cls = document.getElementById('pClass').value.trim();
-    var level = parseInt(document.getElementById('pLevel').value) || 1;
-    var background = document.getElementById('pBackground').value.trim();
-    var alignment = document.getElementById('pAlignment').value;
-    
-    var str = parseInt(document.getElementById('pStr').value) || 10;
-    var dex = parseInt(document.getElementById('pDex').value) || 10;
-    var con = parseInt(document.getElementById('pCon').value) || 10;
-    var int = parseInt(document.getElementById('pInt').value) || 10;
-    var wis = parseInt(document.getElementById('pWis').value) || 10;
-    var cha = parseInt(document.getElementById('pCha').value) || 10;
-    
-    var hp = parseInt(document.getElementById('pHP').value) || 0;
-    var maxHp = parseInt(document.getElementById('pMaxHP').value) || 10;
-    var tempHp = parseInt(document.getElementById('pTempHP').value) || 0;
-    var ac = parseInt(document.getElementById('pAC').value) || 10;
-    var speed = parseInt(document.getElementById('pSpeed').value) || 30;
-    var passivePerception = parseInt(document.getElementById('pPassivePerception').value) || 10;
-    
-    var savingThrows = [];
-    document.querySelectorAll('.saving-throw-checkbox:checked').forEach(function(cb) {
-        savingThrows.push(cb.dataset.stat);
-    });
-    
-    var proficiencies = [];
-    document.querySelectorAll('.skill-checkbox:checked').forEach(function(cb) {
-        proficiencies.push(cb.dataset.skill);
-    });
-    
-    var avatar = selectedAvatarUrl || selectedAvatar || '🧙';
-    
-    var weapons = document.getElementById('pWeapons').value.trim();
-    var armor = document.getElementById('pArmor').value.trim();
-    var items = document.getElementById('pItems').value.trim();
-    var gold = parseInt(document.getElementById('pGold').value) || 0;
-    
-    var personality = {
-        traits: document.getElementById('pPersonalityTrait').value.trim(),
-        ideals: document.getElementById('pPersonalityIdeal').value.trim(),
-        bonds: document.getElementById('pPersonalityBond').value.trim(),
-        flaws: document.getElementById('pPersonalityFlaw').value.trim()
-    };
-    
-    var backstory = document.getElementById('pBackstory').value.trim();
-    
-    var playerData = {
-        id: isEdit ? players[index].id : generateId(),
-        name: name,
-        role: role,
-        race: race,
-        class: cls,
-        level: level,
-        background: background,
-        alignment: alignment,
-        str: str, dex: dex, con: con, int: int, wis: wis, cha: cha,
-        hp: hp,
-        maxHp: maxHp,
-        tempHp: tempHp,
-        ac: ac,
-        speed: speed,
-        passivePerception: passivePerception,
-        pb: Math.floor((level + 7) / 4),
-        savingThrows: savingThrows,
-        proficiencies: proficiencies,
-        expertise: [],
-        avatar: avatar,
-        weapons: weapons,
-        armor: armor,
-        items: items,
-        gold: gold,
-        equipment: [],
-        features: [],
-        spells: [],
-        personality: personality,
-        backstory: backstory,
-        conditions: [],
-        exhaustionLevel: 0,
-        deathSaves: { passes: 0, fails: 0 }
-    };
-    
-    // Usuń puste właściwości
-    Object.keys(playerData).forEach(function(key) {
-        if (playerData[key] === '' || playerData[key] === null || playerData[key] === undefined) {
-            delete playerData[key];
-        }
-    });
-    
-    if (isEdit) {
-        players[index] = playerData;
-    } else {
-        players.push(playerData);
-    }
-    
-    editingPlayerId = null;
-    document.querySelector('#playerModalTitle').textContent = '➕ Nowa postać';
-    closeAddPlayerModal();
-    renderPlayers();
-    if (typeof saveState === 'function') saveState();
-    if (typeof playSound === 'function') playSound('add');
-}
-
-// ====== USUWANIE POSTACI ======
+// ====== USUWANIE ======
 function removePlayer(index) {
     if (confirm('Usunąć ' + players[index].name + '?')) {
         if (typeof combatants !== 'undefined') {
@@ -650,131 +859,22 @@ function syncToCombat() {
     renderPlayers();
 }
 
-// ====== INICJALIZACJA ======
-function initAvatarPicker() {
-    var grid = document.getElementById('avatarGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    var avatars = ['🧙', '🧝', '🧛', '🧟', '🧞', '🧜', '🦹', '🦸', '🥷', '🧚', '👑', '🐉', '🐺', '🦅', '🐻', '🦁', '🗡️', '🛡️', '⚔️', '🏹', '🪄', '💀', '👹', '👻'];
-    avatars.forEach(function(a) {
-        var btn = document.createElement('button');
-        btn.className = 'avatar-btn' + (a === '🧙' ? ' active' : '');
-        btn.dataset.avatar = a;
-        btn.textContent = a;
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-            selectedAvatar = a;
-            selectedAvatarUrl = '';
-            var urlInput = document.getElementById('avatarUrl');
-            if (urlInput) urlInput.value = '';
-            updateAvatarPreview();
-        });
-        grid.appendChild(btn);
-    });
-    
-    var urlInput = document.getElementById('avatarUrl');
-    if (urlInput) {
-        urlInput.addEventListener('input', function() {
-            var url = this.value.trim();
-            if (url) {
-                selectedAvatarUrl = url;
-                selectedAvatar = '';
-                document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) { b.classList.remove('active'); });
-            } else {
-                selectedAvatarUrl = '';
-                selectedAvatar = '';
-            }
-            updateAvatarPreview();
-        });
-    }
-}
-
-function updateAvatarPreview() {
-    var preview = document.getElementById('avatarPreview');
-    if (!preview) return;
-    if (selectedAvatarUrl) {
-        preview.innerHTML = '<img src="' + selectedAvatarUrl + '" onerror="this.parentNode.textContent=\'🧙\'">';
-    } else {
-        preview.textContent = selectedAvatar || '🧙';
-    }
-}
-
-// ====== MODAL ======
-function openAddPlayerModal() {
-    selectedAvatar = '🧙';
-    selectedAvatarUrl = '';
-    editingPlayerId = null;
-    document.querySelector('#playerModalTitle').textContent = '➕ Nowa postać';
-    
-    // Wyczyść formularz
-    document.getElementById('pName').value = '';
-    document.getElementById('pRole').value = 'Gracz';
-    document.getElementById('pRace').value = '';
-    document.getElementById('pClass').value = '';
-    document.getElementById('pLevel').value = 1;
-    document.getElementById('pBackground').value = '';
-    document.getElementById('pAlignment').value = 'Neutralny';
-    
-    document.getElementById('pStr').value = 10;
-    document.getElementById('pDex').value = 10;
-    document.getElementById('pCon').value = 10;
-    document.getElementById('pInt').value = 10;
-    document.getElementById('pWis').value = 10;
-    document.getElementById('pCha').value = 10;
-    
-    document.getElementById('pHP').value = 10;
-    document.getElementById('pMaxHP').value = 10;
-    document.getElementById('pTempHP').value = 0;
-    document.getElementById('pAC').value = 10;
-    document.getElementById('pSpeed').value = 30;
-    document.getElementById('pPassivePerception').value = 10;
-    
-    document.querySelectorAll('.saving-throw-checkbox').forEach(function(cb) { cb.checked = false; });
-    document.querySelectorAll('.skill-checkbox').forEach(function(cb) { cb.checked = false; });
-    
-    document.getElementById('pWeapons').value = '';
-    document.getElementById('pArmor').value = '';
-    document.getElementById('pItems').value = '';
-    document.getElementById('pGold').value = 0;
-    
-    document.getElementById('pPersonalityTrait').value = '';
-    document.getElementById('pPersonalityIdeal').value = '';
-    document.getElementById('pPersonalityBond').value = '';
-    document.getElementById('pPersonalityFlaw').value = '';
-    document.getElementById('pBackstory').value = '';
-    
-    document.getElementById('avatarUrl').value = '';
-    updateAvatarPreview();
-    
-    document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) {
-        b.classList.toggle('active', b.dataset.avatar === '🧙');
-    });
-    
-    var popup = document.getElementById('addPlayerPopup');
-    if (popup) popup.style.display = 'flex';
-}
-
-function closeAddPlayerModal() {
-    var popup = document.getElementById('addPlayerPopup');
-    if (popup) popup.style.display = 'none';
-    editingPlayerId = null;
-    document.querySelector('#playerModalTitle').textContent = '➕ Nowa postać';
-}
-
 // ====== EKSPORT ======
 window.players = players;
 window.renderPlayers = renderPlayers;
 window.openCharacterDetail = openCharacterDetail;
 window.closeCharacterDetail = closeCharacterDetail;
-window.editPlayer = editPlayer;
+window.openEditPlayer = openEditPlayer;
+window.closeEditPlayerModal = closeEditPlayerModal;
+window.confirmEditPlayer = confirmEditPlayer;
 window.openAddPlayerModal = openAddPlayerModal;
 window.closeAddPlayerModal = closeAddPlayerModal;
-window.confirmAddPlayer = confirmAddPlayer;
+window.confirmSimpleAdd = confirmSimpleAdd;
 window.removePlayer = removePlayer;
 window.addPlayerToInitiative = addPlayerToInitiative;
 window.shortRestPlayer = shortRestPlayer;
 window.longRestPlayer = longRestPlayer;
 window.showPlayerCondPopup = showPlayerCondPopup;
 window.syncToCombat = syncToCombat;
-window.initAvatarPicker = initAvatarPicker;
+window.initAvatarPickers = initAvatarPickers;
+window.initEditTabs = initEditTabs;
