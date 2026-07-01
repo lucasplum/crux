@@ -1,36 +1,32 @@
 // ============================================================
 //  TIMERS
 // ============================================================
-
 var timers = [];
 var timerInterval = null;
 
 function openTimers() {
   var existing = document.getElementById('timerPopup');
   if (existing) existing.remove();
-
   var popup = document.createElement('div');
   popup.className = 'popup-overlay';
   popup.id = 'timerPopup';
-  popup.innerHTML = `
-    <div class="popup-content timer-popup-content">
-      <div class="popup-title">⏱️ Efekty czasowe</div>
-      <div class="timer-list" id="timerList"></div>
-      <div class="timer-add">
-        <input id="timerName" placeholder="Nazwa efektu..."/>
-        <select id="timerDuration">
-          <option value="1">1 tura</option>
-          <option value="2">2 tury</option>
-          <option value="3">3 tury</option>
-          <option value="5">5 tur</option>
-          <option value="10">10 tur</option>
-          <option value="999">∞</option>
-        </select>
-        <button onclick="addTimer()">+</button>
-      </div>
-      <button class="popup-close" onclick="closeTimerPopup()">✕ Zamknij</button>
-    </div>
-  `;
+  popup.innerHTML = '<div class="popup-content timer-popup-content">' +
+    '<div class="popup-title">⏱️ Efekty czasowe</div>' +
+    '<div class="timer-list" id="timerList"></div>' +
+    '<div class="timer-add">' +
+      '<input id="timerName" placeholder="Nazwa efektu..."/>' +
+      '<select id="timerDuration">' +
+        '<option value="1">1 tura</option>' +
+        '<option value="2">2 tury</option>' +
+        '<option value="3">3 tury</option>' +
+        '<option value="5">5 tur</option>' +
+        '<option value="10">10 tur</option>' +
+        '<option value="999">∞</option>' +
+      '</select>' +
+      '<button onclick="addTimer()">+</button>' +
+    '</div>' +
+    '<button class="popup-close" onclick="closeTimerPopup()">✕ Zamknij</button>' +
+  '</div>';
   document.body.appendChild(popup);
   updateTimerList();
 }
@@ -45,18 +41,16 @@ function updateTimerList() {
   if (!container) return;
   container.innerHTML = '';
   if (timers.length === 0) {
-    container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:6px;">Brak aktywnych efektów</div>';
+    container.innerHTML = '<div style="color:var(--parchment-dim);font-size:.7rem;text-align:center;padding:6px;">Brak aktywnych efektów</div>';
     return;
   }
   timers.forEach(function(t, i) {
     var div = document.createElement('div');
     div.className = 'timer-item';
     var timeStr = t.remaining >= 999 ? '∞' : t.remaining + ' tur';
-    div.innerHTML = `
-      <span class="timer-name">${t.name}</span>
-      <span class="timer-time">${timeStr}</span>
-      <span class="timer-remove" onclick="removeTimer(${i})">✕</span>
-    `;
+    div.innerHTML = '<span class="timer-name">' + t.name + '</span>' +
+                    '<span class="timer-time">' + timeStr + '</span>' +
+                    '<span class="timer-remove" onclick="removeTimer(' + i + ')">✕</span>';
     container.appendChild(div);
   });
 }
@@ -71,10 +65,8 @@ function addTimer() {
   timers.push({ name: name, duration: duration, remaining: duration, active: true });
   nameInput.value = '';
   updateTimerList();
-  if (!timerInterval) {
-    timerInterval = setInterval(tickTimers, 1000);
-  }
-  playSound('add');
+  if (!timerInterval) timerInterval = setInterval(tickTimers, 1000);
+  if (typeof playSound === 'function') playSound('add');
 }
 
 function removeTimer(index) {
@@ -111,7 +103,6 @@ function advanceTimers() {
   updateTimerList();
 }
 
-// Eksport do window
 window.openTimers = openTimers;
 window.closeTimerPopup = closeTimerPopup;
 window.addTimer = addTimer;

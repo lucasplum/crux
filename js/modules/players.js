@@ -1,21 +1,16 @@
 // ============================================================
 //  PLAYERS - Z KRÓTKIM I DŁUGIM ODPOCZYNKEM
 // ============================================================
-
 var players = [];
 var selectedAvatar = '🧙';
 var selectedAvatarUrl = '';
 var conditionPopupTarget = null;
 var dmgPopupTarget = null;
 
-// ====== SYNCHRONIZACJA Z POTYCZKĄ ======
 function syncToCombat() {
   if (typeof combatants === 'undefined' || !combatants) return;
-  
   players.forEach(function(p) {
-    var combatant = combatants.find(function(c) { 
-      return c.name === p.name && c.role === p.role; 
-    });
+    var combatant = combatants.find(function(c) { return c.name === p.name && c.role === p.role; });
     if (combatant) {
       if (combatant.hp !== p.hp) p.hp = combatant.hp;
       if (JSON.stringify(combatant.conditions) !== JSON.stringify(p.conditions)) {
@@ -26,11 +21,9 @@ function syncToCombat() {
       }
     }
   });
-  
   renderPlayers();
 }
 
-// ====== AVATAR PICKER ======
 function initAvatarPicker() {
   document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -43,7 +36,6 @@ function initAvatarPicker() {
       updateAvatarPreview();
     });
   });
-
   var urlInput = document.getElementById('avatarUrl');
   if (urlInput) {
     urlInput.addEventListener('input', function() {
@@ -64,14 +56,10 @@ function initAvatarPicker() {
 function updateAvatarPreview() {
   var preview = document.getElementById('avatarPreview');
   if (!preview) return;
-  if (selectedAvatarUrl) {
-    preview.innerHTML = '<img src="' + selectedAvatarUrl + '" onerror="this.parentNode.textContent=\'🧙\'">';
-  } else {
-    preview.textContent = selectedAvatar;
-  }
+  if (selectedAvatarUrl) preview.innerHTML = '<img src="' + selectedAvatarUrl + '" onerror="this.parentNode.textContent=\'🧙\'">';
+  else preview.textContent = selectedAvatar;
 }
 
-// ====== MODAL ======
 function openAddPlayerModal() {
   selectedAvatar = '🧙';
   selectedAvatarUrl = '';
@@ -86,12 +74,10 @@ function openAddPlayerModal() {
   if (roleSelect) roleSelect.value = 'Gracz';
   if (urlInput) urlInput.value = '';
   updateAvatarPreview();
-
   document.querySelectorAll('#avatarGrid .avatar-btn').forEach(function(b) {
     if (b.dataset.avatar === '🧙') b.classList.add('active');
     else b.classList.remove('active');
   });
-
   var popup = document.getElementById('addPlayerPopup');
   if (popup) {
     popup.style.display = 'flex';
@@ -109,109 +95,92 @@ function confirmAddPlayer() {
   var hpInput = document.getElementById('pHp');
   var acInput = document.getElementById('pAc');
   var roleSelect = document.getElementById('pRole');
-
   var name = nameInput ? nameInput.value.trim() : '';
   var hp = parseInt(hpInput ? hpInput.value : 0) || 0;
   var ac = parseInt(acInput ? acInput.value : 0) || 0;
   var role = roleSelect ? roleSelect.value : 'Gracz';
-
   if (!name) { alert('Podaj imię postaci'); return; }
-
   players.push({
-    name: name,
-    hp: hp,
-    maxHp: hp,
-    ac: ac,
-    role: role,
-    conditions: [],
-    exhaustionLevel: 0,
+    name: name, hp: hp, maxHp: hp, ac: ac, role: role,
+    conditions: [], exhaustionLevel: 0,
     deathSaves: { passes: 0, fails: 0 },
     avatar: selectedAvatarUrl || selectedAvatar
   });
-
   closeAddPlayerModal();
   renderPlayers();
   playSound('add');
 }
 
-// ====== RENDER ======
 function renderPlayers() {
   var container = document.getElementById('playerTracker');
   if (!container) return;
-
   container.innerHTML = '';
   if (players.length === 0) {
-    container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:12px;">👥 Brak postaci – kliknij „➕ Dodaj postać"</div>';
+    container.innerHTML = '<div style="color:var(--parchment-dim);font-size:.7rem;text-align:center;padding:12px;">👥 Brak postaci – kliknij „➕ Dodaj postać"</div>';
     return;
   }
-
   players.forEach(function(p, i) {
     var div = document.createElement('div');
     div.className = 'player-card';
     div.dataset.role = p.role;
-
     var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
-    var hpColor = hpPct < 25 ? 'var(--red)' : hpPct < 50 ? 'var(--gold)' : 'var(--green)';
-    
-    var condTags = p.conditions.map(function(c) { 
-      return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>'; 
+    var hpColor = hpPct < 25 ? '#ff6b6b' : hpPct < 50 ? 'var(--gold)' : '#6bff9e';
+    var condTags = p.conditions.map(function(c) {
+      return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>';
     }).join('');
-    
     var exhaustionTag = '';
     if (p.exhaustionLevel > 0) {
       var exLevel = p.exhaustionLevel > 6 ? 6 : p.exhaustionLevel;
-      exhaustionTag = '<span class="tag" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.2);color:var(--red);">🥱 Wyczerpanie ' + exLevel + '/6</span>';
+      exhaustionTag = '<span class="tag" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.2);color:#ff6b6b;">🥱 Wyczerpanie ' + exLevel + '/6</span>';
     }
-    
     var ds = p.deathSaves || { passes: 0, fails: 0 };
-    var avatarHtml = p.avatar && p.avatar.startsWith('http')
-      ? '<img src="' + p.avatar + '" onerror="this.parentNode.innerHTML=\'' + (p.avatar && p.avatar.length <= 2 ? p.avatar : '🧙') + '\'">'
-      : (p.avatar || '🧙');
-
+    var avatarHtml;
+    if (p.avatar && p.avatar.startsWith('http')) {
+      var fallback = (p.avatar && p.avatar.length <= 2) ? p.avatar : '🧙';
+      avatarHtml = '<img src="' + p.avatar + '" onerror="this.parentNode.innerHTML=\'' + fallback + '\'">';
+    } else {
+      avatarHtml = p.avatar || '🧙';
+    }
     var firstState = p.conditions[0];
     var stateOverlay = firstState
       ? '<div class="avatar-state-overlay" style="color:' + getStateColor(firstState) + '">' + getStateEmoji(firstState) + '</div>'
       : '';
-
     var stateBtnClass = p.conditions.length > 0 || p.exhaustionLevel > 0 ? 'p-state-btn has-conds' : 'p-state-btn';
-    var stateBtnText = (p.conditions.length > 0 || p.exhaustionLevel > 0) ? '⚙️ Stany (' + (p.conditions.length + (p.exhaustionLevel > 0 ? 1 : 0)) + ')' : '⚙️ Stany';
-
+    var stateBtnText = (p.conditions.length > 0 || p.exhaustionLevel > 0)
+      ? '⚙️ Stany (' + (p.conditions.length + (p.exhaustionLevel > 0 ? 1 : 0)) + ')'
+      : '⚙️ Stany';
     var isDead = p.hp <= 0;
     var deathSaveText = isDead ? '💀 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails : '';
-
-    div.innerHTML = `
-      <div class="p-header">
-        <div class="p-avatar">${avatarHtml}${stateOverlay}</div>
-        <div class="p-main">
-          <div class="p-name">${p.name}<span class="${getRoleBadge(p.role)}">${p.role}</span>${isDead ? ' 💀' : ''}</div>
-          <div class="p-stats-row">
-            <div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">${p.ac}</span></div>
-            <div class="p-maxhp-badge"><span class="hp-icon">❤️</span><span class="hp-val">${p.maxHp}</span></div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="p-hp-wrap">
-        <div class="p-hp-bar">
-          <div class="p-hp-fill" style="width:${hpPct}%;background:${hpColor};"></div>
-        </div>
-        <div class="p-hp-text" style="color:${hpColor}">${p.hp}</div>
-      </div>
-      
-      ${isDead ? '<div style="font-size:.55rem;color:var(--muted);margin:2px 0;">' + deathSaveText + '</div>' : ''}
-      
-      <div class="p-cond">${condTags}${exhaustionTag}</div>
-      
-      <button class="${stateBtnClass}" onclick="event.stopPropagation();showPlayerCondPopup(${i})">${stateBtnText}</button>
-      
-      <div class="p-controls">
-        <button class="primary" onclick="event.stopPropagation();addPlayerToInitiative(${i})">⚡ Do walki</button>
-        <button class="success" onclick="event.stopPropagation();shortRestPlayer(${i})">☕ Krótki</button>
-        <button class="success" onclick="event.stopPropagation();longRestPlayer(${i})">🛏️ Długi</button>
-        ${isDead ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : ''}
-        <button class="danger" onclick="event.stopPropagation();removePlayer(${i})">✕ Usuń</button>
-      </div>
-    `;
+    var roleBadge = getRoleBadge(p.role);
+    var deadIcon = isDead ? ' 💀' : '';
+    var deathDiv = isDead ? '<div style="font-size:.55rem;color:var(--parchment-dim);margin:2px 0;">' + deathSaveText + '</div>' : '';
+    var deathBtn = isDead ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : '';
+    
+    div.innerHTML = 
+      '<div class="p-header">' +
+        '<div class="p-avatar">' + avatarHtml + stateOverlay + '</div>' +
+        '<div class="p-main">' +
+          '<div class="p-name">' + p.name + ' <span class="' + roleBadge + '">' + p.role + '</span>' + deadIcon + '</div>' +
+          '<div class="p-stats-row">' +
+            '<div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">' + p.ac + '</span></div>' +
+            '<div class="p-maxhp-badge"><span class="hp-icon">❤️</span><span class="hp-val">' + p.maxHp + '</span></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="p-hp-wrap">' +
+        '<div class="p-hp-bar"><div class="p-hp-fill" style="width:' + hpPct + '%;background:' + hpColor + ';"></div></div>' +
+        '<div class="p-hp-text" style="color:' + hpColor + '">' + p.hp + '</div>' +
+      '</div>' +
+      deathDiv +
+      '<div class="p-cond">' + condTags + exhaustionTag + '</div>' +
+      '<button class="' + stateBtnClass + '" onclick="event.stopPropagation();showPlayerCondPopup(' + i + ')">' + stateBtnText + '</button>' +
+      '<div class="p-controls">' +
+        '<button class="primary" onclick="event.stopPropagation();addPlayerToInitiative(' + i + ')">⚡ Do walki</button>' +
+        '<button class="success" onclick="event.stopPropagation();shortRestPlayer(' + i + ')">☕ Krótki</button>' +
+        '<button class="success" onclick="event.stopPropagation();longRestPlayer(' + i + ')">🛏️ Długi</button>' +
+        deathBtn +
+        '<button class="danger" onclick="event.stopPropagation();removePlayer(' + i + ')">✕ Usuń</button>' +
+      '</div>';
     container.appendChild(div);
   });
 }
@@ -221,77 +190,58 @@ function getRoleBadge(role) {
   return 'p-role-badge ' + (map[role] || 'npc');
 }
 
-// ====== KRÓTKI ODPOCZYNEK ======
 function shortRestPlayer(index) {
   var p = players[index];
   if (!p) return;
-  
   var healAmount = Math.ceil(p.maxHp / 4);
   var newHp = Math.min(p.maxHp, p.hp + healAmount);
   var exhaustionReduction = p.exhaustionLevel > 0 ? 1 : 0;
-  
   var msg = '☕ Krótki odpoczynek dla ' + p.name + '\n\n';
   msg += '• Leczenie: +' + healAmount + ' HP (' + p.hp + ' → ' + newHp + ')\n';
   msg += '• Wyczerpanie: -' + exhaustionReduction + ' poziom' + (exhaustionReduction > 0 ? ' (' + p.exhaustionLevel + ' → ' + (p.exhaustionLevel - 1) + ')' : ' (brak)');
-  
   if (!confirm(msg)) return;
-  
   p.hp = newHp;
   p.exhaustionLevel = Math.max(0, p.exhaustionLevel - exhaustionReduction);
-  
   syncPlayerAfterRest(p);
   renderPlayers();
   playSound('add');
 }
 
-// ====== DŁUGI ODPOCZYNEK ======
 function longRestPlayer(index) {
   var p = players[index];
   if (!p) return;
-  
   if (p.hp >= p.maxHp && p.conditions.length === 0 && p.exhaustionLevel === 0) {
     alert(p.name + ' jest już w pełni wypoczęty!');
     return;
   }
-  
   if (!confirm('🛏️ Długi odpoczynek dla ' + p.name + '?\n\n• Przywraca pełne HP (' + p.maxHp + ')\n• Usuwa wszystkie stany\n• Resetuje wyczerpanie\n• Resetuje Death Saves')) return;
-  
   p.hp = p.maxHp;
   p.conditions = [];
   p.exhaustionLevel = 0;
   p.deathSaves = { passes: 0, fails: 0 };
-  
   syncPlayerAfterRest(p);
   renderPlayers();
   playSound('add');
 }
 
-// ====== SYNCHRONIZACJA PO ODPOCZYNKU ======
 function syncPlayerAfterRest(player) {
   if (typeof combatants === 'undefined') return;
-  
-  var combatant = combatants.find(function(c) { 
-    return c.name === player.name && c.role === player.role; 
-  });
+  var combatant = combatants.find(function(c) { return c.name === player.name && c.role === player.role; });
   if (combatant) {
     combatant.hp = player.hp;
     combatant.conditions = player.conditions.slice();
     combatant.exhaustionLevel = player.exhaustionLevel;
-    if (player.hp > 0) {
-      combatant.status = 'active';
-    }
+    if (player.hp > 0) combatant.status = 'active';
     if (typeof renderInit === 'function') renderInit();
     if (typeof updateCombatStats === 'function') updateCombatStats();
   }
 }
 
-// ====== AKCJE ======
 function removePlayer(index) {
-  if (confirm('Usunąć ' + players[index]?.name + '?')) {
+  if (!players[index]) return;
+  if (confirm('Usunąć ' + players[index].name + '?')) {
     if (typeof combatants !== 'undefined') {
-      var idx = combatants.findIndex(function(c) { 
-        return c.name === players[index].name && c.role === players[index].role; 
-      });
+      var idx = combatants.findIndex(function(c) { return c.name === players[index].name && c.role === players[index].role; });
       if (idx > -1) {
         combatants.splice(idx, 1);
         if (typeof renderInit === 'function') renderInit();
@@ -308,21 +258,18 @@ function deathSave(index) {
   if (!p) return;
   var roll = rollDice(20);
   if (roll === 1) { p.deathSaves.fails += 2; playSound('death'); }
-  else if (roll === 20) { p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0; playSound('crit'); renderPlayers(); syncToCombat(); return; }
+  else if (roll === 20) {
+    p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0;
+    playSound('crit'); renderPlayers(); syncToCombat(); return;
+  }
   else if (roll >= 10) p.deathSaves.passes++;
   else p.deathSaves.fails++;
-
   if (p.deathSaves.fails >= 3) {
     playSound('death');
-    if (confirm('💀 ' + p.name + ' umiera! Usunąć?')) {
-      removePlayer(index);
-      return;
-    }
+    if (confirm('💀 ' + p.name + ' umiera! Usunąć?')) { removePlayer(index); return; }
   }
   if (p.deathSaves.passes >= 3) {
-    p.hp = 1;
-    p.deathSaves.passes = 0;
-    p.deathSaves.fails = 0;
+    p.hp = 1; p.deathSaves.passes = 0; p.deathSaves.fails = 0;
     playSound('add');
   }
   renderPlayers();
@@ -332,30 +279,16 @@ function deathSave(index) {
 function addPlayerToInitiative(index) {
   var p = players[index];
   if (!p) return;
-  
   if (typeof combatants !== 'undefined') {
-    var exists = combatants.some(function(c) { 
-      return c.name === p.name && c.role === p.role; 
-    });
-    if (exists) {
-      alert('Ta postać jest już w potyczce!');
-      return;
-    }
+    var exists = combatants.some(function(c) { return c.name === p.name && c.role === p.role; });
+    if (exists) { alert('Ta postać jest już w potyczce!'); return; }
   }
-  
   var initVal = prompt('Inicjatywa dla ' + p.name + ':') || '0';
   if (typeof addCombatant === 'function') {
     addCombatant({
-      name: p.name,
-      init: parseInt(initVal) || 0,
-      hp: p.hp,
-      maxHp: p.maxHp,
-      ac: p.ac,
-      role: p.role,
-      conditions: p.conditions.slice(),
-      exhaustionLevel: p.exhaustionLevel || 0,
-      roundDamage: 0,
-      avatar: p.avatar
+      name: p.name, init: parseInt(initVal) || 0, hp: p.hp, maxHp: p.maxHp,
+      ac: p.ac, role: p.role, conditions: p.conditions.slice(),
+      exhaustionLevel: p.exhaustionLevel || 0, roundDamage: 0, avatar: p.avatar
     });
   }
   playSound('add');
@@ -365,16 +298,13 @@ function showPlayerCondPopup(index) {
   conditionPopupTarget = { type: 'player', index: index };
   var p = players[index];
   if (!p) return;
-  
   showCondPopup(p.name, p.conditions || [], p.exhaustionLevel || 0, function(cond, exhaustionLevel) {
     if (cond) {
       var idx = p.conditions.indexOf(cond);
       if (idx > -1) p.conditions.splice(idx, 1);
       else { p.conditions.push(cond); if (typeof addTurnLog === 'function') addTurnLog(p.name, '👤 ' + getStateEmoji(cond) + ' ' + cond); }
     }
-    if (exhaustionLevel !== undefined) {
-      p.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
-    }
+    if (exhaustionLevel !== undefined) p.exhaustionLevel = Math.max(0, Math.min(6, exhaustionLevel));
     renderPlayers();
     syncToCombat();
     var popup = document.getElementById('condPopup');
@@ -392,41 +322,30 @@ function triggerHpHitAnimation(index) {
   }
 }
 
-// ====== DAMAGE POPUP ======
 function showDamagePopup(targetName) {
   var existing = document.getElementById('dmgPopup');
   if (existing) existing.remove();
-
   var popup = document.createElement('div');
   popup.className = 'popup-overlay';
   popup.id = 'dmgPopup';
-  popup.innerHTML = `
-    <div class="popup-content dmg-popup-content">
-      <div class="popup-title">⚔️ ${targetName}</div>
-      <div class="dmg-sub">Wprowadź obrażenia lub rzuć kością</div>
-      <div class="dmg-input-row"><input type="number" id="dmgAmount" placeholder="0" value="" step="1"/></div>
-      <div class="dmg-btns">
-        <button onclick="rollDmg(4)">🎲 k4</button>
-        <button onclick="rollDmg(6)">🎲 k6</button>
-        <button onclick="rollDmg(8)">🎲 k8</button>
-        <button onclick="rollDmg(10)">🎲 k10</button>
-        <button onclick="rollDmg(12)">🎲 k12</button>
-        <button class="crit" onclick="rollDmg(20)">💀 k20</button>
-      </div>
-      <div class="dmg-check"><input type="checkbox" id="dmgCrit"/><label for="dmgCrit">💀 Krytyk (x2)</label></div>
-      <div class="dmg-actions">
-        <button class="btn-dmg" onclick="applyDamage()">⚔️ Zadaj</button>
-        <button class="btn-cancel" onclick="closeDmgPopup()">Anuluj</button>
-      </div>
-    </div>
-  `;
+  popup.innerHTML = '<div class="popup-content dmg-popup-content">' +
+    '<div class="popup-title">⚔️ ' + targetName + '</div>' +
+    '<div class="dmg-sub">Wprowadź obrażenia lub rzuć kością</div>' +
+    '<div class="dmg-input-row"><input type="number" id="dmgAmount" placeholder="0" value="" step="1"/></div>' +
+    '<div class="dmg-btns">' +
+      '<button onclick="rollDmg(4)">🎲 k4</button><button onclick="rollDmg(6)">🎲 k6</button>' +
+      '<button onclick="rollDmg(8)">🎲 k8</button><button onclick="rollDmg(10)">🎲 k10</button>' +
+      '<button onclick="rollDmg(12)">🎲 k12</button><button class="crit" onclick="rollDmg(20)">💀 k20</button>' +
+    '</div>' +
+    '<div class="dmg-check"><input type="checkbox" id="dmgCrit"/><label for="dmgCrit">💀 Krytyk (x2)</label></div>' +
+    '<div class="dmg-actions">' +
+      '<button class="btn-dmg" onclick="applyDamage()">⚔️ Zadaj</button>' +
+      '<button class="btn-cancel" onclick="closeDmgPopup()">Anuluj</button>' +
+    '</div>' +
+  '</div>';
   document.body.appendChild(popup);
-
   var input = document.getElementById('dmgAmount');
-  if (input) {
-    input.focus();
-    setTimeout(function() { input.select(); }, 100);
-  }
+  if (input) { input.focus(); setTimeout(function() { input.select(); }, 100); }
 }
 
 function closeDmgPopup() {
@@ -447,7 +366,6 @@ function applyDamage() {
   var dmg = parseInt(input.value);
   if (isNaN(dmg) || dmg < 0) { alert('Podaj poprawną wartość obrażeń'); return; }
   if (critCheck && critCheck.checked) dmg *= 2;
-
   if (dmgPopupTarget) {
     if (dmgPopupTarget.type === 'player') {
       var p = players[dmgPopupTarget.index];
@@ -460,51 +378,40 @@ function applyDamage() {
       }
     } else if (dmgPopupTarget.type === 'init') {
       var c = combatants[dmgPopupTarget.index];
-      if (c) {
-        if (typeof dealDamage === 'function') {
-          dealDamage(null, dmgPopupTarget.index, dmg, 'obrażenia', false);
-        }
+      if (c && typeof dealDamage === 'function') {
+        dealDamage(null, dmgPopupTarget.index, dmg, 'obrażenia', false);
       }
     }
   }
   closeDmgPopup();
 }
 
-// ====== CONDITION POPUP ======
 function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
   var existing = document.getElementById('condPopup');
   if (existing) existing.remove();
-
   var popup = document.createElement('div');
   popup.className = 'popup-overlay';
   popup.id = 'condPopup';
-
   var btns = '';
   POLISH_STATES.forEach(function(c) {
     var active = currentConds.indexOf(c) > -1 ? 'active' : '';
     btns += '<button class="cond-popup-btn ' + active + '" data-cond="' + c + '">' + getStateEmoji(c) + ' ' + c + '</button>';
   });
-
   var exLevel = exhaustionLevel || 0;
   var exBtns = '';
   for (var i = 0; i <= 6; i++) {
     var active = i === exLevel ? 'active' : '';
     exBtns += '<button class="cond-popup-btn ' + active + '" data-exhaustion="' + i + '" style="min-width:36px;justify-content:center;">' + i + '</button>';
   }
-
-  popup.innerHTML = `
-    <div class="popup-content cond-popup-content">
-      <div class="popup-title">🐦‍⬛ ${name} — Stany</div>
-      <div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--muted);">🥱 Wyczerpanie (0-6):</div>
-      <div class="cond-popup-grid" style="grid-template-columns:repeat(7,1fr);margin-bottom:12px;">${exBtns}</div>
-      <div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--muted);">📋 Stany:</div>
-      <div class="cond-popup-grid">${btns}</div>
-      <button class="popup-close" onclick="closeCondPopup()">✕ Zamknij</button>
-    </div>
-  `;
-
+  popup.innerHTML = '<div class="popup-content cond-popup-content">' +
+    '<div class="popup-title">🐦‍⬛ ' + name + ' — Stany</div>' +
+    '<div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--parchment-dim);">🥱 Wyczerpanie (0-6):</div>' +
+    '<div class="cond-popup-grid" style="grid-template-columns:repeat(7,1fr);margin-bottom:12px;">' + exBtns + '</div>' +
+    '<div style="margin-bottom:8px;font-size:var(--font-sm);color:var(--parchment-dim);">📋 Stany:</div>' +
+    '<div class="cond-popup-grid">' + btns + '</div>' +
+    '<button class="popup-close" onclick="closeCondPopup()">✕ Zamknij</button>' +
+  '</div>';
   var currentExhaustion = exLevel;
-
   popup.querySelectorAll('.cond-popup-btn[data-exhaustion]').forEach(function(b) {
     b.onclick = function() {
       var level = parseInt(b.dataset.exhaustion);
@@ -515,7 +422,6 @@ function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
       onToggle(null, level);
     };
   });
-
   popup.querySelectorAll('.cond-popup-btn[data-cond]').forEach(function(b) {
     b.onclick = function() {
       var cond = b.dataset.cond;
@@ -523,7 +429,6 @@ function showCondPopup(name, currentConds, exhaustionLevel, onToggle) {
       b.classList.toggle('active');
     };
   });
-
   document.body.appendChild(popup);
 }
 
@@ -544,11 +449,9 @@ function closeCondPopup() {
   conditionPopupTarget = null;
 }
 
-// ====== INICJALIZACJA PICKERA AWATARÓW ======
 function initCombatantAvatarPicker() {
   var grid = document.getElementById('combatantAvatarGrid');
   if (!grid) return;
-  
   var buttons = grid.querySelectorAll('.avatar-btn');
   buttons.forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -561,8 +464,6 @@ function initCombatantAvatarPicker() {
 }
 
 window.initCombatantAvatarPicker = initCombatantAvatarPicker;
-
-// ====== Eksport globalny ======
 window.openAddPlayerModal = openAddPlayerModal;
 window.closeAddPlayerModal = closeAddPlayerModal;
 window.confirmAddPlayer = confirmAddPlayer;

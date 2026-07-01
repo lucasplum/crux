@@ -1,7 +1,6 @@
 // ============================================================
 //  SPELLS - Obszary zaklęć z autouzupełnianiem
 // ============================================================
-
 var spellCanvas = document.getElementById('spellCanvas');
 var pctx = spellCanvas ? spellCanvas.getContext('2d') : null;
 var allSpellsData = [];
@@ -11,12 +10,10 @@ var isLoadingSpells = false;
 function loadSpellsForSuggestions() {
   if (allSpellsData.length > 0) return;
   if (isLoadingSpells) return;
-  
   isLoadingSpells = true;
   var levels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   var loaded = 0;
   var total = levels.length;
-  
   levels.forEach(function(level) {
     var url = 'data/spells/level-' + level + '.json';
     fetch(url)
@@ -27,64 +24,53 @@ function loadSpellsForSuggestions() {
         if (loaded === total) {
           isLoadingSpells = false;
           allSpellsData.sort(function(a, b) {
-            return a.name_pl.localeCompare(b.name_pl);
+            return (a.name_pl || '').localeCompare(b.name_pl || '');
           });
         }
       })
       .catch(function() {
         loaded++;
-        if (loaded === total) {
-          isLoadingSpells = false;
-        }
+        if (loaded === total) isLoadingSpells = false;
       });
   });
 }
 
 // ====== AUTOUZUPEŁNIANIE ======
 var suggestionTimeout = null;
-
 function showSpellSuggestions(query) {
   var container = document.getElementById('spellSuggestions');
   if (!container) return;
-  
   if (!query || query.length < 2) {
     container.classList.remove('active');
     container.innerHTML = '';
     return;
   }
-  
   var results = allSpellsData.filter(function(s) {
-    return s.name_pl.toLowerCase().includes(query.toLowerCase()) ||
-           s.name_en.toLowerCase().includes(query.toLowerCase());
+    return (s.name_pl && s.name_pl.toLowerCase().includes(query.toLowerCase())) ||
+           (s.name_en && s.name_en.toLowerCase().includes(query.toLowerCase()));
   }).slice(0, 10);
-  
   if (results.length === 0) {
     container.classList.remove('active');
     container.innerHTML = '';
     return;
   }
-  
   container.classList.add('active');
   container.innerHTML = '';
-  
   results.forEach(function(spell) {
     var div = document.createElement('div');
     div.className = 'spell-suggestion';
     var levelText = spell.level === 0 ? 'Cantrip' : 'Lvl ' + spell.level;
-    var schoolDisplay = SCHOOL_MAP[spell.school] || spell.school;
-    div.innerHTML = `
-      <span>${spell.name_pl} <span style="color:var(--muted);font-weight:400;">(${spell.name_en})</span></span>
-      <span class="suggestion-level">${levelText} · ${schoolDisplay}</span>
-    `;
+    var schoolDisplay = (typeof SCHOOL_MAP !== 'undefined' ? SCHOOL_MAP[spell.school] : null) || spell.school || '';
+    div.innerHTML = '<span>' + (spell.name_pl || '') + ' <span style="color:var(--parchment-dim);font-weight:400;">(' + (spell.name_en || '') + ')</span></span>' +
+                    '<span class="suggestion-level">' + levelText + ' · ' + schoolDisplay + '</span>';
     div.onclick = function() {
       var input = document.getElementById('spellSearch');
       if (input) {
         input.value = spell.name_pl;
-        // Automatyczne ustawianie kształtu, zasięgu i kierunku
         setSpellFromData(spell);
         container.classList.remove('active');
         container.innerHTML = '';
-        playSound('add');
+        if (typeof playSound === 'function') playSound('add');
       }
     };
     container.appendChild(div);
@@ -93,19 +79,15 @@ function showSpellSuggestions(query) {
 
 // ====== AUTOMATYCZNE USTAWIANIE NA PODSTAWIE ZAKLĘCIA ======
 function setSpellFromData(spell) {
-  var desc = (spell.desc_pl + ' ' + spell.desc_en).toLowerCase();
-  
-  // 1. Kształt
+  var desc = ((spell.desc_pl || '') + ' ' + (spell.desc_en || '')).toLowerCase();
   var shapeSelect = document.getElementById('shape');
   if (shapeSelect) {
     var shape = detectShape(desc);
     shapeSelect.value = shape;
   }
-  
-  // 2. Zasięg
   var sizeSelect = document.getElementById('spellSize');
   if (sizeSelect) {
-    var range = extractRange(spell.range + ' ' + desc);
+    var range = extractRange((spell.range || '') + ' ' + desc);
     if (range) {
       var options = [5, 10, 15, 20, 30, 60, 90, 120];
       var closest = options.reduce(function(prev, curr) {
@@ -114,27 +96,10 @@ function setSpellFromData(spell) {
       sizeSelect.value = closest;
     }
   }
-  
-  // 3. Kierunek (tylko dla stożka, linii, sześcianu)
-  var dirSelect = document.getElementById('direction');
-  if (dirSelect) {
-    // Domyślnie 0° (↑) - nie zmieniamy, chyba że w opisie jest konkretny kierunek
-    // Można by dodać logikę, ale dla większości zaklęć kierunek nie jest określony
-  }
-  
-  // 4. Punkt startowy dla sześcianu
   var originSelect = document.getElementById('cubeOrigin');
-  if (originSelect) {
-    // Domyślnie środek
-    originSelect.value = 'center';
-  }
-  
-  // Wywołaj zmianę
+  if (originSelect) originSelect.value = 'center';
   setTimeout(function() {
-    if (typeof renderSpellCanvas === 'function') {
-      renderSpellCanvas();
-    }
-    // Aktualizuj widoczność originRow
+    if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
     var originRow = document.getElementById('originRow');
     if (originRow) {
       originRow.style.display = shapeSelect && shapeSelect.value === 'cube' ? 'block' : 'none';
@@ -142,58 +107,31 @@ function setSpellFromData(spell) {
   }, 50);
 }
 
-// ====== WYKRYWANIE KSZTAŁTU Z OPISU ======
+// ====== WYKRYWANIE KSZTAŁTU ======
 function detectShape(desc) {
   var shapePatterns = {
     'sphere': ['sfera', 'promień', 'kula', 'aura', 'okrąg', 'krąg', 'obszar', 'otaczający', 'wybuch', 'eksplozja'],
     'cone': ['stożek', 'stożka', 'stożku', 'stożkiem'],
     'line': ['linia', 'linii', 'prosta', 'ściana', 'mur', 'promień', 'wiązka', 'strumień'],
-    'cube': ['sześcian', 'kostka', 'kwadrat', 'prostokąt', 'obszar', 'sześcianu']
+    'cube': ['sześcian', 'kostka', 'kwadrat', 'prostokąt']
   };
-  
-  // Szukamy w opisie
   for (var key in shapePatterns) {
     for (var i = 0; i < shapePatterns[key].length; i++) {
-      if (desc.includes(shapePatterns[key][i])) {
-        return key;
-      }
+      if (desc.includes(shapePatterns[key][i])) return key;
     }
   }
-  
-  // Jeśli nie znaleziono, sprawdź po nazwie szkoły
-  if (desc.includes('stożek') || desc.includes('stożka')) return 'cone';
-  if (desc.includes('linia') || desc.includes('promień')) return 'line';
-  if (desc.includes('ściana') || desc.includes('mur')) return 'line';
-  if (desc.includes('sześcian') || desc.includes('kostka')) return 'cube';
-  
-  // Domyślnie sfera
   return 'sphere';
 }
 
 // ====== EKSTRAKCJA ZASIĘGU ======
 function extractRange(text) {
-  // Szukamy wzorców: "120 ft", "30 ft", "60 ft", itp.
   var match = text.match(/(\d+)\s*ft/);
-  if (match) {
-    return parseInt(match[1]);
-  }
-  
-  // Szukamy w opisie: "zasięg 120 ft", "promień 20 ft"
+  if (match) return parseInt(match[1]);
   var match2 = text.match(/zasi(?:ę|e)g\s*(\d+)\s*ft/);
-  if (match2) {
-    return parseInt(match2[1]);
-  }
-  
+  if (match2) return parseInt(match2[1]);
   var match3 = text.match(/promie(?:ń|n)\s*(\d+)\s*ft/);
-  if (match3) {
-    return parseInt(match3[1]);
-  }
-  
-  // Dla zaklęć bez zasięgu (dotyk)
-  if (text.includes('dotyk') || text.includes('osobisty')) {
-    return 5; // domyślnie 5 ft dla dotyku
-  }
-  
+  if (match3) return parseInt(match3[1]);
+  if (text.includes('dotyk') || text.includes('osobisty')) return 5;
   return null;
 }
 
@@ -201,7 +139,6 @@ function extractRange(text) {
 function renderSpellCanvas() {
   var container = document.getElementById('spellCanvasContainer');
   if (!container || container.offsetWidth === 0 || !spellCanvas || !pctx) return;
-
   var dims = getCanvasDimensions('spell');
   if (dims.width === 0 || dims.height === 0) {
     dims.width = container.offsetWidth;
@@ -209,64 +146,47 @@ function renderSpellCanvas() {
     canvasDimensions.spell.width = dims.width;
     canvasDimensions.spell.height = dims.height;
   }
-
   var state = canvasState.spell;
   clampPan('spell');
-
   var dpr = dims.dpr;
   var canvasW = dims.width;
   var canvasH = dims.height;
-
   var displayW = Math.round(canvasW);
   var displayH = Math.round(canvasH);
-  
   if (spellCanvas.style.width !== displayW + 'px' || spellCanvas.style.height !== displayH + 'px') {
     spellCanvas.style.width = displayW + 'px';
     spellCanvas.style.height = displayH + 'px';
   }
-  
   spellCanvas.width = Math.round(canvasW * state.zoom * dpr);
   spellCanvas.height = Math.round(canvasH * state.zoom * dpr);
-
   pctx.setTransform(1, 0, 0, 1, 0, 0);
   pctx.scale(dpr * state.zoom, dpr * state.zoom);
-
   var w = canvasW, h = canvasH;
-  pctx.clearRect(
-    -state.panX / state.zoom - 50,
-    -state.panY / state.zoom - 50,
-    w / state.zoom + 100,
-    h / state.zoom + 100
-  );
-
+  pctx.clearRect(-state.panX / state.zoom - 50, -state.panY / state.zoom - 50, w / state.zoom + 100, h / state.zoom + 100);
+  
   var shape = document.getElementById('shape') ? document.getElementById('shape').value : 'sphere';
   var radiusHexes = Math.max(1, Math.round(Number(document.getElementById('spellSize') ? document.getElementById('spellSize').value : 20) / 5));
   var dirIndex = Number(document.getElementById('direction') ? document.getElementById('direction').value : 0);
   var cubeOrigin = document.getElementById('cubeOrigin') ? document.getElementById('cubeOrigin').value : 'center';
-
   var baseR = isMobile() ? 12 : 14;
   var R = baseR;
   var HexW = R * 1.73205;
-  
   var maxL = Math.min(w, h) / 2 - 20;
   var L = Math.min(radiusHexes * HexW, maxL);
-  
   var O = { x: w / 2 + state.panX / state.zoom, y: h / 2 + state.panY / state.zoom };
-
+  
   var showDir = shape === 'cone' || shape === 'line' || shape === 'cube';
   var dirParent = document.getElementById('direction') ? document.getElementById('direction').parentElement : null;
   if (dirParent) dirParent.style.opacity = showDir ? '1' : '0.35';
-
   var originRow = document.getElementById('originRow');
   if (originRow) originRow.style.display = shape === 'cube' ? 'block' : 'none';
-
+  
   var angleDeg = dirIndex * 30 - 90;
   var rad = (angleDeg * Math.PI) / 180;
   var F = { x: Math.cos(rad), y: Math.sin(rad) };
   var R_vec = { x: Math.cos(rad + Math.PI / 2), y: Math.sin(rad + Math.PI / 2) };
-
   var path = new Path2D();
-
+  
   if (shape === 'sphere') {
     path.arc(O.x, O.y, L, 0, Math.PI * 2);
   } else if (shape === 'cone') {
@@ -308,42 +228,35 @@ function renderSpellCanvas() {
     path.lineTo(P4.x, P4.y);
     path.closePath();
   }
-
+  
   var count = 0;
   var hexR = Math.min(R, L / 4);
-
   for (var q = -12; q <= 12; q++) {
     for (var rr = -12; rr <= 12; rr++) {
       var cx = O.x + HexW * (q + rr * 0.5);
       var cy = O.y + 1.5 * R * rr;
       if (cx < -hexR || cx > w + hexR || cy < -hexR || cy > h + hexR) continue;
-
       var active = false;
       pctx.save();
       pctx.setTransform(dpr * state.zoom, 0, 0, dpr * state.zoom, 0, 0);
-      
       if (q !== 0 || rr !== 0) {
         active = pctx.isPointInPath(path, cx, cy);
       } else if (shape === 'sphere' || (shape === 'cube' && cubeOrigin === 'center')) {
         active = pctx.isPointInPath(path, cx, cy);
-      } else if (shape === 'cube') {
-        active = pctx.isPointInPath(path, cx, cy);
-      } else if (shape === 'cone' || shape === 'line') {
+      } else if (shape === 'cube' || shape === 'cone' || shape === 'line') {
         active = pctx.isPointInPath(path, cx, cy);
       }
       pctx.restore();
-
       if (active) count++;
       drawHexOnCtx(pctx, cx, cy, hexR - 1, active ? '#a87cff66' : '#14093000', active ? '#c4a8ff99' : '#2a1f4a33');
     }
   }
-
+  
   pctx.lineWidth = 1.5;
   pctx.strokeStyle = '#6bff9ecc';
   pctx.setLineDash([5, 3]);
   pctx.stroke(path);
   pctx.setLineDash([]);
-
   pctx.beginPath();
   pctx.arc(O.x, O.y, hexR * 0.55, 0, Math.PI * 2);
   pctx.fillStyle = '#444a55';
@@ -351,12 +264,11 @@ function renderSpellCanvas() {
   pctx.strokeStyle = '#8090aa';
   pctx.lineWidth = 1.5;
   pctx.stroke();
-
   pctx.beginPath();
   pctx.arc(O.x, O.y, 3, 0, Math.PI * 2);
   pctx.fillStyle = '#aab';
   pctx.fill();
-
+  
   var showCount = document.getElementById('showCount');
   if (showCount && showCount.checked) {
     pctx.fillStyle = '#c4a8ffcc';
@@ -366,56 +278,31 @@ function renderSpellCanvas() {
   }
 }
 
-// ====== MAPOWANIE SZKÓŁ (do wyświetlania) ======
-var SCHOOL_MAP = {
-  'wywoływanie': 'Wywoływanie',
-  'przywoływanie': 'Przywoływanie',
-  'wieszczenie': 'Wieszczenie',
-  'nekromancja': 'Nekromancja',
-  'uroki': 'Uroki',
-  'iluzje': 'Iluzje',
-  'odpychanie': 'Odpychanie',
-  'przemiany': 'Przemiany'
-};
-
 // ====== EVENTY ======
 ['shape', 'spellSize', 'direction', 'cubeOrigin'].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) el.addEventListener('change', renderSpellCanvas);
 });
-
 var showCount = document.getElementById('showCount');
 if (showCount) showCount.addEventListener('change', renderSpellCanvas);
-
 var searchInput = document.getElementById('spellSearch');
 if (searchInput) {
   searchInput.addEventListener('input', function() {
     clearTimeout(suggestionTimeout);
     var query = this.value.trim();
-    suggestionTimeout = setTimeout(function() {
-      showSpellSuggestions(query);
-    }, 200);
+    suggestionTimeout = setTimeout(function() { showSpellSuggestions(query); }, 200);
   });
-  
   searchInput.addEventListener('blur', function() {
     setTimeout(function() {
       var container = document.getElementById('spellSuggestions');
-      if (container) {
-        container.classList.remove('active');
-        container.innerHTML = '';
-      }
+      if (container) { container.classList.remove('active'); container.innerHTML = ''; }
     }, 300);
   });
-  
   searchInput.addEventListener('focus', function() {
     var query = this.value.trim();
-    if (query.length >= 2) {
-      showSpellSuggestions(query);
-    }
+    if (query.length >= 2) showSpellSuggestions(query);
   });
 }
-
-// Załaduj zaklęcia dla podpowiadajki
 loadSpellsForSuggestions();
 
 // ====== EKSPORT ======

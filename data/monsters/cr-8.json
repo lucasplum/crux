@@ -1,0 +1,124 @@
+[
+  {
+    "name": "Golem Złoty",
+    "cr": 8,
+    "type": "Konstrukt (Golden Golem)",
+    "hp": 170,
+    "ac": 20,
+    "speed": "25 ft",
+    "stats": { "str": 24, "dex": 10, "con": 22, "int": 3, "wis": 12, "cha": 4 },
+    "saves": { "str": 10, "con": 9, "wis": 4 },
+    "skills": {},
+    "resistances": ["kwas", "zimno", "elektryczność"],
+    "immunities": ["ogień", "trucizna", "psychiczne", "czary"],
+    "languages": ["nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki mieczem." },
+      { "name": "Miecz", "desc": "Atak bronią: +10 do trafienia, zasięg 5 ft, 2k8+7 obrażeń ciętych." },
+      { "name": "Oślepiający Blask", "desc": "Zasięg 30 ft. Rzut obronny na Kondycję DC 17. Cel jest oślepiony na 1 minutę." }
+    ],
+    "desc": "Golem wykonany z czystego złota. Jest niezwykle wytrzymały i może oślepiać wrogów."
+  },
+  {
+    "name": "Młody Smok Szmaragdowy",
+    "cr": 8,
+    "type": "Smok (Young Emerald Dragon)",
+    "hp": 142,
+    "ac": 19,
+    "speed": "40 ft, latanie 80 ft",
+    "stats": { "str": 20, "dex": 12, "con": 19, "int": 16, "wis": 14, "cha": 18 },
+    "saves": { "dex": 4, "con": 7, "wis": 5, "cha": 7 },
+    "skills": { "percepcja": 8, "religia": 6, "historia": 6 },
+    "resistances": ["kwas"],
+    "immunities": [],
+    "languages": ["rozumie Common, Draconic, mówi Common, Draconic"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje trzy ataki: jeden ugryzieniem i dwa pazurami." },
+      { "name": "Ugryzienie", "desc": "Atak bronią: +8 do trafienia, zasięg 10 ft, 2k10+5 obrażeń kłutych." },
+      { "name": "Pazury", "desc": "Atak bronią: +8 do trafienia, zasięg 5 ft, 2k6+5 obrażeń ciętych." },
+      { "name": "Oddech Kwasu", "desc": "Zasięg 30 ft, stożek. Rzut obronny na Zręczność DC 17. 9k6 obrażeń kwasem (połowa przy sukcesie). Odnowienie na 5-6." }
+    ],
+    "desc": "Młody smok szmaragdowy, zwinny i inteligentny. Atakuje kwasem i pazurami."
+  },
+  {
+    "name": "Ogniowy Olbrzym",
+    "cr": 8,
+    "type": "Olbrzym (Fire Giant)",
+    "hp": 160,
+    "ac": 18,
+    "speed": "30 ft",
+    "stats": { "str": 23, "dex": 10, "con": 20, "int": 10, "wis": 12, "cha": 8 },
+    "saves": { "str": 9, "con": 8, "wis": 4 },
+    "skills": { "atletyka": 9, "percepcja": 4 },
+    "resistances": ["ogień"],
+    "immunities": [],
+    "languages": ["rozumie Giant, mówi Giant"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki mieczem." },
+      { "name": "Miecz", "desc": "Atak bronią: +9 do trafienia, zasięg 10 ft, 2k8+6 obrażeń ciętych." },
+      { "name": "Rzucanie Kamieniem", "desc": "Zasięg 60 ft. Atak bronią: +9 do trafienia, 2k10+6 obrażeń obuchowych." }
+    ],
+    "desc": "Potężny olbrzym zbrojony w ogień i stal. Jest głównym wojownikiem w armii olbrzymów."
+  },
+  {
+    "name": "Widmo",
+    "cr": 8,
+    "type": "Nieumarły (Ghost)",
+    "hp": 110,
+    "ac": 16,
+    "speed": "30 ft, latanie 30 ft (unoszenie)",
+    "stats": { "str": 7, "dex": 15, "con": 14, "int": 16, "wis": 18, "cha": 18 },
+    "saves": { "wis": 7, "cha": 7 },
+    "skills": { "percepcja": 7, "skradanie": 5, "religia": 6 },
+    "resistances": ["kwas", "zimno", "ogień", "elektryczność"],
+    "immunities": ["trucizna", "psychiczne", "strach"],
+    "languages": ["rozumie wszystkie, mówi wszystkie (telepatia)"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki dotykiem." },
+      { "name": "Dotyk", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 4k6 obrażeń nekrotycznych." },
+      { "name": "Strach", "desc": "Zasięg 30 ft. Rzut obronny na Mądrość DC 17. Cel jest przerażony na 1 minutę." }
+    ],
+    "desc": "Złe widmo, które straszy i atakuje żywych. Może przerażać swoją obecnością."
+  },
+  {
+    "name": "Demon Ognia",
+    "cr": 8,
+    "type": "Demon (Fire Demon)",
+    "hp": 135,
+    "ac": 17,
+    "speed": "35 ft, latanie 40 ft",
+    "stats": { "str": 18, "dex": 16, "con": 18, "int": 14, "wis": 14, "cha": 16 },
+    "saves": { "str": 7, "dex": 6, "con": 7, "wis": 5 },
+    "skills": { "percepcja": 5, "religia": 5 },
+    "resistances": ["ogień", "zimno", "kwas"],
+    "immunities": ["trucizna"],
+    "languages": ["rozumie Abyssal, Infernal, mówi Abyssal, Infernal"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje trzy ataki: dwa pazurami i jeden ugryzieniem." },
+      { "name": "Pazury", "desc": "Atak bronią: +8 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych." },
+      { "name": "Ugryzienie", "desc": "Atak bronią: +8 do trafienia, zasięg 5 ft, 2k10+4 obrażeń kłutych." },
+      { "name": "Ognista Kula", "desc": "Zasięg 60 ft. Rzut obronny na Zręczność DC 16. 8k6 obrażeń ogniowych (połowa przy sukcesie). Odnowienie na 5-6." }
+    ],
+    "desc": "Potężny demon ognia, który siał zniszczenie w płomieniach. Jest odporny na ogień."
+  },
+  {
+    "name": "Tyrannosaurus Rex",
+    "cr": 8,
+    "type": "Bestia (Tyrannosaurus Rex)",
+    "hp": 136,
+    "ac": 13,
+    "speed": "50 ft",
+    "stats": { "str": 25, "dex": 10, "con": 19, "int": 2, "wis": 12, "cha": 9 },
+    "saves": { "str": 11, "con": 8 },
+    "skills": { "percepcja": 5 },
+    "resistances": [],
+    "immunities": [],
+    "languages": [],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki: jeden ugryzieniem i jeden ogonem." },
+      { "name": "Ugryzienie", "desc": "Atak bronią: +11 do trafienia, zasięg 10 ft, jeden cel. 4k12+7 obrażeń kłutych. Jeśli cel to stworzenie średnie lub mniejsze, jest pochwycony (DC 17 aby się uwolnić). T-Rex nie może ugryźć innego celu dopóki cel jest pochwycony." },
+      { "name": "Ogon", "desc": "Atak bronią: +11 do trafienia, zasięg 10 ft, jeden cel. 3k10+7 obrażeń obuchowych. Jeśli cel to stworzenie, musi wykonać rzut obronny na Siłę DC 17 lub zostać powalonym." }
+    ],
+    "desc": "Król dinozaurów. Jego szczęki mogą zmiażdżyć kości, a ogon powalić nawet największych wrogów."
+  }
+]

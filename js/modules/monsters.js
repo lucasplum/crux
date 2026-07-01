@@ -1,377 +1,88 @@
 // ============================================================
-//  MONSTERS - BESTIARIUSZ CR 6-8 Z OBRAZKAMI Z API
+//  MONSTERS - BESTIARIUSZ Z JSON (CR 6-8)
+//  Styl: DnD Bestiariusz (złote rogi, pergamin, ozdobne ramki)
 // ============================================================
-
-var monstersData = [];
+var MONSTERS = [];
 var currentMonsterFilter = 'all';
-var monsterSearchQuery = '';
 var selectedMonster = null;
 var pendingMonster = null;
-var monsterImagesLoading = {};
+var monsterCache = {};
+var monsterLoading = false;
 
-// ====== BESTIE CR 6-8 ======
-var MONSTERS = [
-  // ===== CR 6 =====
-  {
-    name: 'Chimera',
-    cr: 6,
-    type: 'Potwór (Chimera)',
-    hp: 114,
-    ac: 18,
-    speed: '30 ft, latanie 60 ft',
-    stats: { str: 19, dex: 12, con: 18, int: 3, wis: 14, cha: 10 },
-    saves: { dex: 4, con: 7, wis: 5 },
-    skills: { percepcja: 6 },
-    resistances: ['ogień', 'kwas', 'zimno', 'elektryczność'],
-    immunities: ['strach'],
-    languages: ['rozumie Draconic, nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje trzy ataki: jeden kłami, jeden rogami i jeden pazurami.' },
-      { name: 'Kły', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń kłutych.' },
-      { name: 'Rogi', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 1k12+4 obrażeń obuchowych.' },
-      { name: 'Pazury', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych.' },
-      { name: 'Oddech Ognia (Zasięg 30 ft, stożek)', desc: 'Rzut obronny na Zręczność DC 15. 7k8 obrażeń ogniowych (połowa przy sukcesie). Odnowienie na 5-6.' }
-    ],
-    desc: 'Potwór z głową lwa, kozła i smoka. Znany z agresji i zdolności ognistego oddechu.'
-  },
-  {
-    name: 'Golem Żelazny',
-    cr: 6,
-    type: 'Konstrukt (Iron Golem)',
-    hp: 120,
-    ac: 20,
-    speed: '25 ft',
-    stats: { str: 22, dex: 10, con: 20, int: 3, wis: 11, cha: 1 },
-    saves: { con: 8, wis: 3 },
-    skills: {},
-    resistances: ['kwas', 'zimno', 'elektryczność'],
-    immunities: ['ogień', 'trucizna', 'psychiczne', 'czary'],
-    languages: ['nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki mieczem.' },
-      { name: 'Miecz', desc: 'Atak bronią: +8 do trafienia, zasięg 5 ft, 2k8+6 obrażeń ciętych.' },
-      { name: 'Zatruty Oddech (Zasięg 15 ft, stożek)', desc: 'Rzut obronny na Kondycję DC 16. 7k6 obrażeń trucizną (połowa przy sukcesie). Odnowienie na 6.' }
-    ],
-    desc: 'Golem wykonany z żelaza. Jest niezwykle wytrzymały i odporny na magię.'
-  },
-  {
-    name: 'Mumia Pani',
-    cr: 6,
-    type: 'Nieumarły (Mummy Lord)',
-    hp: 97,
-    ac: 17,
-    speed: '20 ft',
-    stats: { str: 16, dex: 10, con: 16, int: 12, wis: 18, cha: 14 },
-    saves: { wis: 7, cha: 5 },
-    skills: { religia: 6, historia: 4 },
-    resistances: ['ogień', 'zimno'],
-    immunities: ['trucizna', 'strach', 'czary'],
-    languages: ['rozumie Common, mówi Common'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki pięścią lub używa Gniewu Mumii.' },
-      { name: 'Pięść', desc: 'Atak bronią: +5 do trafienia, zasięg 5 ft, 2k6+3 obrażeń obuchowych + 3k6 nekrotycznych.' },
-      { name: 'Gniew Mumii (Zasięg 30 ft)', desc: 'Rzut obronny na Mądrość DC 15. Cel jest przerażony na 1 minutę.' }
-    ],
-    desc: 'Potężna mumia władająca nekromantyczną mocą. Jej dotyk przynosi zgubę.'
-  },
-  {
-    name: 'Meduza',
-    cr: 6,
-    type: 'Potwór (Medusa)',
-    hp: 85,
-    ac: 15,
-    speed: '30 ft',
-    stats: { str: 10, dex: 15, con: 14, int: 12, wis: 13, cha: 15 },
-    saves: { dex: 5, cha: 5 },
-    skills: { percepcja: 4, skradanie: 5 },
-    resistances: [],
-    immunities: [],
-    languages: ['rozumie Common, mówi Common'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki: jeden sztyletem i jeden wężami.' },
-      { name: 'Sztylet', desc: 'Atak bronią: +5 do trafienia, zasięg 5 ft, 1k4+2 obrażeń kłutych.' },
-      { name: 'Węże', desc: 'Atak bronią: +5 do trafienia, zasięg 5 ft, 1k8+2 obrażeń kłutych + rzut obronny na Kondycję DC 13, 3k6 obrażeń trucizną.' },
-      { name: 'Spojrzenie Kamienia (Zasięg 30 ft)', desc: 'Rzut obronny na Kondycję DC 14. Cel jest spetryfikowany.' }
-    ],
-    desc: 'Potwór z wężami zamiast włosów. Jej spojrzenie zamienia w kamień.'
-  },
-  {
-    name: 'Sfinks Giznacki',
-    cr: 6,
-    type: 'Potwór (Gynosphinx)',
-    hp: 95,
-    ac: 17,
-    speed: '40 ft, latanie 60 ft',
-    stats: { str: 18, dex: 12, con: 16, int: 18, wis: 18, cha: 18 },
-    saves: { wis: 7, cha: 7 },
-    skills: { percepcja: 7, religia: 7, historia: 7 },
-    resistances: ['psychiczne'],
-    immunities: ['strach'],
-    languages: ['rozumie Common, Sphinx, mówi Common, Sphinx'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki pazurami.' },
-      { name: 'Pazury', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych.' },
-      { name: 'Ryk (Zasięg 30 ft)', desc: 'Rzut obronny na Mądrość DC 17. Cel jest przerażony na 1 minutę.' }
-    ],
-    desc: 'Starożytna istota strzegąca tajemnic. Ma zdolności wieszcze i potężną wiedzę.'
-  },
-  {
-    name: 'Wyższy Elemental Ognia',
-    cr: 6,
-    type: 'Elemental (Fire Elemental)',
-    hp: 102,
-    ac: 16,
-    speed: '30 ft, latanie 40 ft',
-    stats: { str: 14, dex: 18, con: 16, int: 6, wis: 12, cha: 8 },
-    saves: { dex: 7, con: 6 },
-    skills: {},
-    resistances: ['ogień', 'kwas', 'zimno', 'elektryczność'],
-    immunities: ['trucizna', 'strach'],
-    languages: ['rozumie Ignan, nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki ognistym dotykiem.' },
-      { name: 'Ognisty Dotyk', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k8+4 obrażeń ogniowych.' },
-      { name: 'Płonąca Chmura (Zasięg 10 ft)', desc: 'Rzut obronny na Kondycję DC 14. 5k6 obrażeń ogniowych.' }
-    ],
-    desc: 'Ogromna istota czystego ognia. Parzy wszystko wokół i jest odporna na ogień.'
-  },
-
-  // ===== CR 7 =====
-  {
-    name: 'Behir',
-    cr: 7,
-    type: 'Potwór (Behir)',
-    hp: 120,
-    ac: 17,
-    speed: '40 ft, wspinaczka 30 ft',
-    stats: { str: 21, dex: 12, con: 18, int: 6, wis: 12, cha: 8 },
-    saves: { str: 8, con: 7 },
-    skills: { percepcja: 4 },
-    resistances: ['elektryczność'],
-    immunities: [],
-    languages: ['rozumie Draconic, nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje trzy ataki: jeden ugryzieniem i dwa pazurami.' },
-      { name: 'Ugryzienie', desc: 'Atak bronią: +8 do trafienia, zasięg 10 ft, 2k10+5 obrażeń kłutych.' },
-      { name: 'Pazury', desc: 'Atak bronią: +8 do trafienia, zasięg 5 ft, 2k6+5 obrażeń ciętych.' },
-      { name: 'Oddech Błyskawicy (Zasięg 30 ft, linia)', desc: 'Rzut obronny na Zręczność DC 16. 8k6 obrażeń elektrycznych (połowa przy sukcesie). Odnowienie na 5-6.' }
-    ],
-    desc: 'Wielki wężopodobny potwór z nogami i pazurami. Atakuje błyskawicami.'
-  },
-  {
-    name: 'Golem Kamienny',
-    cr: 7,
-    type: 'Konstrukt (Stone Golem)',
-    hp: 150,
-    ac: 19,
-    speed: '25 ft',
-    stats: { str: 20, dex: 10, con: 20, int: 3, wis: 11, cha: 1 },
-    saves: { con: 8, wis: 3 },
-    skills: {},
-    resistances: ['kwas', 'zimno', 'elektryczność'],
-    immunities: ['trucizna', 'psychiczne', 'czary'],
-    languages: ['nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki pięścią.' },
-      { name: 'Pięść', desc: 'Atak bronią: +8 do trafienia, zasięg 5 ft, 2k10+5 obrażeń obuchowych.' },
-      { name: 'Zwolnienie (Zasięg 5 ft)', desc: 'Rzut obronny na Mądrość DC 15. Cel jest spowolniony na 1 minutę.' }
-    ],
-    desc: 'Potężny golem z kamienia. Jest prawie niezniszczalny i może spowalniać wrogów.'
-  },
-  {
-    name: 'Młody Smok Miedziany',
-    cr: 7,
-    type: 'Smok (Young Copper Dragon)',
-    hp: 119,
-    ac: 18,
-    speed: '40 ft, latanie 80 ft, wspinaczka 30 ft',
-    stats: { str: 18, dex: 12, con: 18, int: 14, wis: 12, cha: 16 },
-    saves: { dex: 4, con: 7, wis: 4, cha: 6 },
-    skills: { percepcja: 7, skradanie: 4, religia: 5 },
-    resistances: ['kwas'],
-    immunities: [],
-    languages: ['rozumie Common, Draconic, mówi Common, Draconic'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje trzy ataki: jeden ugryzieniem i dwa pazurami.' },
-      { name: 'Ugryzienie', desc: 'Atak bronią: +7 do trafienia, zasięg 10 ft, 2k10+4 obrażeń kłutych.' },
-      { name: 'Pazury', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych.' },
-      { name: 'Oddech Kwasu (Zasięg 30 ft, stożek)', desc: 'Rzut obronny na Zręczność DC 16. 8k6 obrażeń kwasem (połowa przy sukcesie). Odnowienie na 5-6.' }
-    ],
-    desc: 'Młody smok miedziany, zwinny i żartobliwy. Atakuje kwasem i pazurami.'
-  },
-  {
-    name: 'Nocny Koszmar',
-    cr: 7,
-    type: 'Potwór (Nightmare)',
-    hp: 105,
-    ac: 16,
-    speed: '60 ft, latanie 90 ft',
-    stats: { str: 19, dex: 14, con: 16, int: 10, wis: 13, cha: 12 },
-    saves: { dex: 5, con: 6, wis: 4 },
-    skills: { percepcja: 4 },
-    resistances: ['ogień'],
-    immunities: ['strach'],
-    languages: ['rozumie Common, Infernal, nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki kopytami.' },
-      { name: 'Kopyta', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k8+4 obrażeń obuchowych.' },
-      { name: 'Ogniste Kopyta (Zasięg 5 ft)', desc: 'Rzut obronny na Zręczność DC 15. 2k6 obrażeń ogniowych.' }
-    ],
-    desc: 'Złe widmo konia, które siało strach i koszmary w snach swoich ofiar.'
-  },
-  {
-    name: 'Szczur Olbrzymi (Długi Ząb)',
-    cr: 7,
-    type: 'Bestia (Giant Rat)',
-    hp: 80,
-    ac: 14,
-    speed: '40 ft, wspinaczka 30 ft',
-    stats: { str: 18, dex: 14, con: 16, int: 4, wis: 10, cha: 6 },
-    saves: { dex: 5, con: 6 },
-    skills: { skradanie: 5 },
-    resistances: [],
-    immunities: [],
-    languages: ['nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki ugryzieniem.' },
-      { name: 'Ugryzienie', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń kłutych.' }
-    ],
-    desc: 'Ogromny szczur, który żyje w podziemiach i atakuje w stadach.'
-  },
-
-  // ===== CR 8 =====
-  {
-    name: 'Golem Złoty',
-    cr: 8,
-    type: 'Konstrukt (Golden Golem)',
-    hp: 170,
-    ac: 20,
-    speed: '25 ft',
-    stats: { str: 24, dex: 10, con: 22, int: 3, wis: 12, cha: 4 },
-    saves: { str: 10, con: 9, wis: 4 },
-    skills: {},
-    resistances: ['kwas', 'zimno', 'elektryczność'],
-    immunities: ['ogień', 'trucizna', 'psychiczne', 'czary'],
-    languages: ['nie mówi'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki mieczem.' },
-      { name: 'Miecz', desc: 'Atak bronią: +10 do trafienia, zasięg 5 ft, 2k8+7 obrażeń ciętych.' },
-      { name: 'Oślepiający Blask (Zasięg 30 ft)', desc: 'Rzut obronny na Kondycję DC 17. Cel jest oślepiony na 1 minutę.' }
-    ],
-    desc: 'Golem wykonany z czystego złota. Jest niezwykle wytrzymały i może oślepiać wrogów.'
-  },
-  {
-    name: 'Młody Smok Szmaragdowy',
-    cr: 8,
-    type: 'Smok (Young Emerald Dragon)',
-    hp: 142,
-    ac: 19,
-    speed: '40 ft, latanie 80 ft',
-    stats: { str: 20, dex: 12, con: 19, int: 16, wis: 14, cha: 18 },
-    saves: { dex: 4, con: 7, wis: 5, cha: 7 },
-    skills: { percepcja: 8, religia: 6, historia: 6 },
-    resistances: ['kwas'],
-    immunities: [],
-    languages: ['rozumie Common, Draconic, mówi Common, Draconic'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje trzy ataki: jeden ugryzieniem i dwa pazurami.' },
-      { name: 'Ugryzienie', desc: 'Atak bronią: +8 do trafienia, zasięg 10 ft, 2k10+5 obrażeń kłutych.' },
-      { name: 'Pazury', desc: 'Atak bronią: +8 do trafienia, zasięg 5 ft, 2k6+5 obrażeń ciętych.' },
-      { name: 'Oddech Kwasu (Zasięg 30 ft, stożek)', desc: 'Rzut obronny na Zręczność DC 17. 9k6 obrażeń kwasem (połowa przy sukcesie). Odnowienie na 5-6.' }
-    ],
-    desc: 'Młody smok szmaragdowy, zwinny i inteligentny. Atakuje kwasem i pazurami.'
-  },
-  {
-    name: 'Ogniowy Olbrzym',
-    cr: 8,
-    type: 'Olbrzym (Fire Giant)',
-    hp: 160,
-    ac: 18,
-    speed: '30 ft',
-    stats: { str: 23, dex: 10, con: 20, int: 10, wis: 12, cha: 8 },
-    saves: { str: 9, con: 8, wis: 4 },
-    skills: { atletyka: 9, percepcja: 4 },
-    resistances: ['ogień'],
-    immunities: [],
-    languages: ['rozumie Giant, mówi Giant'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki mieczem.' },
-      { name: 'Miecz', desc: 'Atak bronią: +9 do trafienia, zasięg 10 ft, 2k8+6 obrażeń ciętych.' },
-      { name: 'Rzucanie Kamieniem (Zasięg 60 ft)', desc: 'Atak bronią: +9 do trafienia, 2k10+6 obrażeń obuchowych.' }
-    ],
-    desc: 'Potężny olbrzym zbrojony w ogień i stal. Jest głównym wojownikiem w armii olbrzymów.'
-  },
-  {
-    name: 'Widmo (Duchy)',
-    cr: 8,
-    type: 'Nieumarły (Ghost)',
-    hp: 110,
-    ac: 16,
-    speed: '30 ft, latanie 30 ft (unoszenie)',
-    stats: { str: 7, dex: 15, con: 14, int: 16, wis: 18, cha: 18 },
-    saves: { wis: 7, cha: 7 },
-    skills: { percepcja: 7, skradanie: 5, religia: 6 },
-    resistances: ['kwas', 'zimno', 'ogień', 'elektryczność'],
-    immunities: ['trucizna', 'psychiczne', 'strach'],
-    languages: ['rozumie wszystkie, mówi wszystkie (telepatia)'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje dwa ataki dotykiem.' },
-      { name: 'Dotyk', desc: 'Atak bronią: +7 do trafienia, zasięg 5 ft, 4k6 obrażeń nekrotycznych.' },
-      { name: 'Strach (Zasięg 30 ft)', desc: 'Rzut obronny na Mądrość DC 17. Cel jest przerażony na 1 minutę.' }
-    ],
-    desc: 'Złe widmo, które straszy i atakuje żywych. Może przerażać swoją obecnością.'
-  },
-  {
-    name: 'Wyższy Demon Ognia',
-    cr: 8,
-    type: 'Demon (Fire Demon)',
-    hp: 135,
-    ac: 17,
-    speed: '35 ft, latanie 40 ft',
-    stats: { str: 18, dex: 16, con: 18, int: 14, wis: 14, cha: 16 },
-    saves: { str: 7, dex: 6, con: 7, wis: 5 },
-    skills: { percepcja: 5, religia: 5 },
-    resistances: ['ogień', 'zimno', 'kwas'],
-    immunities: ['trucizna'],
-    languages: ['rozumie Abyssal, Infernal, mówi Abyssal, Infernal'],
-    actions: [
-      { name: 'Wieloatak', desc: 'Wykonuje trzy ataki: dwa pazurami i jeden ugryzieniem.' },
-      { name: 'Pazury', desc: 'Atak bronią: +8 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych.' },
-      { name: 'Ugryzienie', desc: 'Atak bronią: +8 do trafienia, zasięg 5 ft, 2k10+4 obrażeń kłutych.' },
-      { name: 'Ognista Kula (Zasięg 60 ft)', desc: 'Rzut obronny na Zręczność DC 16. 8k6 obrażeń ogniowych (połowa przy sukcesie). Odnowienie na 5-6.' }
-    ],
-    desc: 'Potężny demon ognia, który siał zniszczenie w płomieniach. Jest odporny na ogień.'
+// ====== ŁADOWANIE Z JSON ======
+function loadMonsterCR(cr, callback) {
+  if (monsterCache[cr]) {
+    if (callback) callback(monsterCache[cr]);
+    return;
   }
-];
+  var url = 'data/monsters/cr-' + cr + '.json';
+  fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Brak pliku: ' + url);
+      return r.json();
+    })
+    .then(function(data) {
+      monsterCache[cr] = data;
+      if (callback) callback(data);
+    })
+    .catch(function(err) {
+      console.warn('Błąd ładowania CR ' + cr + ':', err);
+      if (callback) callback([]);
+    });
+}
 
-// ====== POBIERANIE OBRAZKÓW DLA POTWORÓW ======
+function loadAllMonsters(callback) {
+  if (MONSTERS.length > 0) {
+    if (callback) callback(MONSTERS);
+    return;
+  }
+  if (monsterLoading) {
+    setTimeout(function() { loadAllMonsters(callback); }, 100);
+    return;
+  }
+  monsterLoading = true;
+  var crs = [6, 7, 8];
+  var loaded = 0;
+  var results = [];
+  crs.forEach(function(cr) {
+    loadMonsterCR(cr, function(data) {
+      results = results.concat(data || []);
+      loaded++;
+      if (loaded === crs.length) {
+        // DEDUPLIKACJA po nazwie
+        var unique = [];
+        var seen = {};
+        results.forEach(function(m) {
+          var key = m.name.toLowerCase().trim();
+          if (!seen[key]) {
+            seen[key] = true;
+            unique.push(m);
+          }
+        });
+        MONSTERS = unique;
+        monsterLoading = false;
+        if (callback) callback(MONSTERS);
+      }
+    });
+  });
+}
+
+// ====== POBIERANIE OBRAZKÓW ======
 function loadMonsterImages(monsters, callback) {
   var total = monsters.length;
   var loaded = 0;
   var results = {};
-  
-  if (total === 0) {
-    if (callback) callback(results);
-    return;
-  }
-  
+  if (total === 0) { if (callback) callback(results); return; }
   monsters.forEach(function(monster) {
     var name = monster.name;
-    
-    // Sprawdź czy już mamy obrazek w cache
     var cacheKey = name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
-    
-    if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache) {
-      if (MONSTER_API.monsterCache[cacheKey]) {
-        var imageUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
-        results[name] = imageUrl;
-        loaded++;
-        if (loaded === total && callback) callback(results);
-        return;
-      }
+    if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
+      var imageUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
+      results[name] = imageUrl;
+      loaded++;
+      if (loaded === total && callback) callback(results);
+      return;
     }
-    
-    // Pobierz obrazek przez API
     if (typeof getMonsterImage === 'function') {
       getMonsterImage(name, function(imageUrl) {
         results[name] = imageUrl || null;
@@ -386,252 +97,184 @@ function loadMonsterImages(monsters, callback) {
   });
 }
 
-// ====== RENDER ======
+// ====== RENDER KARTY BESTIARIUSZA (STYL D&D) ======
 function renderMonsters(filter, query) {
   filter = filter || 'all';
   query = query || '';
-
   var container = document.getElementById('monsterGrid');
   if (!container) return;
 
-  var filtered = MONSTERS;
-
-  if (filter !== 'all') {
-    filtered = filtered.filter(function(m) { return m.cr === parseInt(filter); });
-  }
-
-  if (query) {
-    var q = query.toLowerCase();
-    filtered = filtered.filter(function(m) {
-      return m.name.toLowerCase().includes(q) ||
-             m.type.toLowerCase().includes(q) ||
-             m.desc.toLowerCase().includes(q);
-    });
-  }
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div style="color:var(--parchment-dim);text-align:center;padding:40px;font-size:var(--font-md);">🐉 Brak potworów spełniających kryteria</div>';
-    return;
-  }
-
-  container.innerHTML = '';
-  
-  filtered.forEach(function(m) {
-    var div = document.createElement('div');
-    div.className = 'monster-card';
-    div.dataset.monsterName = m.name;
-
-    var imageHtml = '<div class="monster-image-placeholder" style="width:100%;height:160px;background:rgba(156, 43, 27, 0.05);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;margin-bottom:12px;border:1px dashed #E69A28;color:#9C2B1B;">🐉</div>';
-    
-    var cacheKey = m.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
-    if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
-      var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
-      imageHtml = '<div class="monster-image" style="width:100%;height:160px;border-radius:4px;overflow:hidden;margin-bottom:12px;border:1px solid #E69A28;background:rgba(156, 43, 27, 0.05);"><img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.style.fontSize=\'3.5rem\';this.parentElement.style.display=\'flex\';this.parentElement.style.alignItems=\'center\';this.parentElement.style.justifyContent=\'center\';this.parentElement.style.color=\'#9C2B1B\';"></div>';
+  loadAllMonsters(function(monsters) {
+    var filtered = monsters;
+    if (filter !== 'all') {
+      filtered = filtered.filter(function(m) { return m.cr === parseInt(filter); });
+    }
+    if (query) {
+      var q = query.toLowerCase();
+      filtered = filtered.filter(function(m) {
+        return m.name.toLowerCase().includes(q) ||
+               m.type.toLowerCase().includes(q) ||
+               m.desc.toLowerCase().includes(q);
+      });
     }
 
-    var statsHtml = Object.keys(m.stats).map(function(k) {
-      return '<span>' + k.toUpperCase() + ' ' + m.stats[k] + '</span>';
-    }).join('');
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="monster-empty">🐉 Brak potworów spełniających kryteria</div>';
+      return;
+    }
 
-    var actionsHtml = m.actions.map(function(a) {
-      return '<div class="m-action"><strong>' + a.name + '.</strong> ' + a.desc + '</div>';
-    }).join('');
-
-    div.innerHTML = `
-      <div class="m-header" onclick="openMonsterDetail('${m.name}')">
-        <div class="m-name">${m.name}</div>
-        <div class="m-cr">CR ${m.cr}</div>
-      </div>
-      <div class="m-type">${m.type}</div>
-      ${imageHtml}
-      <div class="m-divider"></div>
-      <div class="m-stats">${statsHtml}</div>
-      <div class="m-divider"></div>
-      <div class="m-desc">${m.desc}</div>
-      <div class="m-actions">${actionsHtml}</div>
-      <button class="m-add-btn" onclick="openMonsterTargetPopup({name:'${m.name.replace(/'/g, "\'")}', cr:${m.cr}, type:'${m.type}', hp:${m.hp}, ac:${m.ac}})">⚔️ Dołącz do walki</button>
-    `;
-
-    container.appendChild(div);
-  });
-  
-  if (typeof getMonsterImage === 'function') {
+    container.innerHTML = '';
     filtered.forEach(function(m) {
-      var cacheKey = m.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
-      if (typeof MONSTER_API === 'undefined' || !MONSTER_API.monsterCache || !MONSTER_API.monsterCache[cacheKey]) {
-        getMonsterImage(m.name, function(imageUrl) {
-          if (imageUrl) {
-            var card = container.querySelector('.monster-card[data-monster-name="' + m.name + '"]');
-            if (card) {
-              var imgContainer = card.querySelector('.monster-image-placeholder');
-              if (imgContainer) {
-                imgContainer.className = 'monster-image';
-                imgContainer.style.border = '1px solid #E69A28';
-                imgContainer.innerHTML = '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.style.fontSize=\'3.5rem\';this.parentElement.style.display=\'flex\';this.parentElement.style.alignItems=\'center\';this.parentElement.style.justifyContent=\'center\';this.parentElement.style.color=\'#9C2B1B\';">';
-              }
-            }
-          }
-        });
-      }
-    });
-  }
-}
+      var div = document.createElement('div');
+      div.className = 'monster-card bestiary-card';
+      div.dataset.monsterName = m.name;
 
-function openMonsterDetail(name) {
-  var monster = MONSTERS.find(function(m) { return m.name === name; });
-  if (!monster) return;
-  
-  selectedMonster = monster;
-  
-  var popup = document.getElementById('monsterDetailPopup');
-  var title = document.getElementById('monsterDetailName');
-  var body = document.getElementById('monsterDetailBody');
-  
-  if (!popup || !title || !body) return;
-  
-  var attrLabels = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
-  
-  var attrHtml = Object.keys(monster.stats).map(function(k) {
-    var mod = Math.floor((monster.stats[k] - 10) / 2);
-    var modStr = mod >= 0 ? '+' + mod : '' + mod;
-    return '<div class="m-attr-item"><div class="label">' + attrLabels[k] + '</div><div class="value">' + monster.stats[k] + ' (' + modStr + ')</div></div>';
-  }).join('');
-  
-  var savesHtml = '';
-  if (monster.saves && Object.keys(monster.saves).length > 0) {
-    var saveLabels = { str: 'Str', dex: 'Dex', con: 'Con', int: 'Int', wis: 'Wis', cha: 'Cha' };
-    savesHtml = Object.keys(monster.saves).map(function(k) {
-      var val = monster.saves[k];
-      var mod = val >= 0 ? '+' + val : '' + val;
-      return saveLabels[k] + ' ' + mod;
-    }).join(', ');
-  }
-  
-  var skillsHtml = '';
-  if (monster.skills && Object.keys(monster.skills).length > 0) {
-    var skillLabels = { 
-      percepcja: 'Perception', skradanie: 'Stealth', atletyka: 'Athletics', 
-      religia: 'Religion', historia: 'History'
-    };
-    skillsHtml = Object.keys(monster.skills).map(function(k) {
-      var val = monster.skills[k];
-      var mod = val >= 0 ? '+' + val : '' + val;
-      var label = skillLabels[k] || k;
-      return label + ' ' + mod;
-    }).join(', ');
-  }
-  
-  var resistancesHtml = monster.resistances ? monster.resistances.join(', ') : '';
-  var immunitiesHtml = monster.immunities ? monster.immunities.join(', ') : '';
-  var languagesHtml = monster.languages ? monster.languages : '--';
-  
-  var actionsHtml = monster.actions.map(function(a) {
-    return '<div class="m-action-item"><span class="action-name">' + a.name + '.</span><span class="action-desc">' + a.desc + '</span></div>';
-  }).join('');
-  
-  // Obrazek w szczegółach
-  var imageHtml = '';
-  var cacheKey = monster.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
-  if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
-    var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
-    imageHtml = '<div class="monster-detail-image" style="float:right;width:150px;height:150px;border-radius:4px;overflow:hidden;margin:0 0 12px 16px;border:1px solid #E69A28;background:rgba(156, 43, 27, 0.05);"><img src="' + imgUrl + '" style="width:100%;height:100%;object-fit:cover;"></div>';
-  } else {
-    // Brak obrazka na start, spróbujemy dociągnąć
-    imageHtml = '<div class="monster-detail-image" style="float:right;width:150px;height:150px;border-radius:4px;overflow:hidden;margin:0 0 12px 16px;border:1px solid #E69A28;background:rgba(156, 43, 27, 0.05);display:flex;align-items:center;justify-content:center;font-size:3rem;color:#9C2B1B;">🐉</div>';
-    if (typeof getMonsterImage === 'function') {
-      getMonsterImage(monster.name, function(imageUrl) {
-        if (imageUrl) {
-          var imgContainer = document.querySelector('.monster-detail-image');
-          if (imgContainer) {
-            imgContainer.innerHTML = '<img src="' + imageUrl + '" style="width:100%;height:100%;object-fit:cover;">';
+      var imageHtml = '<div class="bestiary-image-placeholder">🐉</div>';
+      var cacheKey = m.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
+      if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
+        var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
+        imageHtml = '<div class="bestiary-image"><img src="' + imgUrl + '" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.classList.add(\'bestiary-image-placeholder\')"></div>';
+      }
+
+      // Siatka atrybutów 3x2
+      var attrOrder = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+      var attrLabels = { str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA' };
+      var statsHtml = '<div class="bestiary-stats-grid">';
+      attrOrder.forEach(function(k) {
+        statsHtml += '<div class="bestiary-stat-box"><span class="bestiary-stat-label">' + attrLabels[k] + '</span><span class="bestiary-stat-value">' + m.stats[k] + '</span></div>';
+      });
+      statsHtml += '</div>';
+
+      div.innerHTML =
+        '<div class="bestiary-header" onclick="openMonsterDetail(\'' + m.name.replace(/'/g, "\\'") + '\')">' +
+          '<h3 class="bestiary-name">' + m.name.toUpperCase() + '</h3>' +
+          '<span class="bestiary-cr">CR ' + m.cr + '</span>' +
+        '</div>' +
+        '<div class="bestiary-type">' + m.type + '</div>' +
+        imageHtml +
+        statsHtml +
+        '<div class="bestiary-desc">' + m.desc + '</div>' +
+        '<button class="bestiary-join-btn" onclick="event.stopPropagation();addMonsterToCombat(\'' + m.name.replace(/'/g, "\\'") + '\', ' + m.cr + ', ' + m.hp + ', ' + m.ac + ', \'' + m.type.replace(/'/g, "\\'") + '\')">⚔️ DOŁĄCZ DO WALKI</button>';
+
+      container.appendChild(div);
+    });
+
+    // Ładowanie obrazków w tle
+    loadMonsterImages(filtered, function(images) {
+      var cards = container.querySelectorAll('.bestiary-card');
+      cards.forEach(function(card) {
+        var name = card.dataset.monsterName;
+        if (images[name]) {
+          var placeholder = card.querySelector('.bestiary-image-placeholder');
+          if (placeholder) {
+            var imgContainer = document.createElement('div');
+            imgContainer.className = 'bestiary-image';
+            imgContainer.innerHTML = '<img src="' + images[name] + '" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.classList.add(\'bestiary-image-placeholder\')">';
+            placeholder.replaceWith(imgContainer);
           }
         }
       });
+    });
+  });
+}
+
+// ====== OTWÓRZ SZCZEGÓŁY POTWORA ======
+function openMonsterDetail(name) {
+  loadAllMonsters(function() {
+    var monster = MONSTERS.find(function(m) { return m.name === name; });
+    if (!monster) return;
+    selectedMonster = monster;
+    var popup = document.getElementById('monsterDetailPopup');
+    var title = document.getElementById('monsterDetailName');
+    var body = document.getElementById('monsterDetailBody');
+    if (!popup || !title || !body) return;
+
+    var attrLabels = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
+    var attrIcons = { str: '', dex: '🏃', con: '❤️‍', int: '', wis: '️', cha: '💬' };
+    var attrHtml = Object.keys(monster.stats).map(function(k) {
+      var mod = Math.floor((monster.stats[k] - 10) / 2);
+      var modStr = mod >= 0 ? '+' + mod : '' + mod;
+      return '<div class="m-attr-item"><div class="label">' + attrIcons[k] + ' ' + attrLabels[k] + '</div><div class="value">' + monster.stats[k] + ' (' + modStr + ')</div></div>';
+    }).join('');
+
+    var savesHtml = '';
+    if (monster.saves && Object.keys(monster.saves).length > 0) {
+      var saveLabels = { str: 'Siła', dex: 'Zręczność', con: 'Kondycja', int: 'Inteligencja', wis: 'Mądrość', cha: 'Charyzma' };
+      savesHtml = Object.keys(monster.saves).map(function(k) {
+        var val = monster.saves[k]; var mod = val >= 0 ? '+' + val : '' + val;
+        return '<span class="m-tag">' + saveLabels[k] + ': ' + mod + '</span>';
+      }).join('');
     }
-  }
-  
-  body.innerHTML = `
-    <div class="popup-title">${monster.name}</div>
-    <div class="m-type-line">${monster.type}</div>
-    <hr class="tapered">
-    
-    ${imageHtml}
-    
-    <div class="m-top-stats">
-      <div>Armor Class <span>${monster.ac}</span></div>
-      <div>Hit Points <span>${monster.hp}</span></div>
-      <div>Speed <span>${monster.speed}</span></div>
-    </div>
-    
-    <hr class="tapered">
-    
-    <div class="m-attr-grid">${attrHtml}</div>
-    
-    <hr class="tapered">
-    
-    <div class="m-mid-stats">
-      ${savesHtml ? '<div>Saving Throws <span>' + savesHtml + '</span></div>' : ''}
-      ${skillsHtml ? '<div>Skills <span>' + skillsHtml + '</span></div>' : ''}
-      ${resistancesHtml ? '<div>Damage Resistances <span>' + resistancesHtml + '</span></div>' : ''}
-      ${immunitiesHtml ? '<div>Damage Immunities <span>' + immunitiesHtml + '</span></div>' : ''}
-      <div>Languages <span>${languagesHtml}</span></div>
-      <div>Challenge <span>${monster.cr}</span></div>
-    </div>
-    
-    <hr class="tapered" style="clear:both;">
-    
-    <div class="m-desc-text">${monster.desc}</div>
-    
-    <div class="m-section-title">Actions</div>
-    ${actionsHtml}
-    
-    <div class="btn-grid">
-      <button class="btn outline" onclick="addMonsterDetailAsCompanion()">👥 Dodaj jako NPC</button>
-      <button class="btn" onclick="addMonsterDetailToCombat()">⚔️ Dołącz do potyczki</button>
-    </div>
-  `;
-  
-  title.style.display = 'none'; // Ukrywamy stary tytuł popupa
-  popup.style.display = 'flex';
+    var skillsHtml = '';
+    if (monster.skills && Object.keys(monster.skills).length > 0) {
+      var skillLabels = { percepcja: 'Percepcja', skradanie: 'Skradanie', atletyka: 'Atletyka', religia: 'Religia', historia: 'Historia' };
+      skillsHtml = Object.keys(monster.skills).map(function(k) {
+        var val = monster.skills[k]; var mod = val >= 0 ? '+' + val : '' + val;
+        return '<span class="m-tag skill">' + (skillLabels[k] || k) + ': ' + mod + '</span>';
+      }).join('');
+    }
+    var resistancesHtml = monster.resistances && monster.resistances.length > 0 ? monster.resistances.map(function(r) { return '<span class="m-tag resistance">🛡️ ' + r + '</span>'; }).join('') : '';
+    var immunitiesHtml = monster.immunities && monster.immunities.length > 0 ? monster.immunities.map(function(i) { return '<span class="m-tag immunity">⛔ ' + i + '</span>'; }).join('') : '';
+    var languagesHtml = monster.languages && monster.languages.length > 0 ? '<span class="m-tag language">🗣️ ' + monster.languages.join(', ') + '</span>' : '';
+    var actionsHtml = monster.actions.map(function(a) { return '<div class="m-action-item"><div class="action-name">⚔️ ' + a.name + '</div><div class="action-desc">' + a.desc + '</div></div>'; }).join('');
+
+    var imageHtml = '<div class="monster-detail-image" style="font-size:4rem;padding:20px;">🐉</div>';
+    var cacheKey = monster.name.toLowerCase().replace(/['".,()]/g, '').replace(/\s+/g, '-');
+    if (typeof MONSTER_API !== 'undefined' && MONSTER_API.monsterCache && MONSTER_API.monsterCache[cacheKey]) {
+      var imgUrl = MONSTER_API.baseUrl + MONSTER_API.monsterCache[cacheKey].image;
+      imageHtml = '<div class="monster-detail-image"><img src="' + imgUrl + '" onerror="this.parentElement.innerHTML=\'🐉\';this.parentElement.style.fontSize=\'4rem\'"></div>';
+    } else if (typeof getMonsterImage === 'function') {
+      getMonsterImage(monster.name, function(imageUrl) {
+        if (imageUrl) {
+          var imgContainer = document.querySelector('.monster-detail-image');
+          if (imgContainer) imgContainer.innerHTML = '<img src="' + imageUrl + '" onerror="this.parentElement.innerHTML=\'🐉\'">';
+        }
+      });
+    }
+
+    body.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:8px;">' +
+        '<span style="font-size:var(--font-sm);color:var(--parchment-dim);">' + monster.type + '</span>' +
+        '<span class="m-cr-badge" style="border-color:var(--gold);color:var(--gold);">CR ' + monster.cr + '</span>' +
+      '</div>' +
+      imageHtml +
+      '<div class="m-stat-grid">' +
+        '<div class="m-stat-item"><div class="label">❤️ PW</div><div class="value">' + monster.hp + '</div></div>' +
+        '<div class="m-stat-item"><div class="label">️ KP</div><div class="value">' + monster.ac + '</div></div>' +
+        '<div class="m-stat-item"><div class="label">💨 Prędkość</div><div class="value" style="font-size:var(--font-sm);">' + monster.speed + '</div></div>' +
+      '</div>' +
+      '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:4px 0;">📊 Atrybuty</div>' +
+      '<div class="m-attr-grid">' + attrHtml + '</div>' +
+      (savesHtml ? '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:4px 0;">🛡️ Rzuty obronne</div><div class="m-tags">' + savesHtml + '</div>' : '') +
+      (skillsHtml ? '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:4px 0;"> Umiejętności</div><div class="m-tags">' + skillsHtml + '</div>' : '') +
+      (resistancesHtml ? '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:4px 0;">🛡️ Odporności</div><div class="m-tags">' + resistancesHtml + '</div>' : '') +
+      (immunitiesHtml ? '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:4px 0;">⛔ Immunitety</div><div class="m-tags">' + immunitiesHtml + '</div>' : '') +
+      (languagesHtml ? '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:4px 0;">🗣️ Języki</div><div class="m-tags">' + languagesHtml + '</div>' : '') +
+      '<div style="font-size:0.75rem;color:var(--parchment-dim);margin:8px 0 4px;">⚔️ Akcje</div>' +
+      '<div class="m-action-list">' + actionsHtml + '</div>' +
+      '<div class="m-desc-text">' + monster.desc + '</div>';
+
+    title.textContent = ' ' + monster.name;
+    popup.style.display = 'flex';
+  });
 }
 
-// ====== KOLOR CR ======
-function getCRColor(cr) {
-  var colors = {
-    6: '#6bb8ff',
-    7: '#d4a843',
-    8: '#ff6b6b'
-  };
-  return colors[cr] || 'var(--border)';
-}
-
-// ====== FILTRY ======
 function filterMonsters(cr) {
   currentMonsterFilter = cr;
   var searchInput = document.getElementById('monsterSearch');
   var query = searchInput ? searchInput.value : '';
   renderMonsters(cr, query);
-  
-  document.querySelectorAll('[id^="filter"]').forEach(function(btn) {
-    btn.classList.remove('active');
-  });
-  if (cr === 'all') {
-    var allBtn = document.getElementById('filterAll');
-    if (allBtn) allBtn.classList.add('active');
-  } else {
-    var btn = document.getElementById('filter' + cr);
-    if (btn) btn.classList.add('active');
-  }
+  document.querySelectorAll('[id^="filter"]').forEach(function(btn) { btn.classList.remove('active'); });
+  if (cr === 'all') { var allBtn = document.getElementById('filterAll'); if (allBtn) allBtn.classList.add('active'); }
+  else { var btn = document.getElementById('filter' + cr); if (btn) btn.classList.add('active'); }
 }
 
-// ====== ZAMKNIJ SZCZEGÓŁY ======
 function closeMonsterDetail() {
   var popup = document.getElementById('monsterDetailPopup');
   if (popup) popup.style.display = 'none';
   selectedMonster = null;
 }
 
-// ====== OTWÓRZ POPUP WYBORU CELU ======
 function openMonsterTargetPopup(monster) {
   pendingMonster = monster;
   var popup = document.getElementById('monsterTargetPopup');
@@ -650,53 +293,18 @@ function closeMonsterTargetPopup() {
 
 function confirmMonsterTarget(target) {
   if (!pendingMonster) return;
-  
   var monster = pendingMonster;
-  var name = monster.name;
-  var cr = monster.cr;
-  var hp = monster.hp;
-  var ac = monster.ac;
-  var type = monster.type;
-  
   if (target === 'combat') {
-    if (typeof addCombatant !== 'function') {
-      alert('Moduł potyczki nie jest dostępny!');
-      closeMonsterTargetPopup();
-      return;
-    }
-    var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(cr / 2);
-    addCombatant({
-      name: name,
-      init: initVal,
-      hp: hp,
-      maxHp: hp,
-      ac: ac,
-      role: 'Wróg',
-      avatar: '🐉',
-      conditions: [],
-      exhaustionLevel: 0
-    });
+    if (typeof addCombatant !== 'function') { alert('Moduł potyczki nie jest dostępny!'); closeMonsterTargetPopup(); return; }
+    var initVal = Math.floor(Math.random() * 20) + 1 + Math.floor(monster.cr / 2);
+    addCombatant({ name: monster.name, init: initVal, hp: monster.hp, maxHp: monster.hp, ac: monster.ac, role: 'Wróg', avatar: '🐉', conditions: [], exhaustionLevel: 0 });
     playSound('add');
     closeMonsterTargetPopup();
     var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
     if (combatTab) combatTab.click();
   } else if (target === 'players') {
-    if (typeof players === 'undefined') {
-      alert('Lista postaci nie jest dostępna!');
-      closeMonsterTargetPopup();
-      return;
-    }
-    players.push({
-      name: name,
-      hp: hp,
-      maxHp: hp,
-      ac: ac,
-      role: 'NPC',
-      conditions: [],
-      exhaustionLevel: 0,
-      deathSaves: { passes: 0, fails: 0 },
-      avatar: '🐉'
-    });
+    if (typeof players === 'undefined') { alert('Lista postaci nie jest dostępna!'); closeMonsterTargetPopup(); return; }
+    players.push({ name: monster.name, hp: monster.hp, maxHp: monster.hp, ac: monster.ac, role: 'NPC', conditions: [], exhaustionLevel: 0, deathSaves: { passes: 0, fails: 0 }, avatar: '🐉' });
     if (typeof renderPlayers === 'function') renderPlayers();
     playSound('add');
     closeMonsterTargetPopup();
@@ -705,89 +313,39 @@ function confirmMonsterTarget(target) {
   }
 }
 
-// ====== DODAWANIE DO POTYCZKI (Z KARTY GŁÓWNEJ) ======
 function addMonsterToCombat(name, cr, hp, ac, type) {
-  var monster = MONSTERS.find(function(m) { return m.name === name; });
-  if (!monster) {
-    monster = { name: name, cr: cr, hp: hp, ac: ac, type: type };
-  }
-  openMonsterTargetPopup(monster);
+  loadAllMonsters(function() {
+    var monster = MONSTERS.find(function(m) { return m.name === name; });
+    if (!monster) monster = { name: name, cr: cr, hp: hp, ac: ac, type: type };
+    openMonsterTargetPopup(monster);
+  });
 }
 
-// ====== DODAWANIE Z KARTY SZCZEGÓŁÓW ======
-function addMonsterDetailToCombat() {
-  if (!selectedMonster) return;
-  openMonsterTargetPopup(selectedMonster);
-}
+function addMonsterDetailToCombat() { if (selectedMonster) openMonsterTargetPopup(selectedMonster); }
 
-// ====== DODAWANIE JAKO KOMPAN ======
 function addMonsterDetailAsCompanion() {
   if (!selectedMonster) return;
-  if (typeof players === 'undefined' || players.length === 0) {
-    alert('Dodaj najpierw gracza, do którego chcesz przypisać kompana!');
-    return;
-  }
-  
-  var names = players.map(function(p, i) {
-    return (i + 1) + '. ' + p.name + ' (' + p.role + ')';
-  }).join('\n');
-  
+  if (typeof players === 'undefined' || players.length === 0) { alert('Dodaj najpierw gracza!'); return; }
+  var names = players.map(function(p, i) { return (i + 1) + '. ' + p.name + ' (' + p.role + ')'; }).join('\n');
   var choice = prompt('Wybierz gracza dla kompana:\n' + names + '\n\nWpisz numer lub nazwę:');
   if (!choice) return;
-  
   var player = null;
   var num = parseInt(choice);
-  if (!isNaN(num) && num > 0 && num <= players.length) {
-    player = players[num - 1];
-  } else {
-    player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
-  }
-  
+  if (!isNaN(num) && num > 0 && num <= players.length) player = players[num - 1];
+  else player = players.find(function(p) { return p.name.toLowerCase() === choice.toLowerCase(); });
   if (!player) { alert('Nie znaleziono gracza'); return; }
-  
   var companionName = selectedMonster.name + ' (kompan ' + player.name + ')';
-  var monster = {
-    name: companionName,
-    cr: selectedMonster.cr,
-    hp: selectedMonster.hp,
-    ac: selectedMonster.ac,
-    type: selectedMonster.type + ' (kompan)'
-  };
-  
-  openMonsterTargetPopup(monster);
+  openMonsterTargetPopup({ name: companionName, cr: selectedMonster.cr, hp: selectedMonster.hp, ac: selectedMonster.ac, type: selectedMonster.type + ' (kompan)' });
 }
 
-// ====== EVENTY ======
 document.addEventListener('DOMContentLoaded', function() {
   var searchInput = document.getElementById('monsterSearch');
-  if (searchInput) {
-    searchInput.addEventListener('input', function() {
-      var query = this.value;
-      renderMonsters(currentMonsterFilter, query);
-    });
-  }
-
+  if (searchInput) searchInput.addEventListener('input', function() { renderMonsters(currentMonsterFilter, this.value); });
   var allBtn = document.getElementById('filterAll');
   if (allBtn) allBtn.classList.add('active');
-
   renderMonsters('all', '');
-  
-  var popup = document.getElementById('monsterDetailPopup');
-  if (popup) {
-    popup.addEventListener('click', function(e) {
-      if (e.target === popup) closeMonsterDetail();
-    });
-  }
-  
-  var targetPopup = document.getElementById('monsterTargetPopup');
-  if (targetPopup) {
-    targetPopup.addEventListener('click', function(e) {
-      if (e.target === targetPopup) closeMonsterTargetPopup();
-    });
-  }
 });
 
-// ====== EKSPORT ======
 window.renderMonsters = renderMonsters;
 window.filterMonsters = filterMonsters;
 window.addMonsterToCombat = addMonsterToCombat;

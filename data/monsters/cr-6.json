@@ -1,0 +1,144 @@
+[
+  {
+    "name": "Chimera",
+    "cr": 6,
+    "type": "Potwór (Chimera)",
+    "hp": 114,
+    "ac": 18,
+    "speed": "30 ft, latanie 60 ft",
+    "stats": { "str": 19, "dex": 12, "con": 18, "int": 3, "wis": 14, "cha": 10 },
+    "saves": { "dex": 4, "con": 7, "wis": 5 },
+    "skills": { "percepcja": 6 },
+    "resistances": ["ogień", "kwas", "zimno", "elektryczność"],
+    "immunities": ["strach"],
+    "languages": ["rozumie Draconic, nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje trzy ataki: jeden kłami, jeden rogami i jeden pazurami." },
+      { "name": "Kły", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń kłutych." },
+      { "name": "Rogi", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 1k12+4 obrażeń obuchowych." },
+      { "name": "Pazury", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych." },
+      { "name": "Oddech Ognia", "desc": "Zasięg 30 ft, stożek. Rzut obronny na Zręczność DC 15. 7k8 obrażeń ogniowych (połowa przy sukcesie). Odnowienie na 5-6." }
+    ],
+    "desc": "Potwór z głową lwa, kozła i smoka. Znany z agresji i zdolności ognistego oddechu."
+  },
+  {
+    "name": "Golem Żelazny",
+    "cr": 6,
+    "type": "Konstrukt (Iron Golem)",
+    "hp": 120,
+    "ac": 20,
+    "speed": "25 ft",
+    "stats": { "str": 22, "dex": 10, "con": 20, "int": 3, "wis": 11, "cha": 1 },
+    "saves": { "con": 8, "wis": 3 },
+    "skills": {},
+    "resistances": ["kwas", "zimno", "elektryczność"],
+    "immunities": ["ogień", "trucizna", "psychiczne", "czary"],
+    "languages": ["nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki mieczem." },
+      { "name": "Miecz", "desc": "Atak bronią: +8 do trafienia, zasięg 5 ft, 2k8+6 obrażeń ciętych." },
+      { "name": "Zatruty Oddech", "desc": "Zasięg 15 ft, stożek. Rzut obronny na Kondycję DC 16. 7k6 obrażeń trucizną (połowa przy sukcesie). Odnowienie na 6." }
+    ],
+    "desc": "Golem wykonany z żelaza. Jest niezwykle wytrzymały i odporny na magię."
+  },
+  {
+    "name": "Władca Mumii",
+    "cr": 6,
+    "type": "Nieumarły (Mummy Lord)",
+    "hp": 97,
+    "ac": 17,
+    "speed": "20 ft",
+    "stats": { "str": 16, "dex": 10, "con": 16, "int": 12, "wis": 18, "cha": 14 },
+    "saves": { "wis": 7, "cha": 5 },
+    "skills": { "religia": 6, "historia": 4 },
+    "resistances": ["ogień", "zimno"],
+    "immunities": ["trucizna", "strach", "czary"],
+    "languages": ["rozumie Common, mówi Common"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki pięścią lub używa Gniewu Mumii." },
+      { "name": "Pięść", "desc": "Atak bronią: +5 do trafienia, zasięg 5 ft, 2k6+3 obrażeń obuchowych + 3k6 nekrotycznych." },
+      { "name": "Gniew Mumii", "desc": "Zasięg 30 ft. Rzut obronny na Mądrość DC 15. Cel jest przerażony na 1 minutę." }
+    ],
+    "desc": "Potężna mumia władająca nekromantyczną mocą. Jej dotyk przynosi zgubę."
+  },
+  {
+    "name": "Meduza",
+    "cr": 6,
+    "type": "Potwór (Medusa)",
+    "hp": 85,
+    "ac": 15,
+    "speed": "30 ft",
+    "stats": { "str": 10, "dex": 15, "con": 14, "int": 12, "wis": 13, "cha": 15 },
+    "saves": { "dex": 5, "cha": 5 },
+    "skills": { "percepcja": 4, "skradanie": 5 },
+    "resistances": [],
+    "immunities": [],
+    "languages": ["rozumie Common, mówi Common"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki: jeden sztyletem i jeden wężami." },
+      { "name": "Sztylet", "desc": "Atak bronią: +5 do trafienia, zasięg 5 ft, 1k4+2 obrażeń kłutych." },
+      { "name": "Węże", "desc": "Atak bronią: +5 do trafienia, zasięg 5 ft, 1k8+2 obrażeń kłutych + rzut obronny na Kondycję DC 13, 3k6 obrażeń trucizną." },
+      { "name": "Spojrzenie Kamienia", "desc": "Zasięg 30 ft. Rzut obronny na Kondycję DC 14. Cel jest spetryfikowany." }
+    ],
+    "desc": "Potwór z wężami zamiast włosów. Jej spojrzenie zamienia w kamień."
+  },
+  {
+    "name": "Sfinks Gynosphinx",
+    "cr": 6,
+    "type": "Potwór (Gynosphinx)",
+    "hp": 95,
+    "ac": 17,
+    "speed": "40 ft, latanie 60 ft",
+    "stats": { "str": 18, "dex": 12, "con": 16, "int": 18, "wis": 18, "cha": 18 },
+    "saves": { "wis": 7, "cha": 7 },
+    "skills": { "percepcja": 7, "religia": 7, "historia": 7 },
+    "resistances": ["psychiczne"],
+    "immunities": ["strach"],
+    "languages": ["rozumie Common, Sphinx, mówi Common, Sphinx"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki pazurami." },
+      { "name": "Pazury", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych." },
+      { "name": "Ryk", "desc": "Zasięg 30 ft. Rzut obronny na Mądrość DC 17. Cel jest przerażony na 1 minutę." }
+    ],
+    "desc": "Starożytna istota strzegąca tajemnic. Ma zdolności wieszcze i potężną wiedzę."
+  },
+  {
+    "name": "Elemental Ognia",
+    "cr": 6,
+    "type": "Elemental (Fire Elemental)",
+    "hp": 102,
+    "ac": 16,
+    "speed": "30 ft, latanie 40 ft",
+    "stats": { "str": 14, "dex": 18, "con": 16, "int": 6, "wis": 12, "cha": 8 },
+    "saves": { "dex": 7, "con": 6 },
+    "skills": {},
+    "resistances": ["ogień", "kwas", "zimno", "elektryczność"],
+    "immunities": ["trucizna", "strach"],
+    "languages": ["rozumie Ignan, nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki ognistym dotykiem." },
+      { "name": "Ognisty Dotyk", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 2k8+4 obrażeń ogniowych." },
+      { "name": "Płonąca Chmura", "desc": "Zasięg 10 ft. Rzut obronny na Kondycję DC 14. 5k6 obrażeń ogniowych." }
+    ],
+    "desc": "Ogromna istota czystego ognia. Parzy wszystko wokół i jest odporna na ogień."
+  },
+  {
+    "name": "Mamut",
+    "cr": 6,
+    "type": "Bestia (Mammoth)",
+    "hp": 126,
+    "ac": 13,
+    "speed": "40 ft",
+    "stats": { "str": 24, "dex": 9, "con": 21, "int": 3, "wis": 11, "cha": 6 },
+    "saves": {},
+    "skills": { "percepcja": 2 },
+    "resistances": [],
+    "immunities": [],
+    "languages": [],
+    "actions": [
+      { "name": "Tarat", "desc": "Atak bronią: +10 do trafienia, zasięg 10 ft, jeden cel. 4k8+7 obrażeń kłutych." },
+      { "name": "Miażdżący Tupot", "desc": "Atak bronią: +10 do trafienia, zasięg 5 ft, wszystkie stworzenia w zasięgu. 4k10+7 obrażeń obuchowych." }
+    ],
+    "desc": "Olbrzymi ssak z długimi kłami i gęstą sierścią. Jego tupot może zmiażdżyć kilku wrogów naraz."
+  }
+]

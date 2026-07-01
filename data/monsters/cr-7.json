@@ -1,0 +1,104 @@
+[
+  {
+    "name": "Behir",
+    "cr": 7,
+    "type": "Potwór (Behir)",
+    "hp": 120,
+    "ac": 17,
+    "speed": "40 ft, wspinaczka 30 ft",
+    "stats": { "str": 21, "dex": 12, "con": 18, "int": 6, "wis": 12, "cha": 8 },
+    "saves": { "str": 8, "con": 7 },
+    "skills": { "percepcja": 4 },
+    "resistances": ["elektryczność"],
+    "immunities": [],
+    "languages": ["rozumie Draconic, nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje trzy ataki: jeden ugryzieniem i dwa pazurami." },
+      { "name": "Ugryzienie", "desc": "Atak bronią: +8 do trafienia, zasięg 10 ft, 2k10+5 obrażeń kłutych." },
+      { "name": "Pazury", "desc": "Atak bronią: +8 do trafienia, zasięg 5 ft, 2k6+5 obrażeń ciętych." },
+      { "name": "Oddech Błyskawicy", "desc": "Zasięg 30 ft, linia. Rzut obronny na Zręczność DC 16. 8k6 obrażeń elektrycznych (połowa przy sukcesie). Odnowienie na 5-6." }
+    ],
+    "desc": "Wielki wężopodobny potwór z nogami i pazurami. Atakuje błyskawicami."
+  },
+  {
+    "name": "Golem Kamienny",
+    "cr": 7,
+    "type": "Konstrukt (Stone Golem)",
+    "hp": 150,
+    "ac": 19,
+    "speed": "25 ft",
+    "stats": { "str": 20, "dex": 10, "con": 20, "int": 3, "wis": 11, "cha": 1 },
+    "saves": { "con": 8, "wis": 3 },
+    "skills": {},
+    "resistances": ["kwas", "zimno", "elektryczność"],
+    "immunities": ["trucizna", "psychiczne", "czary"],
+    "languages": ["nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki pięścią." },
+      { "name": "Pięść", "desc": "Atak bronią: +8 do trafienia, zasięg 5 ft, 2k10+5 obrażeń obuchowych." },
+      { "name": "Zwolnienie", "desc": "Zasięg 5 ft. Rzut obronny na Mądrość DC 15. Cel jest spowolniony na 1 minutę." }
+    ],
+    "desc": "Potężny golem z kamienia. Jest prawie niezniszczalny i może spowalniać wrogów."
+  },
+  {
+    "name": "Młody Smok Miedziany",
+    "cr": 7,
+    "type": "Smok (Young Copper Dragon)",
+    "hp": 119,
+    "ac": 18,
+    "speed": "40 ft, latanie 80 ft, wspinaczka 30 ft",
+    "stats": { "str": 18, "dex": 12, "con": 18, "int": 14, "wis": 12, "cha": 16 },
+    "saves": { "dex": 4, "con": 7, "wis": 4, "cha": 6 },
+    "skills": { "percepcja": 7, "skradanie": 4, "religia": 5 },
+    "resistances": ["kwas"],
+    "immunities": [],
+    "languages": ["rozumie Common, Draconic, mówi Common, Draconic"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje trzy ataki: jeden ugryzieniem i dwa pazurami." },
+      { "name": "Ugryzienie", "desc": "Atak bronią: +7 do trafienia, zasięg 10 ft, 2k10+4 obrażeń kłutych." },
+      { "name": "Pazury", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 2k6+4 obrażeń ciętych." },
+      { "name": "Oddech Kwasu", "desc": "Zasięg 30 ft, stożek. Rzut obronny na Zręczność DC 16. 8k6 obrażeń kwasem (połowa przy sukcesie). Odnowienie na 5-6." }
+    ],
+    "desc": "Młody smok miedziany, zwinny i żartobliwy. Atakuje kwasem i pazurami."
+  },
+  {
+    "name": "Nocny Koszmar",
+    "cr": 7,
+    "type": "Potwór (Nightmare)",
+    "hp": 105,
+    "ac": 16,
+    "speed": "60 ft, latanie 90 ft",
+    "stats": { "str": 19, "dex": 14, "con": 16, "int": 10, "wis": 13, "cha": 12 },
+    "saves": { "dex": 5, "con": 6, "wis": 4 },
+    "skills": { "percepcja": 4 },
+    "resistances": ["ogień"],
+    "immunities": ["strach"],
+    "languages": ["rozumie Common, Infernal, nie mówi"],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki kopytami." },
+      { "name": "Kopyta", "desc": "Atak bronią: +7 do trafienia, zasięg 5 ft, 2k8+4 obrażeń obuchowych." },
+      { "name": "Ogniste Kopyta", "desc": "Zasięg 5 ft. Rzut obronny na Zręczność DC 15. 2k6 obrażeń ogniowych." }
+    ],
+    "desc": "Złe widmo konia, które siało strach i koszmary w snach swoich ofiar."
+  },
+  {
+    "name": "Giant Ape",
+    "cr": 7,
+    "type": "Bestia (Giant Ape)",
+    "hp": 157,
+    "ac": 13,
+    "speed": "40 ft, wspinaczka 40 ft",
+    "stats": { "str": 23, "dex": 14, "con": 18, "int": 7, "wis": 12, "cha": 7 },
+    "saves": { "str": 9, "con": 7 },
+    "skills": { "atletyka": 9, "percepcja": 4 },
+    "resistances": [],
+    "immunities": [],
+    "languages": [],
+    "actions": [
+      { "name": "Wieloatak", "desc": "Wykonuje dwa ataki pięściami." },
+      { "name": "Pięść", "desc": "Atak bronią: +9 do trafienia, zasięg 10 ft, 3k10+6 obrażeń obuchowych." },
+      { "name": "Rzucenie Głazem", "desc": "Atak bronią: +9 do trafienia, zasięg 50/100 ft, 3k10+6 obrażeń obuchowych." }
+    ],
+    "desc": "Ogromna małpa o potężnych ramionach. Może rzucać głazami na dystans i miażdżyć wrogów pięściami."
+  }
+]

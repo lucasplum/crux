@@ -1,7 +1,6 @@
 // ============================================================
-//  RENDER / VIEWPORT HELPERS (ZOPTYMALIZOWANE RAF)
+//  RENDER / VIEWPORT HELPERS
 // ============================================================
-
 var canvasState = {
   size: { zoom: 1, panX: 0, panY: 0 },
   spell: { zoom: 1, panX: 0, panY: 0 }
@@ -22,8 +21,13 @@ function getCanvasDPR() {
   return _cachedDPR;
 }
 
-function isMobile() { return window.innerWidth <= 768 || 'ontouchstart' in window; }
-function isTouchDevice() { return 'ontouchstart' in window || navigator.maxTouchPoints > 0; }
+function isMobile() {
+  return window.innerWidth <= 768 || 'ontouchstart' in window;
+}
+
+function isTouchDevice() {
+  return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
 
 function getCanvasDimensions(type) {
   var container = document.getElementById(type + 'CanvasContainer');
@@ -44,7 +48,13 @@ function getCanvasDimensions(type) {
     canvasDimensions[type].zoom = state.zoom;
   }
   
-  return { width: canvasDimensions[type].width, height: canvasDimensions[type].height, baseW: baseW, baseH: baseH, dpr: dpr };
+  return {
+    width: canvasDimensions[type].width,
+    height: canvasDimensions[type].height,
+    baseW: baseW,
+    baseH: baseH,
+    dpr: dpr
+  };
 }
 
 function clampPan(type) {
@@ -61,87 +71,97 @@ function zoomCanvas(type, direction) {
   
   var zd = document.getElementById(type + 'ZoomLevel');
   if (zd) zd.textContent = Math.round(state.zoom * 100) + '%';
+  
   canvasDimensions[type].zoom = state.zoom;
   
-  if (type === 'size' && typeof renderSizeCanvas === 'function') requestAnimationFrame(renderSizeCanvas);
-  else if (type === 'spell' && typeof renderSpellCanvas === 'function') requestAnimationFrame(renderSpellCanvas);
+  if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
+  else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
 }
 
 function resetCanvas(type) {
   var state = canvasState[type];
-  state.zoom = 1; state.panX = 0; state.panY = 0;
+  state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
   canvasDimensions[type].zoom = 1;
   
   var zd = document.getElementById(type + 'ZoomLevel');
   if (zd) zd.textContent = '100%';
-  if (type === 'size' && typeof renderSizeCanvas === 'function') requestAnimationFrame(renderSizeCanvas);
-  else if (type === 'spell' && typeof renderSpellCanvas === 'function') requestAnimationFrame(renderSpellCanvas);
+  
+  if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
+  else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
 }
 
 function initCanvasPanZoom() {
   ['size', 'spell'].forEach(function(type) {
     var container = document.getElementById(type + 'CanvasContainer');
     if (!container) return;
+    
     var state = canvasState[type];
     var isDragging = false, lastX = 0, lastY = 0;
-    var isTicking = false; // Zapobiega zadławieniu renderera
-
+    
     container.addEventListener('mousedown', function(e) {
-      isDragging = true; lastX = e.clientX; lastY = e.clientY;
-      container.style.cursor = 'grabbing'; e.preventDefault();
+      isDragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      container.style.cursor = 'grabbing';
+      e.preventDefault();
     });
-
+    
     document.addEventListener('mousemove', function(e) {
       if (!isDragging) return;
-      state.panX += e.clientX - lastX; state.panY += e.clientY - lastY;
-      lastX = e.clientX; lastY = e.clientY;
+      state.panX += e.clientX - lastX;
+      state.panY += e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
       clampPan(type);
       
-      if (!isTicking) {
-        window.requestAnimationFrame(function() {
-          if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
-          else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
-          isTicking = false;
-        });
-        isTicking = true;
+      if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
+      else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
+    });
+    
+    document.addEventListener('mouseup', function() {
+      if (isDragging) {
+        isDragging = false;
+        container.style.cursor = 'grab';
       }
     });
-
-    document.addEventListener('mouseup', function() {
-      if (isDragging) { isDragging = false; container.style.cursor = 'grab'; }
-    });
-
+    
     container.addEventListener('touchstart', function(e) {
       if (e.touches.length === 1) {
-        isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+        isDragging = true;
+        lastX = e.touches[0].clientX;
+        lastY = e.touches[0].clientY;
       }
     }, { passive: true });
-
+    
     container.addEventListener('touchmove', function(e) {
       if (!isDragging || e.touches.length !== 1) return;
-      state.panX += e.touches[0].clientX - lastX; state.panY += e.touches[0].clientY - lastY;
-      lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+      state.panX += e.touches[0].clientX - lastX;
+      state.panY += e.touches[0].clientY - lastY;
+      lastX = e.touches[0].clientX;
+      lastY = e.touches[0].clientY;
       clampPan(type);
       
-      if (!isTicking) {
-        window.requestAnimationFrame(function() {
-          if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
-          else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
-          isTicking = false;
-        });
-        isTicking = true;
-      }
+      if (type === 'size' && typeof renderSizeCanvas === 'function') renderSizeCanvas();
+      else if (type === 'spell' && typeof renderSpellCanvas === 'function') renderSpellCanvas();
+      
       e.preventDefault();
     }, { passive: false });
-
-    container.addEventListener('touchend', function() { isDragging = false; });
-
+    
+    container.addEventListener('touchend', function() {
+      isDragging = false;
+    });
+    
     container.addEventListener('wheel', function(e) {
       e.preventDefault();
-      zoomCanvas(type, e.deltaY < 0 ? 1 : -1);
+      var direction = e.deltaY < 0 ? 1 : -1;
+      zoomCanvas(type, direction);
     }, { passive: false });
-
-    container.addEventListener('dblclick', function() { resetCanvas(type); });
+    
+    container.addEventListener('dblclick', function() {
+      resetCanvas(type);
+    });
   });
   
   var resizeTimeout;
@@ -149,9 +169,15 @@ function initCanvasPanZoom() {
   var lastHeight = window.innerHeight;
   
   window.addEventListener('resize', function() {
-    var newWidth = window.innerWidth; var newHeight = window.innerHeight;
-    if (Math.abs(newWidth - lastWidth) < 20 && Math.abs(newHeight - lastHeight) < 20) return;
-    lastWidth = newWidth; lastHeight = newHeight;
+    var newWidth = window.innerWidth;
+    var newHeight = window.innerHeight;
+    
+    if (Math.abs(newWidth - lastWidth) < 20 && Math.abs(newHeight - lastHeight) < 20) {
+      return;
+    }
+    
+    lastWidth = newWidth;
+    lastHeight = newHeight;
     
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(function() {
@@ -166,9 +192,29 @@ function initCanvasPanZoom() {
         canvasDimensions.spell.width = spellContainer.offsetWidth;
         canvasDimensions.spell.height = Math.max(280, spellContainer.offsetHeight);
       }
-      if (typeof renderSizeCanvas === 'function') requestAnimationFrame(renderSizeCanvas);
-      if (typeof renderSpellCanvas === 'function') requestAnimationFrame(renderSpellCanvas);
+      
+      if (typeof renderSizeCanvas === 'function') renderSizeCanvas();
+      if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
     }, 300);
+  });
+  
+  window.addEventListener('orientationchange', function() {
+    setTimeout(function() {
+      var sizeContainer = document.getElementById('sizeCanvasContainer');
+      var spellContainer = document.getElementById('spellCanvasContainer');
+      
+      if (sizeContainer && sizeContainer.offsetWidth > 0) {
+        canvasDimensions.size.width = sizeContainer.offsetWidth;
+        canvasDimensions.size.height = Math.max(280, sizeContainer.offsetHeight);
+      }
+      if (spellContainer && spellContainer.offsetWidth > 0) {
+        canvasDimensions.spell.width = spellContainer.offsetWidth;
+        canvasDimensions.spell.height = Math.max(280, spellContainer.offsetHeight);
+      }
+      
+      if (typeof renderSizeCanvas === 'function') renderSizeCanvas();
+      if (typeof renderSpellCanvas === 'function') renderSpellCanvas();
+    }, 400);
   });
 }
 

@@ -1,13 +1,10 @@
 // ============================================================
 //  INFO - ZAKTUALIZOWANE STANY
 // ============================================================
-
 function renderStatesInfoList() {
   var container = document.getElementById('statesInfoList');
   if (!container) return;
   container.innerHTML = '';
-
-  // Polskie nazwy stanów z ikonami i opisami
   var states = [
     { name: 'nieprzytomny', icon: '💀', desc: 'Obezwładniony. Trafienie w zwarciu to krytyk. Upuszcza wszystko co trzyma. Automatycznie oblewa rzuty obronne. Nie może się poruszać ani mówić.' },
     { name: 'niewidzialny', icon: '👻', desc: 'Traktowany jako mocno zasłonięty. Ataki na niego z utrudnieniem, jego z przewagą. Nie można go celować czarami wymagającymi widzenia celu.' },
@@ -25,20 +22,16 @@ function renderStatesInfoList() {
     { name: 'zauroczony', icon: '💗', desc: 'Nie może atakować źródła uroku. Źródło ma przewagę w testach towarzyskich. Nie może celować w źródło uroku szkodliwymi zdolnościami.' },
     { name: 'wyczerpanie', icon: '🥱', desc: 'Skala 1-6: Poziom 1 - utrudnienie na testy umiejętności; 2 - prędkość połowa; 3 - utrudnienie na ataki i obrony; 4 - HP max połowa; 5 - prędkość 0; 6 - śmierć. Każdy poziom znika po długim odpoczynku.' }
   ];
-
   states.forEach(function(state) {
     var item = document.createElement('div');
     item.className = 'info-item';
-    item.innerHTML = `
-      <div class="info-item-header">
-        <span class="info-icon">${state.icon}</span>
-        <span class="info-title">${state.name.charAt(0).toUpperCase() + state.name.slice(1)}</span>
-      </div>
-      <div class="info-desc">${state.desc}</div>
-    `;
+    item.innerHTML = '<div class="info-item-header">' +
+                       '<span class="info-icon">' + state.icon + '</span>' +
+                       '<span class="info-title">' + state.name.charAt(0).toUpperCase() + state.name.slice(1) + '</span>' +
+                     '</div>' +
+                     '<div class="info-desc">' + state.desc + '</div>';
     container.appendChild(item);
   });
 }
 
-// Inicjalizacja
 renderStatesInfoList();
