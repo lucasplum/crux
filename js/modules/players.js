@@ -385,28 +385,86 @@ function importPlayer() {
 }
 
 // ====== RENDEROWANIE POSTACI ======
+// ====== RENDER ======
 function renderPlayers() {
   var container = document.getElementById('playerTracker');
   if (!container) return;
+  container.innerHTML = '';
   
   if (players.length === 0) {
-    container.innerHTML = `
-      <div style="text-align:center;padding:60px 20px;color:var(--parchment-dim);">
-        <div style="font-size:3rem;margin-bottom:16px;">👥</div>
-        <div style="font-family:'Cinzel',serif;font-size:var(--font-lg);margin-bottom:8px;">Brak postaci</div>
-        <div style="font-size:var(--font-sm);margin-bottom:20px;">Kliknij "➕ Dodaj postać" aby dodać pierwszą postać</div>
-        <button class="btn" onclick="openAddPlayerModal()" style="min-height:48px;">➕ Dodaj postać</button>
-      </div>
-    `;
+    container.innerHTML = '<div style="color:var(--muted);font-size:.7rem;text-align:center;padding:12px;">👥 Brak postaci – kliknij „➕ Dodaj postać"</div>';
     return;
   }
   
-  container.innerHTML = '';
-  container.className = 'player-grid';
-  
-  players.forEach(function(player, index) {
-    var card = createPlayerCard(player, index);
-    container.appendChild(card);
+  players.forEach(function(p, i) {
+    var div = document.createElement('div');
+    div.className = 'player-card';
+    div.dataset.role = p.role;
+    
+    var hpPct = p.maxHp > 0 ? Math.round((p.hp / p.maxHp) * 100) : 0;
+    var hpColor = hpPct < 25 ? 'var(--red)' : hpPct < 50 ? 'var(--gold)' : 'var(--green)';
+    
+    var condTags = p.conditions.map(function(c) { 
+      return '<span class="tag">' + getStateEmoji(c) + ' ' + c + '</span>'; 
+    }).join('');
+    
+    var exhaustionTag = '';
+    if (p.exhaustionLevel > 0) {
+      var exLevel = p.exhaustionLevel > 6 ? 6 : p.exhaustionLevel;
+      exhaustionTag = '<span class="tag" style="background:rgba(255,107,107,0.15);border-color:rgba(255,107,107,0.2);color:var(--red);">🥱 Wyczerpanie ' + exLevel + '/6</span>';
+    }
+    
+    var ds = p.deathSaves || { passes: 0, fails: 0 };
+    var avatarHtml = p.avatar && p.avatar.startsWith('http')
+      ? '<img src="' + p.avatar + '" onerror="this.parentNode.innerHTML=\'' + (p.avatar && p.avatar.length <= 2 ? p.avatar : '🧙') + '\'">'
+      : (p.avatar || '🧙');
+    
+    var firstState = p.conditions[0];
+    var stateOverlay = firstState
+      ? '<div class="avatar-state-overlay" style="color:' + getStateColor(firstState) + '">' + getStateEmoji(firstState) + '</div>'
+      : '';
+    
+    var stateBtnClass = p.conditions.length > 0 || p.exhaustionLevel > 0 ? 'p-state-btn has-conds' : 'p-state-btn';
+    var stateBtnText = (p.conditions.length > 0 || p.exhaustionLevel > 0) ? '⚙️ Stany (' + (p.conditions.length + (p.exhaustionLevel > 0 ? 1 : 0)) + ')' : '⚙️ Stany';
+    
+    var isDead = p.hp <= 0;
+    var deathSaveText = isDead ? '💀 Death Saves: ✅' + ds.passes + ' ❌' + ds.fails : '';
+    
+    div.innerHTML = `
+      <div class="p-header">
+        <div class="p-avatar">${avatarHtml}${stateOverlay}</div>
+        <div class="p-main">
+          <div class="p-name">${p.name} <span class="${getRoleBadge(p.role)}">${p.role}</span>${isDead ? ' 💀' : ''}</div>
+          <div class="p-stats-row">
+            <div class="p-ac-badge"><span class="ac-icon">🛡️</span><span class="ac-val">${p.ac}</span></div>
+            <div class="p-maxhp-badge"><span class="hp-icon">❤️</span><span class="hp-val">${p.maxHp}</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-hp-wrap">
+        <div class="p-hp-bar">
+          <div class="p-hp-fill" style="width:${hpPct}%;background:${hpColor};"></div>
+        </div>
+        <div class="p-hp-text" style="color:${hpColor}">${p.hp}</div>
+      </div>
+      
+      ${isDead ? '<div style="font-size:.55rem;color:var(--muted);margin:2px 0;">' + deathSaveText + '</div>' : ''}
+      
+      <div class="p-cond">${condTags}${exhaustionTag}</div>
+      
+      <button class="${stateBtnClass}" onclick="event.stopPropagation();showPlayerCondPopup(${i})">${stateBtnText}</button>
+      
+      <div class="p-controls">
+        <button class="primary" onclick="event.stopPropagation();addPlayerToInitiative(${i})">⚡ Do walki</button>
+        <button class="success" onclick="event.stopPropagation();shortRestPlayer(${i})">☕ Krótki</button>
+        <button class="success" onclick="event.stopPropagation();longRestPlayer(${i})">🛏️ Długi</button>
+        ${isDead ? '<button class="success" onclick="event.stopPropagation();deathSave(' + i + ')">💀 Death Save</button>' : ''}
+        <button class="danger" onclick="event.stopPropagation();removePlayer(${i})">✕ Usuń</button>
+      </div>
+    `;
+    
+    container.appendChild(div);
   });
 }
 
@@ -886,6 +944,277 @@ function syncToCombat() {
     }
   });
   renderPlayers();
+}
+// ====== WIDOK SZCZEGÓŁOWY POSTACI ======
+function openCharacterDetail(index) {
+  var player = players[index];
+  if (!player) return;
+  
+  var overlay = document.getElementById('characterDetailOverlay');
+  var content = document.getElementById('characterDetailContent');
+  
+  if (!overlay || !content) return;
+  
+  // Oblicz modyfikatory
+  var strMod = Math.floor((player.str - 10) / 2);
+  var dexMod = Math.floor((player.dex - 10) / 2);
+  var conMod = Math.floor((player.con - 10) / 2);
+  var intMod = Math.floor((player.int - 10) / 2);
+  var wisMod = Math.floor((player.wis - 10) / 2);
+  var chaMod = Math.floor((player.cha - 10) / 2);
+  
+  var strModStr = strMod >= 0 ? '+' + strMod : strMod;
+  var dexModStr = dexMod >= 0 ? '+' + dexMod : dexMod;
+  var conModStr = conMod >= 0 ? '+' + conMod : conMod;
+  var intModStr = intMod >= 0 ? '+' + intMod : intMod;
+  var wisModStr = wisMod >= 0 ? '+' + wisMod : wisMod;
+  var chaModStr = chaMod >= 0 ? '+' + chaMod : chaMod;
+  
+  // Pasek HP
+  var hpPercent = player.maxHp > 0 ? Math.round((player.hp / player.maxHp) * 100) : 0;
+  var hpColor = hpPercent < 25 ? '#ff6b6b' : hpPercent < 50 ? '#d4a843' : '#6bff9e';
+  
+  // Inicjatywa
+  var initiative = dexMod + (player.proficiency && player.savingThrows && player.savingThrows.includes('dex') ? (player.proficiency || 2) : 0);
+  var initiativeStr = initiative >= 0 ? '+' + initiative : initiative;
+  
+  // Pasywna percepcja
+  var passivePerception = 10 + wisMod + (player.skills && player.skills.includes('percepcja') ? (player.proficiency || 2) : 0);
+  
+  // Biegłości
+  var profBonus = player.proficiency || 2;
+  
+  content.innerHTML = `
+    <!-- NAGŁÓWEK -->
+    <div class="char-header" style="background: linear-gradient(135deg, ${player.color || '#4a6fa5'} 0%, ${player.colorDark || '#2d4a6f'} 100%);">
+      <div class="char-avatar-large">${player.avatar || '🧙'}</div>
+      <div class="char-title-group">
+        <h1 class="char-name">${player.name}</h1>
+        <div class="char-subtitle">${player.race || 'Człowiek'} · ${player.class || player.role || 'Postać'} · Poziom ${player.level || 1}</div>
+        <div class="char-alignment">${player.alignment || 'Neutralny'}</div>
+      </div>
+    </div>
+    
+    <!-- GŁÓWNE STATYSTYKI -->
+    <div class="char-main-stats">
+      <div class="char-stat-box">
+        <div class="char-stat-value">${player.ac || 10}</div>
+        <div class="char-stat-label">KLASA PANCERZA</div>
+      </div>
+      <div class="char-stat-box char-stat-hp">
+        <div class="char-stat-value" style="color: ${hpColor}">${player.hp}/${player.maxHp}</div>
+        <div class="char-stat-label">PUNKTY WYTRZYMAŁOŚCI</div>
+        <div class="char-hp-bar-mini" style="background: ${hpColor}; width: ${hpPercent}%"></div>
+      </div>
+      <div class="char-stat-box">
+        <div class="char-stat-value">${initiativeStr}</div>
+        <div class="char-stat-label">INICJATYWA</div>
+      </div>
+      <div class="char-stat-box">
+        <div class="char-stat-value">${player.speed || 30}'</div>
+        <div class="char-stat-label">PRĘDKOŚĆ</div>
+      </div>
+      <div class="char-stat-box">
+        <div class="char-stat-value">+${profBonus}</div>
+        <div class="char-stat-label">BONUS BIEGŁOŚCI</div>
+      </div>
+      <div class="char-stat-box">
+        <div class="char-stat-value">${passivePerception}</div>
+        <div class="char-stat-label">PASYWNA PERCEPCJA</div>
+      </div>
+    </div>
+    
+    <!-- ATRYBUTY -->
+    <div class="char-section">
+      <h2 class="char-section-title">ATRYBUTY</h2>
+      <div class="char-attributes-grid">
+        <div class="char-attr-box">
+          <div class="char-attr-name">SIŁA</div>
+          <div class="char-attr-mod">${strModStr}</div>
+          <div class="char-attr-score">${player.str || 10} – SIŁ</div>
+        </div>
+        <div class="char-attr-box">
+          <div class="char-attr-name">ZRĘCZNOŚĆ</div>
+          <div class="char-attr-mod">${dexModStr}</div>
+          <div class="char-attr-score">${player.dex || 10} – ZRC</div>
+        </div>
+        <div class="char-attr-box">
+          <div class="char-attr-name">KONDYCJA</div>
+          <div class="char-attr-mod">${conModStr}</div>
+          <div class="char-attr-score">${player.con || 10} – KON</div>
+        </div>
+        <div class="char-attr-box">
+          <div class="char-attr-name">INTELIGENCJA</div>
+          <div class="char-attr-mod">${intModStr}</div>
+          <div class="char-attr-score">${player.int || 10} – INT</div>
+        </div>
+        <div class="char-attr-box">
+          <div class="char-attr-name">MĄDROŚĆ</div>
+          <div class="char-attr-mod">${wisModStr}</div>
+          <div class="char-attr-score">${player.wis || 10} – MDR</div>
+        </div>
+        <div class="char-attr-box">
+          <div class="char-attr-name">CHARYZMA</div>
+          <div class="char-attr-mod">${chaModStr}</div>
+          <div class="char-attr-score">${player.cha || 10} – CHA</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- RATUNKI I UMIEJĘTNOŚCI -->
+    <div class="char-section">
+      <h2 class="char-section-title">RATUNKI I UMIEJĘTNOŚCI</h2>
+      <div class="char-skills-container">
+        <div class="char-skills-column">
+          <h3 class="char-skills-subtitle">Ratunki</h3>
+          ${renderSaveOrSkill('Siła', strMod, player.savingThrows && player.savingThrows.includes('str'), profBonus)}
+          ${renderSaveOrSkill('Zręczność', dexMod, player.savingThrows && player.savingThrows.includes('dex'), profBonus)}
+          ${renderSaveOrSkill('Kondycja', conMod, player.savingThrows && player.savingThrows.includes('con'), profBonus)}
+          ${renderSaveOrSkill('Inteligencja', intMod, player.savingThrows && player.savingThrows.includes('int'), profBonus)}
+          ${renderSaveOrSkill('Mądrość', wisMod, player.savingThrows && player.savingThrows.includes('wis'), profBonus)}
+          ${renderSaveOrSkill('Charyzma', chaMod, player.savingThrows && player.savingThrows.includes('cha'), profBonus)}
+        </div>
+        <div class="char-skills-column">
+          <h3 class="char-skills-subtitle">Umiejętności</h3>
+          ${renderSaveOrSkill('Akrobatyka', dexMod, player.skills && player.skills.includes('akrobatyka'), profBonus, true)}
+          ${renderSaveOrSkill('Atletyka', strMod, player.skills && player.skills.includes('atletyka'), profBonus, true)}
+          ${renderSaveOrSkill('Historia', intMod, player.skills && player.skills.includes('historia'), profBonus, true)}
+          ${renderSaveOrSkill('Medycyna', wisMod, player.skills && player.skills.includes('medycyna'), profBonus, true)}
+          ${renderSaveOrSkill('Percepcja', wisMod, player.skills && player.skills.includes('percepcja'), profBonus, true)}
+          ${renderSaveOrSkill('Perswazja', chaMod, player.skills && player.skills.includes('perswazja'), profBonus, true)}
+        </div>
+      </div>
+    </div>
+    
+    ${player.spellSlots ? `
+    <!-- ZAKLĘCIA -->
+    <div class="char-section">
+      <h2 class="char-section-title">RZUCANIE ZAKLĘĆ</h2>
+      <div class="char-spellcasting-info">
+        <div class="char-spell-attr">ATRYBUT: ${player.spellcastingAbility || 'INTELIGENCJA'}</div>
+        <div class="char-spell-dc">KT ${10 + (player.spellcastingAbility === 'INT' ? intMod : player.spellcastingAbility === 'WIS' ? wisMod : player.spellcastingAbility === 'CHA' ? chaMod : intMod) + profBonus}</div>
+        <div class="char-spell-atk">ATAK +${(player.spellcastingAbility === 'INT' ? intMod : player.spellcastingAbility === 'WIS' ? wisMod : player.spellcastingAbility === 'CHA' ? chaMod : intMod) + profBonus}</div>
+      </div>
+      <div class="char-spell-slots">
+        ${player.spellSlots.level1 ? `<div class="char-slot-box">Poz. 1: ${player.spellSlots.level1.current || 0}/${player.spellSlots.level1.max || 0}</div>` : ''}
+        ${player.spellSlots.level2 ? `<div class="char-slot-box">Poz. 2: ${player.spellSlots.level2.current || 0}/${player.spellSlots.level2.max || 0}</div>` : ''}
+        ${player.spellSlots.level3 ? `<div class="char-slot-box">Poz. 3: ${player.spellSlots.level3.current || 0}/${player.spellSlots.level3.max || 0}</div>` : ''}
+      </div>
+    </div>
+    ` : ''}
+    
+    ${player.features && player.features.length > 0 ? `
+    <!-- CECHY I ZDOLNOŚCI -->
+    <div class="char-section">
+      <h2 class="char-section-title">CECHY I ZDOLNOŚCI</h2>
+      <div class="char-features-list">
+        ${player.features.map(function(f) {
+          return `
+            <div class="char-feature-item">
+              <div class="char-feature-name">• ${f.name}</div>
+              <div class="char-feature-desc">${f.description}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+    ` : ''}
+    
+    ${player.equipment ? `
+    <!-- EKWIPEUNEK -->
+    <div class="char-section">
+      <h2 class="char-section-title">EKWIPUNEK I BIEGŁOŚCI</h2>
+      ${player.equipment.weapons || player.equipment.armor || player.equipment.items ? `
+      <div class="char-equipment-box">
+        <h3 class="char-equipment-title">WYPOSAŻENIE</h3>
+        ${player.equipment.weapons ? `<div class="char-equipment-row"><strong>Zbroje:</strong> ${player.equipment.weapons}</div>` : ''}
+        ${player.equipment.armor ? `<div class="char-equipment-row"><strong>Bron:</strong> ${player.equipment.armor}</div>` : ''}
+        ${player.equipment.items ? `<div class="char-equipment-row"><strong>Przedmioty:</strong> ${player.equipment.items}</div>` : ''}
+      </div>
+      ` : ''}
+      <div class="char-equipment-box">
+        <h3 class="char-equipment-title">BIEGŁOŚCI I JĘZYKI</h3>
+        <div class="char-equipment-row"><strong>Zbroje:</strong> ${player.armorProficiencies || 'Brak'}</div>
+        <div class="char-equipment-row"><strong>Bron:</strong> ${player.weaponProficiencies || 'Prosta'}</div>
+        <div class="char-equipment-row"><strong>Języki:</strong> ${player.languages || 'Wspólny'}</div>
+      </div>
+    </div>
+    ` : ''}
+    
+    ${player.personality ? `
+    <!-- OSOBOWOŚĆ -->
+    <div class="char-section">
+      <h2 class="char-section-title">OSOBOWOŚĆ</h2>
+      <div class="char-personality-grid">
+        ${player.personality.trait ? `
+        <div class="char-personality-box">
+          <div class="char-personality-label">CECHA CHARAKTERU</div>
+          <div class="char-personality-text">${player.personality.trait}</div>
+        </div>
+        ` : ''}
+        ${player.personality.ideal ? `
+        <div class="char-personality-box">
+          <div class="char-personality-label">IDEAŁ</div>
+          <div class="char-personality-text">${player.personality.ideal}</div>
+        </div>
+        ` : ''}
+        ${player.personality.bond ? `
+        <div class="char-personality-box">
+          <div class="char-personality-label">WIĘŹ</div>
+          <div class="char-personality-text">${player.personality.bond}</div>
+        </div>
+        ` : ''}
+        ${player.personality.flaw ? `
+        <div class="char-personality-box">
+          <div class="char-personality-label">WADA</div>
+          <div class="char-personality-text">${player.personality.flaw}</div>
+        </div>
+        ` : ''}
+      </div>
+    </div>
+    ` : ''}
+    
+    ${player.backstory ? `
+    <!-- HISTORIA -->
+    <div class="char-section">
+      <h2 class="char-section-title">HISTORIA</h2>
+      <div class="char-history-text">${player.backstory}</div>
+    </div>
+    ` : ''}
+    
+    <!-- AKCJE -->
+    <div class="char-actions">
+      <button class="char-action-btn primary" onclick="addPlayerToInitiative(${index}); closeCharacterDetail();">⚡ Dodaj do potyczki</button>
+      <button class="char-action-btn" onclick="closeCharacterDetail(); editPlayer(${index});">✏️ Edytuj</button>
+      <button class="char-action-btn" onclick="exportPlayer(${index});">📤 Eksportuj</button>
+    </div>
+  `;
+  
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCharacterDetail() {
+  var overlay = document.getElementById('characterDetailOverlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+}
+
+function renderSaveOrSkill(name, mod, proficient, profBonus, isSkill) {
+  var modStr = mod >= 0 ? '+' + mod : mod;
+  var totalMod = proficient ? mod + profBonus : mod;
+  var totalStr = totalMod >= 0 ? '+' + totalMod : totalMod;
+  var proficientClass = proficient ? 'char-skill-proficient' : '';
+  var proficientDot = proficient ? '●' : '○';
+  
+  return `
+    <div class="char-skill-item ${proficientClass}">
+      <span class="char-skill-name">${proficientDot} ${name} ${isSkill ? '(ZRC)' : ''}</span>
+      <span class="char-skill-mod">${totalStr}</span>
+    </div>
+  `;
 }
 
 // ====== EKSPORT ======

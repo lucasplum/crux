@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V22.5Q</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V22.6Q</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -740,6 +740,16 @@
     <div style="display:flex;gap:10px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line);">
       <button class="btn" onclick="confirmAddPlayer()" style="flex:1;">✓ Zapisz postać</button>
       <button class="btn outline" onclick="closeAddPlayerModal()" style="flex:1;">Anuluj</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL SZCZEGÓŁÓW POSTACI -->
+<div class="character-detail-overlay" id="characterDetailOverlay" style="display:none;">
+  <div class="character-detail-container">
+    <button class="character-detail-close" onclick="closeCharacterDetail()">← Powrót do biblioteki</button>
+    
+    <div id="characterDetailContent">
+      <!-- Treść generowana dynamicznie -->
     </div>
   </div>
 </div>
