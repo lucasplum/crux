@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V23.5.DS</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V24.6.DS</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -210,22 +210,32 @@
     </div>
   </section>
 
-  <!-- ===== TAB: POTWORY ===== -->
-  <section class="tab-section" data-tab="monsters">
-    <div class="card">
-      <div class="card-header-row">
-        <div class="card-title">🐉 Bestiariusz (CR 6-8)</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn outline" onclick="filterMonsters('all')" id="filterAll">Wszystkie</button>
-          <button class="btn outline" onclick="filterMonsters(6)" id="filter6">CR 6</button>
-          <button class="btn outline" onclick="filterMonsters(7)" id="filter7">CR 7</button>
-          <button class="btn outline" onclick="filterMonsters(8)" id="filter8">CR 8</button>
-        </div>
-      </div>
-      <input type="text" class="spell-search" id="monsterSearch" placeholder="🔍 Szukaj potwora...">
-      <div class="monster-grid" id="monsterGrid"></div>
+<!-- ===== TAB: POTWORY ===== -->
+<section class="tab-section" data-tab="monsters">
+  <div class="card">
+    <div class="card-header-row">
+      <div class="card-title">🐉 Bestiariusz</div>
     </div>
-  </section>
+    
+    <div class="monster-filters">
+      <button class="monster-filter-btn active" data-cr="all" onclick="filterMonsters('all')">Wszystkie</button>
+      <button class="monster-filter-btn" data-cr="0" onclick="filterMonsters(0)">CR 0</button>
+      <button class="monster-filter-btn" data-cr="1" onclick="filterMonsters(1)">CR 1</button>
+      <button class="monster-filter-btn" data-cr="2" onclick="filterMonsters(2)">CR 2</button>
+      <button class="monster-filter-btn" data-cr="3" onclick="filterMonsters(3)">CR 3</button>
+      <button class="monster-filter-btn" data-cr="4" onclick="filterMonsters(4)">CR 4</button>
+      <button class="monster-filter-btn" data-cr="5" onclick="filterMonsters(5)">CR 5</button>
+      <button class="monster-filter-btn" data-cr="6" onclick="filterMonsters(6)">CR 6</button>
+      <button class="monster-filter-btn" data-cr="7" onclick="filterMonsters(7)">CR 7</button>
+      <button class="monster-filter-btn" data-cr="8" onclick="filterMonsters(8)">CR 8</button>
+      <button class="monster-filter-btn" data-cr="9" onclick="filterMonsters(9)">CR 9</button>
+      <button class="monster-filter-btn" data-cr="10" onclick="filterMonsters(10)">CR 10+</button>
+    </div>
+    
+    <input type="text" class="spell-search" id="monsterSearch" placeholder="🔍 Szukaj potwora...">
+    <div class="monster-grid" id="monsterGrid"></div>
+  </div>
+</section>
 
   <!-- ===== TAB: INFO ===== -->
   <section class="tab-section" data-tab="info">

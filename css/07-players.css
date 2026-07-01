@@ -2,9 +2,52 @@
    PLAYERS - KARTY POSTACI I WIDOK SZCZEGÓŁOWY
    ============================================================ */
 
-/* ===== USUNIĘCIE ZAOKRĄGLEŃ ===== */
-* {
+.card,
+.player-tile,
+.char-seal,
+.char-listpanel,
+.char-ability,
+.char-quote,
+.char-backstory,
+.char-section details,
+.char-sheet-head,
+.popup-content,
+.btn,
+.modal-input,
+select,
+input,
+textarea,
+.edit-tabs,
+.edit-tab,
+.avatar-btn,
+.avatar-preview,
+.bestiary-card,
+.monster-card,
+.spellbook-item,
+.info-item,
+.dist-btn,
+.size-btn,
+.nav-btn,
+.bottom-nav-btn {
     border-radius: 0 !important;
+}
+
+/* Zaokrąglenia dla elementów dekoracyjnych */
+.orb,
+.raven-glow,
+.raven-orbit,
+.raven-orbit.orbit-2,
+.raven-stage,
+.raven,
+.hex-deco span {
+    border-radius: 50% !important;
+}
+
+/* Zaokrąglenia dla avatarów */
+.avatar-preview img,
+.char-medal img,
+.p-avatar img {
+    border-radius: 50% !important;
 }
 
 /* Przywracamy clip-path dla ściętych rogów */
@@ -880,12 +923,13 @@
    PLAYERS - NOWA BIBLIOTEKA I KARTY (styl z dnd-sheet)
    ============================================================ */
 
-/* ===== BIBLIOTEKA - POPRAWIONA CZYTELNOŚĆ ===== */
+/* ===== BIBLIOTEKA ===== */
 
 .player-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
+    padding: 4px;
 }
 
 .player-tile {
@@ -897,13 +941,12 @@
     padding: 0;
     cursor: pointer;
     text-align: left;
-    color: var(--ink);
+    color: #ece3cd;
     font-family: inherit;
-    opacity: 0;
-    transform: translateY(14px);
-    animation: tileIn 0.5s ease forwards;
     transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    opacity: 1 !important;
+    transform: none !important;
 }
 
 .player-tile:hover {
@@ -932,7 +975,6 @@
     transform: translateY(-50%);
 }
 
-/* POZIOM - WIDOCZNY */
 .player-tile-lvl {
     position: absolute;
     left: 12px;
@@ -957,7 +999,6 @@
     background: #1b170f;
 }
 
-/* NAZWA - JASNA I CZYTELNA */
 .player-tile-name {
     font-family: 'Cinzel', serif;
     font-size: 18px;
@@ -965,7 +1006,6 @@
     color: #e9cd85;
     letter-spacing: 0.02em;
     margin-bottom: 2px;
-    text-shadow: 0 0 20px rgba(201,162,75,0.1);
 }
 
 .player-tile-sub {

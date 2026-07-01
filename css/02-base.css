@@ -85,3 +85,39 @@ body::before {
   margin: 0 auto;
   padding: 20px 6vw 100px;
 }
+
+/* Tło z orbami - ZAOKRĄGLENIA */
+.orb {
+  position: absolute;
+  border-radius: 50%; /* <-- ZOSTAWIAMY */
+  filter: blur(100px);
+  animation: drift 25s infinite alternate ease-in-out;
+}
+
+/* Raven - ZAOKRĄGLENIA */
+.raven-glow {
+  position: absolute;
+  inset: 10%;
+  background: radial-gradient(circle, rgba(184,57,44,0.25) 0%, rgba(138,42,34,0.08) 40%, transparent 70%);
+  border-radius: 50%; /* <-- ZOSTAWIAMY */
+  animation: ravenPulse 3s ease-in-out infinite;
+  z-index: 1;
+}
+
+.raven-orbit {
+  position: absolute;
+  inset: 0;
+  border: 1.5px dashed rgba(185,146,74,0.3);
+  border-top-color: var(--gold);
+  border-radius: 50%; /* <-- ZOSTAWIAMY */
+  animation: ravenOrbit 8s linear infinite;
+  z-index: 2;
+}
+
+.raven-orbit.orbit-2 {
+  inset: 18%;
+  border: 1px dotted rgba(185,146,74,0.2);
+  border-bottom-color: var(--blood-bright);
+  border-radius: 50%; /* <-- ZOSTAWIAMY */
+  animation: ravenOrbit 5s linear infinite reverse;
+}
