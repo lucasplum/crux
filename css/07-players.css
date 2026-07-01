@@ -1,56 +1,142 @@
-/* ===== KARTY POSTACI ===== */
+/* ============================================================
+   PLAYERS - KARTY POSTACI I WIDOK SZCZEGÓŁOWY
+   ============================================================ */
 
+/* ===== GRID KART POSTACI ===== */
 .player-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 16px;
+  gap: 20px;
   margin-top: 14px;
 }
 
+/* ===== KARTA POSTACI (BIBLIOTEKA) ===== */
 .player-card {
   background: linear-gradient(160deg, rgba(28,24,18,0.92), rgba(20,17,14,0.96));
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 20px 22px;
+  border-radius: 12px;
+  padding: 0;
   transition: all var(--transition-normal);
   position: relative;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.02);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   overflow: hidden;
-}
-
-.player-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  border-radius: 10px 10px 0 0;
-  background: var(--parchment-dim);
-}
-
-.player-card[data-role="Gracz"]::before { 
-  background: linear-gradient(90deg, var(--blue), #4a8ecf); 
-}
-
-.player-card[data-role="Companion"]::before { 
-  background: linear-gradient(90deg, var(--green), #3aaf7a); 
-}
-
-.player-card[data-role="Wróg"]::before { 
-  background: linear-gradient(90deg, var(--red), #cf4a4a); 
-}
-
-.player-card[data-role="NPC"]::before { 
-  background: linear-gradient(90deg, var(--purple), #7c3aed); 
+  display: flex;
+  flex-direction: column;
 }
 
 .player-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3), 0 0 40px rgba(185,146,74,0.04);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 40px rgba(185,146,74,0.08);
+  border-color: var(--gold);
 }
 
+/* Kolorowy pasek nagłówka */
+.player-card-header {
+  position: relative;
+  padding: 20px 18px 14px;
+  background: linear-gradient(135deg, var(--blood) 0%, #5a1a14 100%);
+  border-bottom: 2px solid var(--gold-dim);
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.player-card-header.gracz {
+  background: linear-gradient(135deg, #4a6fa5 0%, #2d4a6f 100%);
+}
+
+.player-card-header.companion {
+  background: linear-gradient(135deg, #4a7a5f 0%, #2d5a4f 100%);
+}
+
+.player-card-header.wrog {
+  background: linear-gradient(135deg, #8a2a22 0%, #5a1a14 100%);
+}
+
+.player-card-header.npc {
+  background: linear-gradient(135deg, #6a5a3a 0%, #4a3a2a 100%);
+}
+
+/* Ikona roli w rogu nagłówka */
+.player-card-icon {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  font-size: 1.6rem;
+  opacity: 0.7;
+}
+
+/* Badge poziomu w rogu */
+.player-level-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.4);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  font-size: var(--font-md);
+  color: var(--gold);
+}
+
+/* Ciało karty */
+.player-card-body {
+  padding: 16px 18px 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-card-name {
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  font-size: var(--font-lg);
+  color: var(--parchment);
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.player-card-subtitle {
+  font-family: var(--font-garamond);
+  font-size: var(--font-sm);
+  color: var(--parchment-dim);
+  font-style: italic;
+}
+
+/* Mini statystyki na dole karty */
+.player-card-stats-mini {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: var(--font-sm);
+  color: var(--parchment-dim);
+}
+
+.player-card-stats-mini span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.player-card-stats-mini strong {
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* ===== STARY STYL KARTY (zachowany dla kompatybilności) ===== */
 .player-card .p-header {
   display: flex;
   align-items: center;
@@ -74,17 +160,39 @@
   box-shadow: 0 0 16px rgba(185,146,74,0.06);
 }
 
-.player-card .p-avatar img { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-  border-radius: 50%; 
+.player-card .p-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
-.player-card .p-main { 
-  flex: 1; 
-  min-width: 0; 
+.player-card .p-avatar .avatar-state-overlay {
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  background: radial-gradient(circle, rgba(0,0,0,0.5) 30%, transparent 80%);
+  animation: stateAppear .5s ease-out, statePulse 2s ease-in-out infinite .5s;
+  pointer-events: none;
+  z-index: 5;
 }
+
+@keyframes stateAppear {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+@keyframes statePulse {
+  0%, 100% { filter: drop-shadow(0 0 4px currentColor); }
+  50% { filter: drop-shadow(0 0 12px currentColor) brightness(1.2); }
+}
+
+.player-card .p-main { flex: 1; min-width: 0; }
 
 .player-card .p-name {
   font-family: var(--font-cinzel);
@@ -110,29 +218,10 @@
   font-family: var(--font-cinzel);
 }
 
-.player-card .p-role-badge.gracz { 
-  background: rgba(107,184,255,0.12); 
-  color: var(--blue); 
-  border-color: rgba(107,184,255,0.15); 
-}
-
-.player-card .p-role-badge.companion { 
-  background: rgba(107,255,158,0.10); 
-  color: var(--green); 
-  border-color: rgba(107,255,158,0.12); 
-}
-
-.player-card .p-role-badge.wrog { 
-  background: rgba(255,107,107,0.10); 
-  color: var(--red); 
-  border-color: rgba(255,107,107,0.12); 
-}
-
-.player-card .p-role-badge.npc { 
-  background: rgba(168,124,255,0.10); 
-  color: var(--purple); 
-  border-color: rgba(168,124,255,0.12); 
-}
+.player-card .p-role-badge.gracz { background: rgba(107,184,255,0.12); color: #6bb8ff; border-color: rgba(107,184,255,0.15); }
+.player-card .p-role-badge.companion { background: rgba(107,255,158,0.10); color: #6bff9e; border-color: rgba(107,255,158,0.12); }
+.player-card .p-role-badge.wrog { background: rgba(255,107,107,0.10); color: #ff6b6b; border-color: rgba(255,107,107,0.12); }
+.player-card .p-role-badge.npc { background: rgba(168,124,255,0.10); color: #a87cff; border-color: rgba(168,124,255,0.12); }
 
 .player-card .p-hp-wrap {
   display: flex;
@@ -186,10 +275,13 @@
   border-radius: 8px;
   font-size: var(--font-sm);
   font-weight: 700;
-  color: var(--blue);
+  color: #6bb8ff;
   min-height: 32px;
   font-family: var(--font-mono);
 }
+
+.player-card .p-ac-badge .ac-icon { font-size: 1rem; }
+.player-card .p-ac-badge .ac-val { font-size: var(--font-md); }
 
 .player-card .p-maxhp-badge {
   display: inline-flex;
@@ -201,9 +293,30 @@
   border-radius: 8px;
   font-size: var(--font-sm);
   font-weight: 700;
-  color: var(--red);
+  color: #ff6b6b;
   min-height: 32px;
   font-family: var(--font-mono);
+}
+
+.player-card .p-maxhp-badge .hp-icon { font-size: 1rem; }
+.player-card .p-maxhp-badge .hp-val { font-size: var(--font-md); }
+
+.player-card .p-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--parchment-dim);
+  flex-wrap: wrap;
+}
+
+.player-card .p-stats span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.03);
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.04);
 }
 
 .player-card .p-cond {
@@ -217,7 +330,7 @@
 .player-card .p-cond .tag {
   font-size: 0.65rem;
   background: rgba(168,124,255,0.08);
-  color: var(--purple);
+  color: #a87cff;
   padding: 3px 10px;
   border-radius: 6px;
   border: 1px solid rgba(168,124,255,0.10);
@@ -247,10 +360,7 @@
   min-height: 34px;
 }
 
-.player-card .p-state-btn:hover { 
-  background: rgba(168,124,255,0.08); 
-  border-color: rgba(168,124,255,0.3); 
-}
+.player-card .p-state-btn:hover { background: rgba(168,124,255,0.08); border-color: rgba(168,124,255,0.3); }
 
 .player-card .p-state-btn.has-conds {
   background: rgba(168,124,255,0.08);
@@ -296,22 +406,445 @@
 .player-card .p-controls button.danger:hover {
   background: rgba(255,107,107,0.10);
   border-color: rgba(255,107,107,0.2);
-  color: var(--red);
+  color: #ff6b6b;
 }
 
 .player-card .p-controls button.success:hover {
   background: rgba(107,255,158,0.10);
   border-color: rgba(107,255,158,0.2);
-  color: var(--green);
+  color: #6bff9e;
 }
 
 .player-card .p-controls button.primary {
   background: rgba(168,124,255,0.04);
   border-color: rgba(168,124,255,0.1);
-  color: var(--purple);
+  color: #a87cff;
 }
 
 .player-card .p-controls button.primary:hover {
   background: rgba(168,124,255,0.10);
   border-color: rgba(168,124,255,0.2);
+}
+
+/* ============================================================
+   CHARACTER DETAIL OVERLAY - PEŁNOEKRANOWY WIDOK POSTACI
+   ============================================================ */
+
+.character-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 1000;
+  overflow-y: auto;
+  display: none;
+  animation: fadeIn var(--transition-fast) ease;
+}
+
+.character-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px 100px;
+}
+
+.character-detail-close {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  padding: 12px 24px;
+  background: rgba(185,146,74,0.1);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-cinzel);
+  font-weight: 600;
+  z-index: 1001;
+  min-height: 48px;
+  transition: all var(--transition-fast);
+}
+
+.character-detail-close:hover {
+  background: rgba(185,146,74,0.2);
+  transform: translateX(-4px);
+}
+
+/* Header z kolorowym tłem */
+.char-header {
+  padding: 40px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+.char-avatar-large {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  border: 3px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.char-title-group { flex: 1; }
+
+.char-name {
+  font-family: var(--font-cinzel);
+  font-size: var(--font-xxl);
+  font-weight: 700;
+  color: var(--parchment);
+  margin: 0 0 8px 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.char-subtitle {
+  font-family: var(--font-garamond);
+  font-size: var(--font-md);
+  color: var(--parchment-dim);
+  margin-bottom: 4px;
+  font-style: italic;
+}
+
+.char-alignment {
+  font-size: var(--font-sm);
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--font-cinzel);
+}
+
+/* Główne statystyki */
+.char-main-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.char-stat-box {
+  background: rgba(28,24,18,0.6);
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-fast);
+}
+
+.char-stat-box:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.char-stat-value {
+  font-family: var(--font-mono);
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.char-stat-label {
+  font-size: 0.65rem;
+  color: var(--parchment-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-cinzel);
+}
+
+.char-stat-hp {
+  border-color: var(--blood);
+  background: rgba(138,42,34,0.1);
+}
+
+.char-hp-bar-mini {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: var(--blood-bright);
+  border-radius: 0 0 8px 8px;
+  transition: width var(--transition-slow) ease;
+}
+
+/* Sekcje */
+.char-section {
+  background: rgba(28,24,18,0.6);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.char-section-title {
+  font-family: var(--font-cinzel);
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--gold);
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Atrybuty */
+.char-attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.char-attr-box {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 12px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.char-attr-box:hover {
+  border-color: var(--gold);
+  background: rgba(185,146,74,0.05);
+}
+
+.char-attr-name {
+  font-size: 0.65rem;
+  color: var(--parchment-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  font-family: var(--font-cinzel);
+}
+
+.char-attr-mod {
+  font-family: var(--font-mono);
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: var(--parchment);
+  margin-bottom: 4px;
+}
+
+.char-attr-score {
+  font-size: 0.75rem;
+  color: var(--parchment-dim);
+}
+
+/* Stany */
+.char-conditions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.char-condition-tag {
+  font-size: var(--font-sm);
+  background: rgba(168,124,255,0.08);
+  color: #a87cff;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(168,124,255,0.15);
+  font-weight: 500;
+}
+
+.char-condition-tag.exhaustion {
+  background: rgba(255,107,107,0.1);
+  color: #ff6b6b;
+  border-color: rgba(255,107,107,0.2);
+}
+
+/* Cechy i zdolności */
+.char-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.char-feature-item {
+  background: rgba(0,0,0,0.2);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.char-feature-name {
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 6px;
+  font-size: var(--font-md);
+}
+
+.char-feature-desc {
+  font-family: var(--font-garamond);
+  color: var(--parchment);
+  line-height: 1.6;
+  font-size: var(--font-sm);
+}
+
+/* Osobowość */
+.char-personality-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.char-personality-box {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0;
+  padding: 16px;
+}
+
+.char-personality-label {
+  font-size: 0.7rem;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  font-family: var(--font-cinzel);
+}
+
+.char-personality-text {
+  font-family: var(--font-garamond);
+  color: var(--parchment);
+  line-height: 1.6;
+  font-style: italic;
+  font-size: var(--font-md);
+}
+
+/* Historia */
+.char-history-text {
+  font-family: var(--font-garamond);
+  color: var(--parchment);
+  line-height: 1.8;
+  font-size: var(--font-md);
+}
+
+.char-history-text::first-letter {
+  font-size: 3rem;
+  float: left;
+  line-height: 0.8;
+  margin-right: 8px;
+  color: var(--gold);
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+}
+
+/* Ekwipunek */
+.equipment-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.equipment-category {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.equipment-category-title {
+  font-family: var(--font-cinzel);
+  font-size: 0.75rem;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 12px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.equipment-items {
+  font-family: var(--font-garamond);
+  color: var(--parchment);
+  line-height: 1.6;
+  font-size: var(--font-sm);
+}
+
+/* Przyciski akcji */
+.char-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.char-action-btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 14px 24px;
+  background: rgba(185,146,74,0.1);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-cinzel);
+  font-weight: 600;
+  min-height: 50px;
+  transition: all var(--transition-fast);
+}
+
+.char-action-btn:hover {
+  background: rgba(185,146,74,0.2);
+  transform: translateY(-2px);
+}
+
+.char-action-btn.primary {
+  background: linear-gradient(135deg, var(--blood), #5a1a14);
+  border-color: var(--blood-bright);
+  color: #f3e7d6;
+}
+
+.char-action-btn.primary:hover {
+  background: linear-gradient(135deg, #b8392c, #6b1a1a);
+}
+
+.char-action-btn.danger {
+  background: rgba(255,107,107,0.1);
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.char-action-btn.danger:hover {
+  background: rgba(255,107,107,0.2);
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .player-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  
+  .char-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+  
+  .char-name { font-size: 1.8rem; }
+  .char-main-stats { grid-template-columns: repeat(2, 1fr); }
+  .char-attributes-grid { grid-template-columns: repeat(3, 1fr); }
+  .char-personality-grid { grid-template-columns: 1fr; }
+  
+  .character-detail-close {
+    position: relative;
+    top: 0;
+    left: 0;
+    margin-bottom: 16px;
+    width: 100%;
+  }
 }

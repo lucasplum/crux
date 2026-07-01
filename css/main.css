@@ -1,5 +1,7 @@
-/* ===== CRUX TOOLKIT - GŁÓWNY PLIK CSS ===== */
-/* Importowanie wszystkich modułów w odpowiedniej kolejności */
+/* ============================================================
+   CRUX TOOLKIT - MAIN CSS
+   Importuje wszystkie moduły w odpowiedniej kolejności
+   ============================================================ */
 
 @import '01-variables.css';
 @import '02-base.css';
