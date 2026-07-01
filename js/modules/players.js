@@ -591,6 +591,9 @@ function confirmSimpleAdd() {
 function openEditPlayer(index) {
     var p = players[index];
     if (!p) return;
+
+      // 🔥 FIX: Zamknij pełną kartę przed otwarciem edycji
+  if (typeof closeCharacterDetail === 'function') closeCharacterDetail();
     
     editingPlayerIndex = index;
     document.getElementById('editPlayerName').textContent = p.name;

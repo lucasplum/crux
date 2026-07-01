@@ -623,3 +623,16 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ===== FIX: Z-indexy - edycja nad kartą ===== */
+#editPlayerPopup {
+  z-index: 2000 !important;
+}
+#characterDetailOverlay {
+  z-index: 1500 !important;
+}
+#addPlayerPopup,
+#addCombatantPopup,
+#monsterDetailPopup {
+  z-index: 1800 !important;
+}
