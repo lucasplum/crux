@@ -1,5 +1,5 @@
 // ============================================================
-//  MONSTERS - NOWY BESTIARIUSZ Z FILTRAMI GRUPOWYMI
+//  MONSTERS - BESTIARIUSZ Z CICHYM POMIJANIEM BRAKUJĄCYCH PLIKÓW
 // ============================================================
 
 var MONSTERS = [];
@@ -10,37 +10,39 @@ var monsterLoading = false;
 
 // ====== ŁADOWANIE Z JSON ======
 function loadMonsterCR(cr, callback) {
-if (monsterCache[cr]) {
-    if (callback) callback(monsterCache[cr]);
-    return;
-}
-// 🔥 FIX: Fallback ścieżek
-var urls = [
-    'data/monsters/cr-' + cr + '.json',
-    'cr-' + cr + '.json',
-    '../data/monsters/cr-' + cr + '.json'
-];
-tryLoadMonsterUrls(urls, 0, callback);
+    if (monsterCache[cr]) {
+        if (callback) callback(monsterCache[cr]);
+        return;
+    }
+    var urls = [
+        'data/monsters/cr-' + cr + '.json',
+        'cr-' + cr + '.json',
+        '../data/monsters/cr-' + cr + '.json'
+    ];
+    tryLoadMonsterUrls(urls, 0, cr, callback);
 }
 
-function tryLoadMonsterUrls(urls, idx, callback) {
-if (idx >= urls.length) {
-    if (callback) callback([]);
-    return;
-}
-fetch(urls[idx])
-    .then(function(r) {
-        if (!r.ok) throw new Error('Brak pliku: ' + urls[idx]);
-        return r.json();
-    })
-    .then(function(data) {
-        monsterCache[cr] = data;
-        if (callback) callback(data);
-    })
-    .catch(function(err) {
-        console.warn('Brak ' + urls[idx] + ', próbuję dalej...');
-        tryLoadMonsterUrls(urls, idx + 1, callback);
-    });
+function tryLoadMonsterUrls(urls, idx, cr, callback) {
+    if (idx >= urls.length) {
+        // Ciche pominięcie – nie ma pliku, zwracamy pustą tablicę
+        monsterCache[cr] = [];
+        if (callback) callback([]);
+        return;
+    }
+    fetch(urls[idx])
+        .then(function(r) {
+            if (!r.ok) throw new Error('Brak pliku: ' + urls[idx]);
+            return r.json();
+        })
+        .then(function(data) {
+            monsterCache[cr] = data;
+            if (callback) callback(data);
+        })
+        .catch(function(err) {
+            // Ciche pominięcie – tylko ostrzeżenie w konsoli (nie błąd)
+            if (idx === 0) console.warn('⚠️ Brak pliku potworów CR ' + cr + ' – pomijam');
+            tryLoadMonsterUrls(urls, idx + 1, cr, callback);
+        });
 }
 
 function loadAllMonsters(callback) {
@@ -59,7 +61,9 @@ function loadAllMonsters(callback) {
     
     crs.forEach(function(cr) {
         loadMonsterCR(cr, function(data) {
-            results = results.concat(data || []);
+            if (data && data.length > 0) {
+                results = results.concat(data);
+            }
             loaded++;
             if (loaded === crs.length) {
                 var unique = [];
@@ -73,6 +77,7 @@ function loadAllMonsters(callback) {
                 });
                 MONSTERS = unique;
                 monsterLoading = false;
+                console.log('🐉 Załadowano potworów:', MONSTERS.length);
                 if (callback) callback(MONSTERS);
             }
         });
@@ -110,6 +115,7 @@ function renderMonsters(filter, query) {
 
 function filterMonstersByCR(monsters, filter) {
     if (filter === 'all') return monsters;
+    if (!filter) return monsters;
     
     var parts = filter.split('-');
     var min = parseInt(parts[0]);
@@ -146,8 +152,8 @@ function renderFilteredMonsters(filtered) {
                 <div class="monster-card-name" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">${m.name}</div>
                 <div class="monster-card-type">${m.type}</div>
                 <div class="monster-card-image" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">
-    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
-</div>
+                    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
+                </div>
                 <div class="monster-card-stats">
                     <span>❤️ HP <b>${m.hp}</b></span>
                     <span>🛡️ KP <b>${m.ac}</b></span>
@@ -252,8 +258,8 @@ function openMonsterDetail(name) {
                 <div class="monster-detail-type">${monster.type}</div>
                 
                 <div class="monster-detail-image">
-    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-detail-image-placeholder');" alt="${monster.name}">
-</div>
+                    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-detail-image-placeholder');" alt="${monster.name}">
+                </div>
                 
                 <div class="monster-detail-stats-grid">
                     <div class="monster-detail-stat">
@@ -318,7 +324,6 @@ function addMonsterToCombat(name, cr, hp, ac, type) {
         return;
     }
     
-    // Sprawdź czy już istnieje w potyczce
     if (typeof combatants !== 'undefined') {
         var exists = combatants.some(function(c) {
             return c.name === name && c.role === 'Wróg';
@@ -345,7 +350,6 @@ function addMonsterToCombat(name, cr, hp, ac, type) {
     
     if (typeof playSound === 'function') playSound('add');
     
-    // Przejdź do zakładki Potyczka
     var combatTab = document.querySelector('.nav-btn[data-tab="combat"]');
     if (combatTab) combatTab.click();
 }
@@ -359,7 +363,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Ustaw aktywny filtr
     var allBtn = document.querySelector('.monster-filter-btn[data-cr="all"]');
     if (allBtn) allBtn.classList.add('active');
     
