@@ -1,5 +1,6 @@
 /* ============================================================
-   13 - GRIMOIRE - NOWA KSIĘGA ZAKLĘĆ (POPRAWIONA)
+   13 - GRIMOIRE - NOWA KSIĘGA ZAKLĘĆ
+   DOSTOSOWANY DO GŁÓWNYCH ZMIENNYCH
    ============================================================ */
 
 /* ---------- NAGŁÓWEK ---------- */
@@ -9,7 +10,7 @@
   justify-content: space-between;
   padding-bottom: 18px;
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--line);
   position: relative;
 }
 .grimoire-masthead::after {
@@ -25,18 +26,18 @@
   font-family: var(--font-cinzel);
   font-weight: 700;
   font-size: clamp(22px, 3.2vw, 32px);
-  color: var(--gold-bright);
-  text-shadow: 0 0 24px rgba(201, 162, 75, 0.15);
+  color: var(--gold);
+  text-shadow: 0 0 24px rgba(185, 146, 74, 0.15);
   margin: 0;
 }
 .grimoire-count {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   letter-spacing: 0.06em;
   background: rgba(0, 0, 0, 0.3);
   padding: 6px 14px;
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--line);
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
 
@@ -44,9 +45,9 @@
 .grimoire-filters {
   display: flex;
   gap: 16px;
-  background: var(--panel);
+  background: rgba(28, 24, 18, 0.85);
   padding: 16px 20px;
-  border: 1px solid var(--hairline-soft);
+  border: 1px solid var(--line);
   margin-bottom: 28px;
   flex-wrap: wrap;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
@@ -61,14 +62,14 @@
 .grimoire-filters .filter-group label {
   font-family: var(--font-mono);
   font-size: 0.55rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .grimoire-search {
-  background: var(--bg);
-  border: 1px solid var(--hairline-soft);
+  background: var(--ink);
+  border: 1px solid var(--line);
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: 0.85rem;
@@ -98,9 +99,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--bg);
-  border: 1px solid var(--hairline-soft);
-  color: var(--ink);
+  background: var(--ink);
+  border: 1px solid var(--line);
+  color: var(--parchment);
   padding: 10px 14px;
   cursor: pointer;
   transition: border-color 0.2s;
@@ -130,7 +131,7 @@
 }
 .grimoire-select .arrow {
   font-size: 0.6rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   transition: transform 0.3s;
   flex-shrink: 0;
 }
@@ -143,7 +144,7 @@
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: var(--panel-raised);
+  background: var(--ink-2);
   border: 1px solid var(--gold);
   z-index: 200;
   display: none;
@@ -168,20 +169,20 @@
   gap: 10px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
-  border-bottom: 1px dashed var(--hairline-soft);
-  color: var(--ink-dim);
+  border-bottom: 1px dashed var(--line);
+  color: var(--parchment-dim);
 }
 .grimoire-select .select-options .option:last-child {
   border-bottom: none;
 }
 .grimoire-select .select-options .option:hover {
-  background: rgba(201, 162, 75, 0.12);
-  color: var(--gold-bright);
+  background: rgba(185, 146, 74, 0.12);
+  color: var(--parchment);
 }
 .grimoire-select .select-options .option.selected {
-  color: var(--gold-bright);
+  color: var(--gold);
   font-weight: 600;
-  background: rgba(201, 162, 75, 0.06);
+  background: rgba(185, 146, 74, 0.06);
 }
 .grimoire-select .select-options .option .opt-icon {
   width: 18px;
@@ -203,20 +204,19 @@
   min-height: 200px;
 }
 
-/* ---------- KAFELEK (NAPRAWIONY) ---------- */
+/* ---------- KAFELEK ---------- */
 .grimoire-tile {
-  background: var(--panel);
-  border: 1px solid var(--hairline);
+  background: rgba(28, 24, 18, 0.85);
+  border: 1px solid var(--line);
   padding: 24px 20px 20px;
   cursor: pointer;
   text-align: left;
   position: relative;
   transition: all 0.25s ease;
-  color: var(--ink);
+  color: var(--parchment);
   font-family: inherit;
   overflow: hidden;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  /* KLUCZOWE: widoczność */
   opacity: 1 !important;
   transform: none !important;
   display: block;
@@ -268,7 +268,7 @@
 .grimoire-tile .en-name {
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   display: block;
   margin-bottom: 14px;
 }
@@ -296,25 +296,25 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  border-top: 1px dashed var(--hairline-soft);
+  border-top: 1px dashed var(--line);
   padding-top: 14px;
 }
 .grimoire-tile .tile-stats .stat {
   font-size: 0.7rem;
-  color: var(--ink-dim);
+  color: var(--parchment-dim);
 }
 .grimoire-tile .tile-stats .stat span {
   display: block;
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 3px;
 }
 .grimoire-tile .tile-stats .stat .val {
   font-weight: 500;
-  color: var(--ink);
+  color: var(--parchment);
 }
 
 /* ---------- PUSTY STAN ---------- */
@@ -322,12 +322,12 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 60px 20px;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   font-family: var(--font-cinzel);
   font-size: var(--font-lg);
   letter-spacing: 0.04em;
-  background: var(--panel);
-  border: 1px solid var(--hairline);
+  background: rgba(28, 24, 18, 0.85);
+  border: 1px solid var(--line);
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 .grimoire-empty span {
@@ -360,7 +360,7 @@
 }
 
 .grimoire-modal .modal-box {
-  background: var(--bg);
+  background: var(--ink);
   border: 1px solid var(--spell-color);
   width: 100%;
   max-width: 860px;
@@ -379,7 +379,7 @@
   width: 6px;
 }
 .grimoire-modal .modal-box::-webkit-scrollbar-track {
-  background: var(--bg);
+  background: var(--ink);
 }
 .grimoire-modal .modal-box::-webkit-scrollbar-thumb {
   background: var(--spell-color);
@@ -390,9 +390,9 @@
   top: 14px;
   right: 14px;
   z-index: 10;
-  background: var(--panel);
-  border: 1px solid var(--hairline);
-  color: var(--ink-dim);
+  background: rgba(28, 24, 18, 0.85);
+  border: 1px solid var(--line);
+  color: var(--parchment-dim);
   width: 36px;
   height: 36px;
   font-family: var(--font-mono);
@@ -412,8 +412,8 @@
 /* ---------- HEADER MODALA ---------- */
 .grimoire-modal .modal-header {
   padding: 28px 32px 20px;
-  background: linear-gradient(135deg, var(--panel) 0%, transparent 100%);
-  border-bottom: 1px solid var(--hairline-soft);
+  background: linear-gradient(135deg, rgba(28, 24, 18, 0.85) 0%, transparent 100%);
+  border-bottom: 1px solid var(--line);
   position: relative;
   display: flex;
   align-items: center;
@@ -451,7 +451,7 @@
 .grimoire-modal .modal-header .hdr-text .en-title {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: var(--ink-dim);
+  color: var(--parchment-dim);
 }
 
 /* ---------- BODY MODALA ---------- */
@@ -479,8 +479,8 @@
 }
 .grimoire-modal .modal-body .detail-tag.secondary {
   opacity: 0.7;
-  border-color: var(--hairline);
-  color: var(--ink-dim);
+  border-color: var(--line);
+  color: var(--parchment-dim);
 }
 
 .grimoire-modal .modal-body .detail-grid {
@@ -490,15 +490,15 @@
   margin-bottom: 14px;
 }
 .grimoire-modal .modal-body .detail-box {
-  background: var(--panel-raised);
-  border: 1px solid var(--hairline);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--line);
   padding: 10px 14px;
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
 }
 .grimoire-modal .modal-body .detail-box .lbl {
   font-family: var(--font-mono);
   font-size: 0.5rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: 4px;
@@ -507,7 +507,7 @@
   font-family: var(--font-cinzel);
   font-weight: 600;
   font-size: 0.8rem;
-  color: var(--gold-bright);
+  color: var(--gold);
   line-height: 1.2;
 }
 .grimoire-modal .modal-body .detail-box .val.effect {
@@ -518,20 +518,20 @@
   font-family: var(--font-garamond);
   font-style: italic;
   font-size: 0.75rem;
-  color: var(--ink-dim);
+  color: var(--parchment-dim);
   margin-bottom: 28px;
-  border-left: 2px solid var(--hairline);
+  border-left: 2px solid var(--line);
   padding-left: 12px;
 }
 
 .grimoire-modal .modal-body .desc-section {
-  border-top: 1px solid var(--hairline-soft);
+  border-top: 1px solid var(--line);
   padding-top: 22px;
 }
 .grimoire-modal .modal-body .desc-pl {
   font-size: 0.95rem;
   line-height: 1.8;
-  color: var(--ink);
+  color: var(--parchment);
   text-align: justify;
 }
 .grimoire-modal .modal-body .desc-pl p {
@@ -556,7 +556,7 @@
   border-left: 2px solid var(--spell-color);
   font-size: 0.85rem;
   line-height: 1.7;
-  color: var(--ink-dim);
+  color: var(--parchment-dim);
   font-style: italic;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
 }
@@ -572,10 +572,23 @@
   font-family: var(--font-garamond);
   font-style: italic;
   font-size: 0.75rem;
-  color: var(--ink-faint);
+  color: var(--parchment-faded);
   margin-top: 34px;
   padding-top: 14px;
-  border-top: 1px dashed var(--hairline-soft);
+  border-top: 1px dashed var(--line);
+}
+
+/* ============================================================
+   SZERSZA STRONA
+   ============================================================ */
+@media (min-width: 1200px) {
+  .app {
+    max-width: 1400px !important;
+    padding: 20px 4vw 100px !important;
+  }
+  .grimoire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
 }
 
 /* ============================================================
@@ -678,7 +691,4 @@
     top: 10px;
     right: 10px;
   }
-}
-.grimoire-grid {
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }

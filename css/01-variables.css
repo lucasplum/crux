@@ -1,30 +1,43 @@
-/* ===== ZMIENNE CSS ===== */
+/* ===== ZMIENNE CSS – NOWY KLIMAT ===== */
 :root {
-  /* Kolory podstawowe */
-  --ink: #15120e;
-  --ink-2: #1c1812;
-  --ink-3: #221e16;
+  /* ===== KOLORY PODSTAWOWE ===== */
   
-  /* Pergamin */
+  /* Tło */
+  --bg: #121009;
+  --bg-vignette: radial-gradient(ellipse at 50% -10%, #241d10 0%, #121009 55%);
+  
+  /* Panele i karty */
+  --panel: #1b170f;
+  --panel-raised: #221c12;
+  
+  /* Pergamin – jasny tekst */
   --parchment: #ece2c8;
   --parchment-dim: #cabf9e;
   --parchment-faded: #9a8b6e;
   
-  /* Krew */
+  /* Alternatywne nazwy (dla kompatybilności) */
+  --ink: #ece3cd;
+  --ink-dim: #a89a7c;
+  --ink-faint: #786c53;
+  --ink-dark: #15120e;
+  --ink-2: #1c1812;
+  --ink-3: #221e16;
+  
+  /* Krew – akcenty */
   --blood: #8a2a22;
   --blood-bright: #b8392c;
   --blood-glow: rgba(184,57,44,0.25);
   
   /* Złoto */
-  --gold: #b9924a;
+  --gold: #c9a24b;
+  --gold-bright: #e9cd85;
   --gold-dim: #7a6234;
-  --gold-glow: rgba(185,146,74,0.15);
+  --gold-glow: rgba(201,162,75,0.15);
   
-  /* Turkus */
-  --teal: #3f6b62;
-  
-  /* Linie i cienie */
-  --line: rgba(185,146,74,0.2);
+  /* Linie i ramki */
+  --line: rgba(201,162,75,0.2);
+  --hairline: rgba(201,162,75,0.28);
+  --hairline-soft: rgba(201,162,75,0.14);
   --shadow: rgba(0,0,0,0.6);
   
   /* Kolory stanów */
@@ -34,71 +47,27 @@
   --purple: #a87cff;
   --yellow: #d4a843;
   
-  /* Fonty */
+  /* Turkus */
+  --teal: #3f6b62;
+  
+  /* ===== FONTY ===== */
   --font-sm: 0.9rem;
   --font-md: 1.05rem;
   --font-lg: 1.3rem;
   --font-xl: 1.7rem;
   --font-xxl: 2.2rem;
   
-  /* Font families */
   --font-cinzel: 'Cinzel', serif;
   --font-garamond: 'EB Garamond', serif;
   --font-mono: 'JetBrains Mono', monospace;
   
-  /* Przejścia */
+  /* ===== PRZEJŚCIA ===== */
   --transition-fast: 0.2s;
   --transition-normal: 0.3s;
   --transition-slow: 0.5s;
-
-    /* Zaokrąglenia - tylko tam gdzie potrzebne */
+  
+  /* ===== ZAOKRĄGLENIA ===== */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
-
-  --ink: #15120e;
-    --ink-2: #1c1812;
-    --ink-3: #221e16;
-    --parchment: #ece2c8;
-    --parchment-dim: #cabf9e;
-    --parchment-faded: #9a8b6e;
-    --blood: #8a2a22;
-    --blood-bright: #b8392c;
-    --blood-glow: rgba(184, 57, 44, 0.25);
-    --gold: #b9924a;
-    --gold-dim: #7a6234;
-    --gold-glow: rgba(185, 146, 74, 0.15);
-    --teal: #3f6b62;
-    --line: rgba(185, 146, 74, 0.2);
-    --shadow: rgba(0, 0, 0, 0.6);
-    --red: #ff6b6b;
-    --green: #6bff9e;
-    --blue: #6bb8ff;
-    --purple: #a87cff;
-    --yellow: #d4a843;
-    --font-sm: 0.9rem;
-    --font-md: 1.05rem;
-    --font-lg: 1.3rem;
-    --font-xl: 1.7rem;
-    --font-xxl: 2.2rem;
-    --font-cinzel: 'Cinzel', serif;
-    --font-garamond: 'EB Garamond', serif;
-    --font-mono: 'JetBrains Mono', monospace;
-    --transition-fast: 0.2s;
-    --transition-normal: 0.3s;
-    --transition-slow: 0.5s;
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --bg: #121009;
-    --bg-vignette: radial-gradient(ellipse at 50% -10%, #241d10 0%, #121009 55%);
-    --panel: #1b170f;
-    --panel-raised: #221c12;
-    --hairline: rgba(201, 162, 75, 0.28);
-    --hairline-soft: rgba(201, 162, 75, 0.14);
-    --ink: #ece3cd;
-    --ink-dim: #a89a7c;
-    --ink-faint: #786c53;
-    --gold: #c9a24b;
-    --gold-bright: #e9cd85;
 }

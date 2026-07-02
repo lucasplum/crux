@@ -2,8 +2,8 @@
 
 /* Karty */
 .card {
-  background: rgba(28,24,18,0.85);
-  border: 1px solid var(--line);
+  background: var(--panel);
+  border: 1px solid var(--hairline);
   border-radius: 10px;
   padding: 24px 26px;
   margin-bottom: 20px;
@@ -20,7 +20,7 @@
 }
 
 .card:hover {
-  box-shadow: 0 4px 40px rgba(0,0,0,0.5), 0 0 40px rgba(185,146,74,0.04);
+  box-shadow: 0 4px 40px rgba(0,0,0,0.5), 0 0 40px var(--gold-glow);
 }
 
 .card-title {
@@ -94,14 +94,14 @@
 .btn.outline {
   background: transparent;
   color: var(--gold);
-  border: 1px solid var(--line);
+  border: 1px solid var(--hairline);
   box-shadow: none;
 }
 
 .btn.outline:hover {
-  background: rgba(185,146,74,0.08);
+  background: var(--gold-glow);
   border-color: var(--gold);
-  box-shadow: 0 0 30px rgba(185,146,74,0.06);
+  box-shadow: 0 0 30px var(--gold-glow);
 }
 
 .btn.danger {
@@ -147,15 +147,15 @@
 }
 
 .popup-content {
-  background: #1a1612;
-  border: 1px solid var(--line);
+  background: var(--panel-raised);
+  border: 1px solid var(--hairline);
   border-radius: 10px;
   padding: 28px;
   max-width: 520px;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 40px rgba(185,146,74,0.04);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.8), 0 0 40px var(--gold-glow);
 }
 
 .popup-content .popup-title {
@@ -183,7 +183,7 @@
   width: 100%;
   background: rgba(0,0,0,0.3);
   color: var(--parchment-dim);
-  border: 1px solid var(--line);
+  border: 1px solid var(--hairline);
   border-radius: 8px;
   cursor: pointer;
   font-family: var(--font-cinzel);
@@ -204,7 +204,7 @@ select, input[type="text"], input[type="number"] {
   padding: 12px 14px;
   background: rgba(0,0,0,0.3);
   color: var(--parchment);
-  border: 1px solid var(--line);
+  border: 1px solid var(--hairline);
   border-radius: 8px;
   font-family: var(--font-garamond);
   font-size: var(--font-md);
@@ -216,7 +216,7 @@ select, input[type="text"], input[type="number"] {
 select:focus, input[type="text"]:focus, input[type="number"]:focus {
   outline: none;
   border-color: var(--gold);
-  box-shadow: 0 0 0 4px rgba(185,146,74,0.08);
+  box-shadow: 0 0 0 4px var(--gold-glow);
   background: rgba(0,0,0,0.4);
 }
 
