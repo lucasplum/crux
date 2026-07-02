@@ -319,3 +319,7 @@ header p.subtitle {
         font-size: 0.4rem;
     }
 }
+
+.app {
+  max-width: 1400px; /* było 1100px */
+}

@@ -1,5 +1,5 @@
 /* ============================================================
-   13 - GRIMOIRE - NOWA KSIĘGA ZAKLĘĆ
+   13 - GRIMOIRE - NOWA KSIĘGA ZAKLĘĆ (POPRAWIONA)
    ============================================================ */
 
 /* ---------- NAGŁÓWEK ---------- */
@@ -194,15 +194,16 @@
   fill: currentColor;
 }
 
-/* ---------- SIATKA KAFELKÓW ---------- */
+/* ---------- KONTENER SIATKI ---------- */
 .grimoire-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
   padding: 4px 0;
+  min-height: 200px;
 }
 
-/* ---------- KAFELEK ---------- */
+/* ---------- KAFELEK (NAPRAWIONY) ---------- */
 .grimoire-tile {
   background: var(--panel);
   border: 1px solid var(--hairline);
@@ -215,6 +216,11 @@
   font-family: inherit;
   overflow: hidden;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  /* KLUCZOWE: widoczność */
+  opacity: 1 !important;
+  transform: none !important;
+  display: block;
+  width: 100%;
 }
 .grimoire-tile:hover {
   border-color: var(--spell-color);
@@ -320,6 +326,9 @@
   font-family: var(--font-cinzel);
   font-size: var(--font-lg);
   letter-spacing: 0.04em;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
 }
 .grimoire-empty span {
   display: block;
@@ -474,14 +483,12 @@
   color: var(--ink-dim);
 }
 
-/* ---------- SIATKA SZCZEGÓŁÓW ---------- */
 .grimoire-modal .modal-body .detail-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 14px;
 }
-
 .grimoire-modal .modal-body .detail-box {
   background: var(--panel-raised);
   border: 1px solid var(--hairline);
@@ -507,19 +514,16 @@
   color: var(--spell-color);
 }
 
-/* ---------- NOTA MATERIALNA ---------- */
 .grimoire-modal .modal-body .mat-note {
   font-family: var(--font-garamond);
   font-style: italic;
   font-size: 0.75rem;
   color: var(--ink-dim);
   margin-bottom: 28px;
-  padding-left: 4px;
   border-left: 2px solid var(--hairline);
   padding-left: 12px;
 }
 
-/* ---------- OPIS ---------- */
 .grimoire-modal .modal-body .desc-section {
   border-top: 1px solid var(--hairline-soft);
   padding-top: 22px;
@@ -545,7 +549,6 @@
   margin: 4px 8px 0 0;
 }
 
-/* ---------- OPIS ANGIELSKI ---------- */
 .grimoire-modal .modal-body .desc-en {
   margin-top: 28px;
   padding: 18px 22px;
@@ -564,7 +567,6 @@
   margin-bottom: 0;
 }
 
-/* ---------- STOPKA ---------- */
 .grimoire-modal .modal-body .src-footer {
   text-align: right;
   font-family: var(--font-garamond);
@@ -579,6 +581,12 @@
 /* ============================================================
    RESPONSYWNOŚĆ
    ============================================================ */
+@media (max-width: 1024px) {
+  .grimoire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
   .grimoire-grid {
     grid-template-columns: 1fr;
@@ -670,4 +678,7 @@
     top: 10px;
     right: 10px;
   }
+}
+.grimoire-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
