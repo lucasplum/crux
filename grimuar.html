@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grimuar Zaklęć - CRUX Toolkit</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/grimuar.css">
+</head>
+<body>
+    <div class="bg-layer">
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
+        <div class="orb orb3"></div>
+    </div>
+
+    <div class="app">
+        <header>
+            <div class="raven-stage">
+                <div class="raven-glow"></div>
+                <div class="raven-orbit"></div>
+                <div class="raven-orbit orbit-2"></div>
+                <div class="raven">🐦‍⬛</div>
+            </div>
+            <h1>GRIMUAR <span>ZAKLĘĆ</span></h1>
+            <p class="subtitle">Arkana Wędrowca</p>
+            <div class="hex-deco">
+                <span></span><span></span><span></span>
+            </div>
+        </header>
+
+        <!-- NAWIGACJA GÓRNA - powiązana z index.html -->
+        <nav class="top-nav">
+            <a href="index.html#calculator" class="nav-btn">
+                <span class="nav-icon">🧮</span>
+                <span class="nav-label">Kalkulatory</span>
+            </a>
+            <a href="index.html#areas" class="nav-btn">
+                <span class="nav-icon">🎨</span>
+                <span class="nav-label">Obszary</span>
+            </a>
+            <a href="index.html#players" class="nav-btn">
+                <span class="nav-icon">👥</span>
+                <span class="nav-label">Postacie</span>
+            </a>
+            <a href="index.html#combat" class="nav-btn">
+                <span class="nav-icon">️</span>
+                <span class="nav-label">Potyczka</span>
+            </a>
+            <a href="index.html#bestiary" class="nav-btn">
+                <span class="nav-icon">🐉</span>
+                <span class="nav-label">Potwory</span>
+            </a>
+            <a href="index.html#info" class="nav-btn">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Info</span>
+            </a>
+            <a href="grimuar.html" class="nav-btn active">
+                <span class="nav-icon">📖</span>
+                <span class="nav-label">Grimuar</span>
+            </a>
+        </nav>
+
+        <!-- PRZYCISK POWROTU -->
+        <div class="grimuar-back">
+            <a href="index.html" class="btn outline">
+                ← Powrót do CRUX Toolkit
+            </a>
+        </div>
+
+        <!-- GŁÓWNA SEKCJA GRIMUARU -->
+        <section class="tab-section active">
+            <div class="card">
+                <div class="card-title">📖 Grimuar Zaklęć</div>
+                
+                <div class="grimuar-filters">
+                    <div class="filter-group">
+                        <label for="grimuarSearch">SZUKAJ ZAKLĘCIA</label>
+                        <input type="text" id="grimuarSearch" placeholder="Wpisz nazwę..." class="grimuar-input">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="grimuarLevel">KRĄG ZAKLĘCIA</label>
+                        <select id="grimuarLevel" class="grimuar-select">
+                            <option value="all">Wszystkie</option>
+                            <option value="0">Sztuczki</option>
+                            <option value="1">1. Krąg</option>
+                            <option value="2">2. Krąg</option>
+                            <option value="3">3. Krąg</option>
+                            <option value="4">4. Krąg</option>
+                            <option value="5">5. Krąg</option>
+                            <option value="6">6. Krąg</option>
+                            <option value="7">7. Krąg</option>
+                            <option value="8">8. Krąg</option>
+                            <option value="9">9. Krąg</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="grimuarSchool">SZKOŁA MAGII</label>
+                        <select id="grimuarSchool" class="grimuar-select">
+                            <option value="all">Wszystkie</option>
+                            <option value="wywoływanie">✦ Ewokacja</option>
+                            <option value="przywoływanie">⬡ Przywoływanie</option>
+                            <option value="wieszczenie">◈ Wieszczenie</option>
+                            <option value="nekromancja">✧ Nekromancja</option>
+                            <option value="uroki">♥ Uroki</option>
+                            <option value="iluzje">◐ Iluzja</option>
+                            <option value="odpychanie"> Ochrona</option>
+                            <option value="przemiany">◈ Przemiany</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="grimuarClass">KLASA</label>
+                        <select id="grimuarClass" class="grimuar-select">
+                            <option value="all">Wszystkie klasy</option>
+                            <option value="Czarodziej">🧙 Czarodziej</option>
+                            <option value="Czarownik">🔥 Czarownik</option>
+                            <option value="Mag">📖 Mag</option>
+                            <option value="Kapłan">⛪ Kapłan</option>
+                            <option value="Druid">🌿 Druid</option>
+                            <option value="Bard"> Bard</option>
+                            <option value="Paladyn">⚔️ Paladyn</option>
+                            <option value="Łowca"> Łowca</option>
+                            <option value="Łotrzyk">🗡️ Łotrzyk</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="grimuarSort">SORTOWANIE</label>
+                        <select id="grimuarSort" class="grimuar-select">
+                            <option value="level">Poziom →</option>
+                            <option value="name">Alfabetycznie 🔤</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="grimuarList" class="grimuar-grid">
+                    <div class="grimuar-loading">
+                        <div class="loading-raven">🐦‍⬛</div>
+                        <p>Ładowanie grimuaru...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODAL SZCZEGÓŁÓW ZAKLĘCIA -->
+        <div id="spellDetailOverlay" class="spell-detail-overlay">
+            <div class="spell-detail-modal" id="spellDetailContent">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NAWIGACJA DOLNA (MOBILE) -->
+    <nav class="bottom-nav">
+        <a href="index.html#calculator" class="bottom-nav-btn">
+            <span class="bottom-nav-icon"></span>
+            <span class="bottom-nav-label">Kalkulatory</span>
+        </a>
+        <a href="index.html#areas" class="bottom-nav-btn">
+            <span class="bottom-nav-icon">🎨</span>
+            <span class="bottom-nav-label">Obszary</span>
+        </a>
+        <a href="index.html#players" class="bottom-nav-btn">
+            <span class="bottom-nav-icon">👥</span>
+            <span class="bottom-nav-label">Postacie</span>
+        </a>
+        <a href="index.html#combat" class="bottom-nav-btn">
+            <span class="bottom-nav-icon">⚔️</span>
+            <span class="bottom-nav-label">Potyczka</span>
+        </a>
+        <a href="index.html#bestiary" class="bottom-nav-btn">
+            <span class="bottom-nav-icon">🐉</span>
+            <span class="bottom-nav-label">Potwory</span>
+        </a>
+        <a href="grimuar.html" class="bottom-nav-btn active">
+            <span class="bottom-nav-icon">📖</span>
+            <span class="bottom-nav-label">Grimuar</span>
+        </a>
+    </nav>
+
+    <script src="config/data.js"></script>
+    <script src="core/audio.js"></script>
+    <script src="core/popups.js"></script>
+    <script src="js/modules/grimuar.js"></script>
+</body>
+</html>

@@ -56,10 +56,10 @@
         <span class="nav-icon">📖</span>
         <span class="nav-label">Info</span>
     </button>
-    <button class="nav-btn" data-tab="spellbook">
-        <span class="nav-icon">📖</span>
-        <span class="nav-label">Księga</span>
-    </button>
+    <a href="grimuar.html" class="nav-btn" style="text-decoration:none;">
+    <span class="nav-icon">📖</span>
+    <span class="nav-label">Grimuar</span>
+</a>
 </nav>
 
   <!-- ===== TAB: KALKULATORY ===== -->
@@ -355,63 +355,6 @@
     </div>
   </section>
 
-<!-- ===== TAB: KSIĘGA ZAKLĘĆ ===== -->
-<section class="tab-section" data-tab="spellbook">
-    <div class="card">
-        <div class="card-title">📖 Księga zaklęć</div>
-        
-        <div class="spellbook-controls">
-            <input type="text" class="spellbook-search" id="spellbookSearch" placeholder="🔍 Szukaj zaklęcia..." style="width:100%;padding:12px 16px;background:#18140d;border:1px solid var(--border);color:var(--ink);font-family:inherit;margin-bottom:10px;">
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <select id="spellbookLevel" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
-                    <option value="all">Wszystkie poziomy</option>
-                    <option value="0">Cantrip</option>
-                    <option value="1">I</option>
-                    <option value="2">II</option>
-                    <option value="3">III</option>
-                    <option value="4">IV</option>
-                    <option value="5">V</option>
-                    <option value="6">VI</option>
-                    <option value="7">VII</option>
-                    <option value="8">VIII</option>
-                    <option value="9">IX</option>
-                </select>
-                <select id="spellbookSchool" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
-                    <option value="all">Wszystkie szkoły</option>
-                    <option value="wywoływanie">✦ Ewokacja</option>
-                    <option value="przywoływanie">⬡ Przywoływanie</option>
-                    <option value="wieszczenie">◈ Wieszczenie</option>
-                    <option value="nekromancja">✧ Nekromancja</option>
-                    <option value="uroki">♥ Uroki</option>
-                    <option value="iluzje">◐ Iluzja</option>
-                    <option value="odpychanie">⊜ Ochrona</option>
-                    <option value="przemiany">◈ Przemiany</option>
-                </select>
-            </div>
-            
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-                <select id="spellbookClass" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
-                    <option value="all">Wszystkie klasy</option>
-                    <option value="Czarodziej">🧙 Czarodziej</option>
-                    <option value="Czarownik">🔥 Czarownik</option>
-                    <option value="Mag">📖 Mag</option>
-                    <option value="Kapłan">⛪ Kapłan</option>
-                    <option value="Druid">🌿 Druid</option>
-                    <option value="Bard">🎵 Bard</option>
-                    <option value="Paladyn">⚔️ Paladyn</option>
-                    <option value="Łowca">🏹 Łowca</option>
-                </select>
-                <select id="spellbookSort" style="background:#18140d;border:1px solid var(--border);color:var(--ink);padding:10px 14px;font-family:inherit;">
-                    <option value="level">📊 Sortuj: Poziom → Alfabetycznie</option>
-                    <option value="name">🔤 Sortuj: Alfabetycznie</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="spellbook-grid" id="spellbookList"></div>
-    </div>
-</section>
 
 <!-- ===== MODAL SZCZEGÓŁÓW ZAKLĘCIA ===== -->
 <div class="popup-overlay" id="spellDetailOverlay" style="display:none;">
@@ -428,7 +371,10 @@
     <button class="bottom-nav-btn" data-tab="combat"><span class="bottom-nav-icon">⚔️</span><span class="bottom-nav-label">Potyczka</span></button>
     <button class="bottom-nav-btn" data-tab="monsters"><span class="bottom-nav-icon">🐉</span><span class="bottom-nav-label">Potwory</span></button>
     <button class="bottom-nav-btn" data-tab="info"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Info</span></button>
-    <button class="bottom-nav-btn" data-tab="spellbook"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Księga</span></button>
+   <a href="grimuar.html" class="bottom-nav-btn" style="text-decoration:none;">
+    <span class="bottom-nav-icon">📖</span>
+    <span class="bottom-nav-label">Grimuar</span>
+</a>
   </nav>
 </div>
 
