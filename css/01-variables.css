@@ -90,4 +90,15 @@
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
+    --bg: #121009;
+    --bg-vignette: radial-gradient(ellipse at 50% -10%, #241d10 0%, #121009 55%);
+    --panel: #1b170f;
+    --panel-raised: #221c12;
+    --hairline: rgba(201, 162, 75, 0.28);
+    --hairline-soft: rgba(201, 162, 75, 0.14);
+    --ink: #ece3cd;
+    --ink-dim: #a89a7c;
+    --ink-faint: #786c53;
+    --gold: #c9a24b;
+    --gold-bright: #e9cd85;
 }
