@@ -8,6 +8,15 @@ var selectedMonster = null;
 var monsterCache = {};
 var monsterLoading = false;
 
+// ====== OBSŁUGA BŁĘDU OBRAZKA ======
+function handleImageError(img) {
+    if (!img || !img.parentElement) return;
+    var parent = img.parentElement;
+    img.style.display = 'none';
+    parent.innerHTML = '🐉';
+    parent.classList.add('monster-card-image-placeholder');
+}
+
 // ====== ŁADOWANIE Z JSON ======
 function loadMonsterCR(cr, callback) {
     if (monsterCache[cr]) {
@@ -24,7 +33,6 @@ function loadMonsterCR(cr, callback) {
 
 function tryLoadMonsterUrls(urls, idx, cr, callback) {
     if (idx >= urls.length) {
-        // Ciche pominięcie – nie ma pliku, zwracamy pustą tablicę
         monsterCache[cr] = [];
         if (callback) callback([]);
         return;
@@ -39,7 +47,6 @@ function tryLoadMonsterUrls(urls, idx, cr, callback) {
             if (callback) callback(data);
         })
         .catch(function(err) {
-            // Ciche pominięcie – tylko ostrzeżenie w konsoli (nie błąd)
             if (idx === 0) console.warn('⚠️ Brak pliku potworów CR ' + cr + ' – pomijam');
             tryLoadMonsterUrls(urls, idx + 1, cr, callback);
         });
@@ -152,7 +159,7 @@ function renderFilteredMonsters(filtered) {
                 <div class="monster-card-name" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">${m.name}</div>
                 <div class="monster-card-type">${m.type}</div>
                 <div class="monster-card-image" onclick="openMonsterDetail('${m.name.replace(/'/g, "\\'")}')">
-                    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-card-image-placeholder');" alt="${m.name}">
+                    <img src="${imgUrl}" onerror="handleImageError(this)" alt="${m.name}">
                 </div>
                 <div class="monster-card-stats">
                     <span>❤️ HP <b>${m.hp}</b></span>
@@ -258,7 +265,7 @@ function openMonsterDetail(name) {
                 <div class="monster-detail-type">${monster.type}</div>
                 
                 <div class="monster-detail-image">
-                    <img src="${imgUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='🐉';this.parentElement.classList.add('monster-detail-image-placeholder');" alt="${monster.name}">
+                    <img src="${imgUrl}" onerror="handleImageError(this)" alt="${monster.name}">
                 </div>
                 
                 <div class="monster-detail-stats-grid">
@@ -378,3 +385,4 @@ window.addMonsterToCombat = addMonsterToCombat;
 window.addMonsterDetailToCombat = addMonsterDetailToCombat;
 window.MONSTERS = MONSTERS;
 window.getMonsterImageUrl = getMonsterImageUrl;
+window.handleImageError = handleImageError;
