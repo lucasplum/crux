@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V25.0.DS</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V 29 Q</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -56,10 +56,10 @@
         <span class="nav-icon">📖</span>
         <span class="nav-label">Info</span>
     </button>
-    <a href="grimuar.html" class="nav-btn" style="text-decoration:none;">
-    <span class="nav-icon">📖</span>
-    <span class="nav-label">Grimuar</span>
-</a>
+    <button class="nav-btn" data-tab="spellbook">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">Księga</span>
+    </button>
 </nav>
 
   <!-- ===== TAB: KALKULATORY ===== -->
@@ -355,6 +355,75 @@
     </div>
   </section>
 
+<!-- ===== TAB: GRIMUAR ZAKLĘĆ ===== -->
+<section class="tab-section" data-tab="spellbook">
+  <div class="card" style="padding:18px 20px 24px;">
+
+    <!-- NAGŁÓWEK -->
+    <div class="grimoire-masthead">
+      <h2>📖 Grimuar Zaklęć</h2>
+      <span class="grimoire-count" id="grimoireCount">— zaklęć</span>
+    </div>
+
+    <!-- FILTRY -->
+    <div class="grimoire-filters">
+      <div class="filter-group">
+        <label>🔍 Szukaj</label>
+        <input type="text" id="grimoireSearch" class="grimoire-search" placeholder="Wpisz nazwę zaklęcia..." autocomplete="off">
+      </div>
+
+      <div class="filter-group">
+        <label>Krąg</label>
+        <div class="grimoire-select" id="grimoireLevel" data-value="Wszystkie">
+          <div class="select-trigger">
+            <div class="trigger-content"><span class="text">Wszystkie</span></div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="select-options">
+            <div class="option selected" data-value="Wszystkie">Wszystkie</div>
+            <div class="option" data-value="0">Sztuczki</div>
+            <div class="option" data-value="1">1. Krąg</div>
+            <div class="option" data-value="2">2. Krąg</div>
+            <div class="option" data-value="3">3. Krąg</div>
+            <div class="option" data-value="4">4. Krąg</div>
+            <div class="option" data-value="5">5. Krąg</div>
+            <div class="option" data-value="6">6. Krąg</div>
+            <div class="option" data-value="7">7. Krąg</div>
+            <div class="option" data-value="8">8. Krąg</div>
+            <div class="option" data-value="9">9. Krąg</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>Szkoła</label>
+        <div class="grimoire-select" id="grimoireSchool" data-value="Wszystkie">
+          <div class="select-trigger">
+            <div class="trigger-content"><span class="text">Wszystkie</span></div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="select-options" id="grimoireSchoolOptions">
+            <!-- Wypełniane przez JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIATKA KAFELKÓW -->
+    <div id="grimoireGrid" class="grimoire-grid"></div>
+
+  </div>
+</section>
+
+<!-- MODAL GRIMUARU -->
+<div id="grimoireModal" class="grimoire-modal">
+  <div id="grimoireModalBox" class="modal-box"></div>
+</div>
+
+<!-- MODAL GRIMUARU -->
+<div id="grimoireModal" class="grimoire-modal">
+  <div id="grimoireModalBox" class="modal-box"></div>
+</div>
 
 <!-- ===== MODAL SZCZEGÓŁÓW ZAKLĘCIA ===== -->
 <div class="popup-overlay" id="spellDetailOverlay" style="display:none;">
@@ -371,10 +440,7 @@
     <button class="bottom-nav-btn" data-tab="combat"><span class="bottom-nav-icon">⚔️</span><span class="bottom-nav-label">Potyczka</span></button>
     <button class="bottom-nav-btn" data-tab="monsters"><span class="bottom-nav-icon">🐉</span><span class="bottom-nav-label">Potwory</span></button>
     <button class="bottom-nav-btn" data-tab="info"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Info</span></button>
-   <a href="grimuar.html" class="bottom-nav-btn" style="text-decoration:none;">
-    <span class="bottom-nav-icon">📖</span>
-    <span class="bottom-nav-label">Grimuar</span>
-</a>
+    <button class="bottom-nav-btn" data-tab="spellbook"><span class="bottom-nav-icon">📖</span><span class="bottom-nav-label">Księga</span></button>
   </nav>
 </div>
 
@@ -1003,6 +1069,7 @@
 <script src="js/modules/info.js"></script>
 <script src="js/ui/canvas.js"></script>
 <script src="js/ui/render.js"></script>
+<script src="js/grimoire.js"></script>
 <!--<script src="js/modules/spellbook-loader.js"></script>-->
 <script src="js/app.js"></script>
 </body>
