@@ -1,5 +1,5 @@
 /* ============================================================
-   13 - GRIMOIRE - NOWY WYGLĄD KSIĘGI ZAKLĘĆ
+   13 - GRIMOIRE - NOWA KSIĘGA ZAKLĘĆ
    ============================================================ */
 
 /* ---------- NAGŁÓWEK ---------- */
@@ -43,9 +43,9 @@
 /* ---------- FILTRY ---------- */
 .grimoire-filters {
   display: flex;
-  gap: 14px;
+  gap: 16px;
   background: var(--panel);
-  padding: 14px 18px;
+  padding: 16px 20px;
   border: 1px solid var(--hairline-soft);
   margin-bottom: 28px;
   flex-wrap: wrap;
@@ -197,15 +197,16 @@
 /* ---------- SIATKA KAFELKÓW ---------- */
 .grimoire-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  padding: 4px 0;
 }
 
 /* ---------- KAFELEK ---------- */
 .grimoire-tile {
   background: var(--panel);
   border: 1px solid var(--hairline);
-  padding: 22px 18px 18px;
+  padding: 24px 20px 20px;
   cursor: pointer;
   text-align: left;
   position: relative;
@@ -232,8 +233,8 @@
 
 .grimoire-tile .tile-icon {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 16px;
+  right: 16px;
   width: 36px;
   height: 36px;
   color: var(--spell-color);
@@ -256,7 +257,7 @@
   font-size: 1.1rem;
   color: var(--spell-color);
   margin: 0 0 2px 0;
-  padding-right: 44px;
+  padding-right: 48px;
 }
 .grimoire-tile .en-name {
   font-family: var(--font-mono);
@@ -307,13 +308,14 @@
 }
 .grimoire-tile .tile-stats .stat .val {
   font-weight: 500;
+  color: var(--ink);
 }
 
 /* ---------- PUSTY STAN ---------- */
 .grimoire-empty {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 50px 20px;
+  padding: 60px 20px;
   color: var(--ink-faint);
   font-family: var(--font-cinzel);
   font-size: var(--font-lg);
@@ -326,7 +328,9 @@
   opacity: 0.4;
 }
 
-/* ---------- MODAL ---------- */
+/* ============================================================
+   MODAL - SZCZEGÓŁY ZAKLĘCIA
+   ============================================================ */
 .grimoire-modal {
   position: fixed;
   inset: 0;
@@ -339,7 +343,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  padding: 20px;
+  padding: 24px;
 }
 .grimoire-modal.active {
   opacity: 1;
@@ -350,7 +354,7 @@
   background: var(--bg);
   border: 1px solid var(--spell-color);
   width: 100%;
-  max-width: 820px;
+  max-width: 860px;
   max-height: 92vh;
   overflow-y: auto;
   position: relative;
@@ -380,8 +384,8 @@
   background: var(--panel);
   border: 1px solid var(--hairline);
   color: var(--ink-dim);
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   cursor: pointer;
@@ -396,6 +400,7 @@
   color: var(--spell-color);
 }
 
+/* ---------- HEADER MODALA ---------- */
 .grimoire-modal .modal-header {
   padding: 28px 32px 20px;
   background: linear-gradient(135deg, var(--panel) 0%, transparent 100%);
@@ -440,8 +445,9 @@
   color: var(--ink-dim);
 }
 
+/* ---------- BODY MODALA ---------- */
 .grimoire-modal .modal-body {
-  padding: 22px 32px 32px;
+  padding: 24px 32px 32px;
 }
 
 .grimoire-modal .modal-body .detail-tags {
@@ -462,38 +468,18 @@
   letter-spacing: 0.05em;
   clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
 }
+.grimoire-modal .modal-body .detail-tag.secondary {
+  opacity: 0.7;
+  border-color: var(--hairline);
+  color: var(--ink-dim);
+}
 
+/* ---------- SIATKA SZCZEGÓŁÓW ---------- */
 .grimoire-modal .modal-body .detail-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-bottom: 12px;
-}
-@media (max-width: 700px) {
-  .grimoire-modal .modal-body .detail-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .grimoire-modal .modal-header {
-    padding: 20px;
-    gap: 14px;
-  }
-  .grimoire-modal .modal-header .hdr-icon {
-    width: 40px;
-    height: 40px;
-  }
-  .grimoire-modal .modal-body {
-    padding: 18px 20px 24px;
-  }
-  .grimoire-grid {
-    grid-template-columns: 1fr;
-  }
-  .grimoire-filters {
-    padding: 12px 14px;
-    gap: 10px;
-  }
-  .grimoire-filters .filter-group {
-    min-width: 120px;
-  }
+  margin-bottom: 14px;
 }
 
 .grimoire-modal .modal-body .detail-box {
@@ -521,6 +507,7 @@
   color: var(--spell-color);
 }
 
+/* ---------- NOTA MATERIALNA ---------- */
 .grimoire-modal .modal-body .mat-note {
   font-family: var(--font-garamond);
   font-style: italic;
@@ -528,15 +515,18 @@
   color: var(--ink-dim);
   margin-bottom: 28px;
   padding-left: 4px;
+  border-left: 2px solid var(--hairline);
+  padding-left: 12px;
 }
 
+/* ---------- OPIS ---------- */
 .grimoire-modal .modal-body .desc-section {
   border-top: 1px solid var(--hairline-soft);
-  padding-top: 20px;
+  padding-top: 22px;
 }
 .grimoire-modal .modal-body .desc-pl {
   font-size: 0.95rem;
-  line-height: 1.7;
+  line-height: 1.8;
   color: var(--ink);
   text-align: justify;
 }
@@ -548,20 +538,21 @@
 }
 .grimoire-modal .modal-body .desc-pl::first-letter {
   font-family: var(--font-cinzel);
-  font-size: 2.6em;
+  font-size: 2.8em;
   color: var(--spell-color);
   float: left;
   line-height: 0.8;
   margin: 4px 8px 0 0;
 }
 
+/* ---------- OPIS ANGIELSKI ---------- */
 .grimoire-modal .modal-body .desc-en {
   margin-top: 28px;
   padding: 18px 22px;
   background: rgba(0, 0, 0, 0.25);
   border-left: 2px solid var(--spell-color);
   font-size: 0.85rem;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--ink-dim);
   font-style: italic;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
@@ -573,6 +564,7 @@
   margin-bottom: 0;
 }
 
+/* ---------- STOPKA ---------- */
 .grimoire-modal .modal-body .src-footer {
   text-align: right;
   font-family: var(--font-garamond);
@@ -582,4 +574,100 @@
   margin-top: 34px;
   padding-top: 14px;
   border-top: 1px dashed var(--hairline-soft);
+}
+
+/* ============================================================
+   RESPONSYWNOŚĆ
+   ============================================================ */
+@media (max-width: 768px) {
+  .grimoire-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .grimoire-filters {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  .grimoire-filters .filter-group {
+    min-width: 140px;
+  }
+
+  .grimoire-modal .modal-body .detail-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .grimoire-modal .modal-header {
+    padding: 20px 20px 16px;
+    gap: 14px;
+  }
+  .grimoire-modal .modal-header .hdr-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .grimoire-modal .modal-body {
+    padding: 18px 20px 24px;
+  }
+  .grimoire-modal .modal-box {
+    max-width: 100%;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+  .grimoire-modal {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grimoire-filters {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+  .grimoire-filters .filter-group {
+    min-width: 100%;
+  }
+
+  .grimoire-grid {
+    gap: 12px;
+  }
+
+  .grimoire-tile {
+    padding: 18px 16px 16px;
+  }
+  .grimoire-tile h3 {
+    font-size: 1rem;
+  }
+
+  .grimoire-modal .modal-body .detail-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .grimoire-modal .modal-header {
+    padding: 16px 16px 12px;
+    gap: 10px;
+  }
+  .grimoire-modal .modal-header .hdr-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .grimoire-modal .modal-header .hdr-text h2 {
+    font-size: 1.2rem;
+  }
+  .grimoire-modal .modal-body {
+    padding: 14px 16px 20px;
+  }
+  .grimoire-modal .modal-body .desc-pl {
+    font-size: 0.85rem;
+  }
+  .grimoire-modal .modal-body .desc-en {
+    font-size: 0.75rem;
+    padding: 14px 16px;
+  }
+  .grimoire-modal .modal-close {
+    width: 30px;
+    height: 30px;
+    font-size: 0.7rem;
+    top: 10px;
+    right: 10px;
+  }
 }

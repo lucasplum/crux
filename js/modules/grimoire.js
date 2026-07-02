@@ -23,281 +23,281 @@ var GRIMOIRE_SCHOOLS = {
 
 // ---------- ŁADOWANIE ----------
 function loadGrimoireSpells(callback) {
-    if (GRIMOIRE.spells.length > 0) {
-        if (callback) callback(GRIMOIRE.spells);
-        return;
-    }
-    if (GRIMOIRE.loading) {
-        setTimeout(function() { loadGrimoireSpells(callback); }, 100);
-        return;
-    }
-    GRIMOIRE.loading = true;
-    var levels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    var loaded = 0;
-    var total = levels.length;
-    var results = [];
+  if (GRIMOIRE.spells.length > 0) {
+    if (callback) callback(GRIMOIRE.spells);
+    return;
+  }
+  if (GRIMOIRE.loading) {
+    setTimeout(function() { loadGrimoireSpells(callback); }, 100);
+    return;
+  }
+  GRIMOIRE.loading = true;
+  var levels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  var loaded = 0;
+  var total = levels.length;
+  var results = [];
 
-    levels.forEach(function(level) {
-        var urls = [
-            'data/spells/level-' + level + '.json',
-            'level-' + level + '.json'
-        ];
-        tryLoadGrimoireUrl(urls, 0, function(data) {
-            if (data && Array.isArray(data)) {
-                data.forEach(function(s) {
-                    var schoolMap = {
-                        'wywoływanie': 'Wywoływanie',
-                        'przywoływanie': 'Przywoływanie',
-                        'wieszczenie': 'Wieszczenie',
-                        'nekromancja': 'Nekromancja',
-                        'uroki': 'Uroki',
-                        'iluzje': 'Iluzje',
-                        'odpychanie': 'Odpychanie',
-                        'przemiany': 'Przemiany'
-                    };
-                    var schoolName = schoolMap[(s.school || '').toLowerCase()] || s.school || 'Nieznana';
-                    var color = GRIMOIRE_SCHOOLS[schoolName] ? GRIMOIRE_SCHOOLS[schoolName].color : '#888';
+  levels.forEach(function(level) {
+    var urls = [
+      'data/spells/level-' + level + '.json',
+      'level-' + level + '.json'
+    ];
+    tryLoadGrimoireUrl(urls, 0, function(data) {
+      if (data && Array.isArray(data)) {
+        data.forEach(function(s) {
+          var schoolMap = {
+            'wywoływanie': 'Wywoływanie',
+            'przywoływanie': 'Przywoływanie',
+            'wieszczenie': 'Wieszczenie',
+            'nekromancja': 'Nekromancja',
+            'uroki': 'Uroki',
+            'iluzje': 'Iluzje',
+            'odpychanie': 'Odpychanie',
+            'przemiany': 'Przemiany'
+          };
+          var schoolName = schoolMap[(s.school || '').toLowerCase()] || s.school || 'Nieznana';
+          var color = GRIMOIRE_SCHOOLS[schoolName] ? GRIMOIRE_SCHOOLS[schoolName].color : '#888';
 
-                    results.push({
-                        id: s.name_en ? s.name_en.toLowerCase().replace(/\s+/g, '-') : 'spell-' + Date.now(),
-                        namePl: s.name_pl || s.name_en || '?',
-                        nameEn: s.name_en || s.name_pl || '?',
-                        levelNum: s.level || 0,
-                        level: s.level === 0 ? 'Sztuczka' : (s.level + '. Krąg'),
-                        school: schoolName,
-                        color: color,
-                        time: s.casting || '1 akcja',
-                        rangeArea: s.range || '—',
-                        compShort: s.components || '—',
-                        components: s.components || '—',
-                        duration: s.duration || '—',
-                        attackSave: s.damage_type || 'Brak',
-                        damageEffect: s.damage_type || '—',
-                        descPl: s.desc_pl || '<p>Brak opisu</p>',
-                        descEn: s.desc_en || '<p>No description</p>',
-                        source: s.source || 'PHB',
-                        materialNote: s.material_note || '',
-                        materialNoteEn: s.material_note_en || '',
-                        classes: s.classes || []
-                    });
-                });
-            }
-            loaded++;
-            if (loaded === total) {
-                GRIMOIRE.spells = results;
-                GRIMOIRE.loading = false;
-                console.log('📖 Załadowano zaklęć:', results.length);
-                if (callback) callback(GRIMOIRE.spells);
-            }
+          results.push({
+            id: s.name_en ? s.name_en.toLowerCase().replace(/\s+/g, '-') : 'spell-' + Date.now(),
+            namePl: s.name_pl || s.name_en || '?',
+            nameEn: s.name_en || s.name_pl || '?',
+            levelNum: s.level || 0,
+            level: s.level === 0 ? 'Sztuczka' : (s.level + '. Krąg'),
+            school: schoolName,
+            color: color,
+            time: s.casting || '1 akcja',
+            rangeArea: s.range || '—',
+            compShort: s.components || '—',
+            components: s.components || '—',
+            duration: s.duration || '—',
+            attackSave: s.damage_type || 'Brak',
+            damageEffect: s.damage_type || '—',
+            descPl: s.desc_pl || '<p>Brak opisu</p>',
+            descEn: s.desc_en || '<p>No description</p>',
+            source: s.source || 'PHB',
+            materialNote: s.material_note || '',
+            materialNoteEn: s.material_note_en || '',
+            classes: s.classes || []
+          });
         });
+      }
+      loaded++;
+      if (loaded === total) {
+        GRIMOIRE.spells = results;
+        GRIMOIRE.loading = false;
+        console.log('📖 Załadowano zaklęć:', results.length);
+        if (callback) callback(GRIMOIRE.spells);
+      }
     });
+  });
 }
 
 function tryLoadGrimoireUrl(urls, idx, callback) {
-    if (idx >= urls.length) { callback(null); return; }
-    fetch(urls[idx])
-        .then(function(r) {
-            if (!r.ok) throw new Error('Not found');
-            return r.json();
-        })
-        .then(function(data) { callback(data); })
-        .catch(function() {
-            tryLoadGrimoireUrl(urls, idx + 1, callback);
-        });
+  if (idx >= urls.length) { callback(null); return; }
+  fetch(urls[idx])
+    .then(function(r) {
+      if (!r.ok) throw new Error('Not found');
+      return r.json();
+    })
+    .then(function(data) { callback(data); })
+    .catch(function() {
+      tryLoadGrimoireUrl(urls, idx + 1, callback);
+    });
 }
 
 // ---------- RENDER ----------
 function renderGrimoire() {
-    var container = document.getElementById('grimoireGrid');
-    if (!container) return;
+  var container = document.getElementById('grimoireGrid');
+  if (!container) return;
 
-    var searchTerm = document.getElementById('grimoireSearch') ? document.getElementById('grimoireSearch').value.toLowerCase() : '';
-    var levelFilter = document.getElementById('grimoireLevel') ? document.getElementById('grimoireLevel').dataset.value : 'Wszystkie';
-    var schoolFilter = document.getElementById('grimoireSchool') ? document.getElementById('grimoireSchool').dataset.value : 'Wszystkie';
+  var searchTerm = document.getElementById('grimoireSearch') ? document.getElementById('grimoireSearch').value.toLowerCase() : '';
+  var levelFilter = document.getElementById('grimoireLevel') ? document.getElementById('grimoireLevel').dataset.value : 'Wszystkie';
+  var schoolFilter = document.getElementById('grimoireSchool') ? document.getElementById('grimoireSchool').dataset.value : 'Wszystkie';
 
-    loadGrimoireSpells(function(spells) {
-        var filtered = spells.filter(function(s) {
-            var matchName = s.namePl.toLowerCase().includes(searchTerm) || s.nameEn.toLowerCase().includes(searchTerm);
-            var matchLevel = levelFilter === 'Wszystkie' || s.levelNum.toString() === levelFilter;
-            var matchSchool = schoolFilter === 'Wszystkie' || s.school === schoolFilter;
-            return matchName && matchLevel && matchSchool;
-        });
-
-        var countEl = document.getElementById('grimoireCount');
-        if (countEl) countEl.textContent = filtered.length + ' zaklęć';
-
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="grimoire-empty"><span>📜</span>Magia zawiodła... Nie znaleziono takich zaklęć.</div>';
-            return;
-        }
-
-        container.innerHTML = filtered.map(function(s) {
-            var color = s.color || '#c9a24b';
-            var iconSvg = GRIMOIRE_SCHOOLS[s.school] ? GRIMOIRE_SCHOOLS[s.school].icon : '';
-            var tagLevel = s.levelNum === 0 ? 'Sztuczka' : s.level;
-
-            return `
-                <button class="grimoire-tile" style="--spell-color: ${color}" data-id="${s.id}">
-                    <div class="tile-icon">${iconSvg}</div>
-                    <h3>${s.namePl}</h3>
-                    <span class="en-name">${s.nameEn}</span>
-                    <div class="tile-tags">
-                        <span class="tile-tag">${s.school}</span>
-                        <span class="tile-tag">${tagLevel}</span>
-                    </div>
-                    <div class="tile-stats">
-                        <div class="stat"><span>Czas rzucania</span><div class="val">${s.time}</div></div>
-                        <div class="stat"><span>Zasięg</span><div class="val">${s.rangeArea}</div></div>
-                        <div class="stat"><span>Komponenty</span><div class="val">${s.compShort}</div></div>
-                    </div>
-                </button>
-            `;
-        }).join('');
-
-        container.querySelectorAll('.grimoire-tile').forEach(function(tile) {
-            tile.addEventListener('click', function() {
-                var id = this.dataset.id;
-                var spell = GRIMOIRE.spells.find(function(s) { return s.id === id; });
-                if (spell) openGrimoireModal(spell);
-            });
-        });
+  loadGrimoireSpells(function(spells) {
+    var filtered = spells.filter(function(s) {
+      var matchName = s.namePl.toLowerCase().includes(searchTerm) || s.nameEn.toLowerCase().includes(searchTerm);
+      var matchLevel = levelFilter === 'Wszystkie' || s.levelNum.toString() === levelFilter;
+      var matchSchool = schoolFilter === 'Wszystkie' || s.school === schoolFilter;
+      return matchName && matchLevel && matchSchool;
     });
+
+    var countEl = document.getElementById('grimoireCount');
+    if (countEl) countEl.textContent = filtered.length + ' zaklęć';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="grimoire-empty"><span>📜</span>Magia zawiodła... Nie znaleziono takich zaklęć.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(function(s) {
+      var color = s.color || '#c9a24b';
+      var iconSvg = GRIMOIRE_SCHOOLS[s.school] ? GRIMOIRE_SCHOOLS[s.school].icon : '';
+      var tagLevel = s.levelNum === 0 ? 'Sztuczka' : s.level;
+
+      return `
+        <button class="grimoire-tile" style="--spell-color: ${color}" data-id="${s.id}">
+          <div class="tile-icon">${iconSvg}</div>
+          <h3>${s.namePl}</h3>
+          <span class="en-name">${s.nameEn}</span>
+          <div class="tile-tags">
+            <span class="tile-tag">${s.school}</span>
+            <span class="tile-tag">${tagLevel}</span>
+          </div>
+          <div class="tile-stats">
+            <div class="stat"><span>Czas rzucania</span><div class="val">${s.time}</div></div>
+            <div class="stat"><span>Zasięg</span><div class="val">${s.rangeArea}</div></div>
+            <div class="stat"><span>Komponenty</span><div class="val">${s.compShort}</div></div>
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.grimoire-tile').forEach(function(tile) {
+      tile.addEventListener('click', function() {
+        var id = this.dataset.id;
+        var spell = GRIMOIRE.spells.find(function(s) { return s.id === id; });
+        if (spell) openGrimoireModal(spell);
+      });
+    });
+  });
 }
 
 // ---------- MODAL ----------
 function openGrimoireModal(spell) {
-    var modal = document.getElementById('grimoireModal');
-    var box = document.getElementById('grimoireModalBox');
-    if (!modal || !box) return;
+  var modal = document.getElementById('grimoireModal');
+  var box = document.getElementById('grimoireModalBox');
+  if (!modal || !box) return;
 
-    var color = spell.color || '#c9a24b';
-    var iconSvg = GRIMOIRE_SCHOOLS[spell.school] ? GRIMOIRE_SCHOOLS[spell.school].icon : '';
-    var tagLevel = spell.levelNum === 0 ? 'Sztuczka' : spell.level;
+  var color = spell.color || '#c9a24b';
+  var iconSvg = GRIMOIRE_SCHOOLS[spell.school] ? GRIMOIRE_SCHOOLS[spell.school].icon : '';
+  var tagLevel = spell.levelNum === 0 ? 'Sztuczka' : spell.level;
 
-    box.style.setProperty('--spell-color', color);
-    box.innerHTML = `
-        <button class="modal-close" onclick="closeGrimoireModal()">✕</button>
-        <div class="modal-header">
-            <div class="hdr-icon">${iconSvg}</div>
-            <div class="hdr-text">
-                <h2>${spell.namePl}</h2>
-                <div class="en-title">${spell.nameEn}</div>
-            </div>
-        </div>
-        <div class="modal-body">
-            <div class="detail-tags">
-                <span class="detail-tag">${spell.school}</span>
-                <span class="detail-tag">${tagLevel}</span>
-                ${spell.classes && spell.classes.length > 0 ? spell.classes.slice(0, 3).map(function(c) { return '<span class="detail-tag" style="opacity:0.7;">' + c + '</span>'; }).join('') : ''}
-            </div>
-            <div class="detail-grid">
-                <div class="detail-box"><div class="lbl">Poziom</div><div class="val">${spell.level}</div></div>
-                <div class="detail-box"><div class="lbl">Czas rzucania</div><div class="val">${spell.time}</div></div>
-                <div class="detail-box"><div class="lbl">Zasięg / Obszar</div><div class="val">${spell.rangeArea}</div></div>
-                <div class="detail-box"><div class="lbl">Komponenty</div><div class="val">${spell.components}</div></div>
-                <div class="detail-box"><div class="lbl">Czas trwania</div><div class="val">${spell.duration}</div></div>
-                <div class="detail-box"><div class="lbl">Szkoła</div><div class="val">${spell.school}</div></div>
-                <div class="detail-box"><div class="lbl">Atak / Rzut</div><div class="val">${spell.attackSave}</div></div>
-                <div class="detail-box"><div class="lbl">Obrażenia / Efekt</div><div class="val effect">${spell.damageEffect}</div></div>
-            </div>
-            ${spell.materialNote ? '<div class="mat-note">' + spell.materialNote + '</div>' : ''}
-            <div class="desc-section">
-                <div class="desc-pl">${spell.descPl}</div>
-                <div class="desc-en">${spell.descEn}</div>
-            </div>
-            <div class="src-footer">Źródło: ${spell.source}</div>
-        </div>
-    `;
+  box.style.setProperty('--spell-color', color);
+  box.innerHTML = `
+    <button class="modal-close" onclick="closeGrimoireModal()">✕</button>
+    <div class="modal-header">
+      <div class="hdr-icon">${iconSvg}</div>
+      <div class="hdr-text">
+        <h2>${spell.namePl}</h2>
+        <div class="en-title">${spell.nameEn}</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="detail-tags">
+        <span class="detail-tag">${spell.school}</span>
+        <span class="detail-tag">${tagLevel}</span>
+        ${spell.classes && spell.classes.length > 0 ? spell.classes.slice(0, 3).map(function(c) { return '<span class="detail-tag secondary">' + c + '</span>'; }).join('') : ''}
+      </div>
+      <div class="detail-grid">
+        <div class="detail-box"><div class="lbl">Poziom</div><div class="val">${spell.level}</div></div>
+        <div class="detail-box"><div class="lbl">Czas rzucania</div><div class="val">${spell.time}</div></div>
+        <div class="detail-box"><div class="lbl">Zasięg / Obszar</div><div class="val">${spell.rangeArea}</div></div>
+        <div class="detail-box"><div class="lbl">Komponenty</div><div class="val">${spell.components}</div></div>
+        <div class="detail-box"><div class="lbl">Czas trwania</div><div class="val">${spell.duration}</div></div>
+        <div class="detail-box"><div class="lbl">Szkoła</div><div class="val">${spell.school}</div></div>
+        <div class="detail-box"><div class="lbl">Atak / Rzut</div><div class="val">${spell.attackSave}</div></div>
+        <div class="detail-box"><div class="lbl">Obrażenia / Efekt</div><div class="val effect">${spell.damageEffect}</div></div>
+      </div>
+      ${spell.materialNote ? '<div class="mat-note">' + spell.materialNote + '</div>' : ''}
+      <div class="desc-section">
+        <div class="desc-pl">${spell.descPl}</div>
+        <div class="desc-en">${spell.descEn}</div>
+      </div>
+      <div class="src-footer">Źródło: ${spell.source}</div>
+    </div>
+  `;
 
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeGrimoireModal() {
-    var modal = document.getElementById('grimoireModal');
-    if (modal) modal.classList.remove('active');
-    document.body.style.overflow = '';
+  var modal = document.getElementById('grimoireModal');
+  if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 // ---------- FILTRY ----------
 function initGrimoireSelects() {
-    var schoolContainer = document.getElementById('grimoireSchoolOptions');
-    if (schoolContainer) {
-        var schoolHtml = '<div class="option selected" data-value="Wszystkie">Wszystkie</div>';
-        for (var school in GRIMOIRE_SCHOOLS) {
-            var color = GRIMOIRE_SCHOOLS[school].color;
-            var icon = GRIMOIRE_SCHOOLS[school].icon;
-            schoolHtml += `
-                <div class="option" data-value="${school}">
-                    <span class="opt-icon" style="color:${color};">${icon}</span>
-                    ${school}
-                </div>
-            `;
-        }
-        schoolContainer.innerHTML = schoolHtml;
+  var schoolContainer = document.getElementById('grimoireSchoolOptions');
+  if (schoolContainer) {
+    var schoolHtml = '<div class="option selected" data-value="Wszystkie">Wszystkie</div>';
+    for (var school in GRIMOIRE_SCHOOLS) {
+      var color = GRIMOIRE_SCHOOLS[school].color;
+      var icon = GRIMOIRE_SCHOOLS[school].icon;
+      schoolHtml += `
+        <div class="option" data-value="${school}">
+          <span class="opt-icon" style="color:${color};">${icon}</span>
+          ${school}
+        </div>
+      `;
     }
+    schoolContainer.innerHTML = schoolHtml;
+  }
 
-    document.querySelectorAll('.grimoire-select').forEach(function(select) {
-        var trigger = select.querySelector('.select-trigger');
-        var options = select.querySelectorAll('.option');
+  document.querySelectorAll('.grimoire-select').forEach(function(select) {
+    var trigger = select.querySelector('.select-trigger');
+    var options = select.querySelectorAll('.option');
 
-        trigger.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var isOpen = select.classList.contains('open');
-            document.querySelectorAll('.grimoire-select').forEach(function(s) { s.classList.remove('open'); });
-            if (!isOpen) select.classList.add('open');
-        });
-
-        options.forEach(function(opt) {
-            opt.addEventListener('click', function(e) {
-                e.stopPropagation();
-                options.forEach(function(o) { o.classList.remove('selected'); });
-                this.classList.add('selected');
-                var value = this.dataset.value;
-                select.dataset.value = value;
-
-                var content = select.querySelector('.trigger-content');
-                if (select.id === 'grimoireSchool' && value !== 'Wszystkie') {
-                    var icon = GRIMOIRE_SCHOOLS[value] ? GRIMOIRE_SCHOOLS[value].icon : '';
-                    var color = GRIMOIRE_SCHOOLS[value] ? GRIMOIRE_SCHOOLS[value].color : '#888';
-                    content.innerHTML = `<span class="select-icon" style="color:${color};">${icon}</span><span class="text">${value}</span>`;
-                } else {
-                    var displayText = value === '0' ? 'Sztuczki' : (value === 'Wszystkie' ? 'Wszystkie' : value + '. Krąg');
-                    content.innerHTML = '<span class="text">' + displayText + '</span>';
-                }
-
-                select.classList.remove('open');
-                renderGrimoire();
-            });
-        });
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var isOpen = select.classList.contains('open');
+      document.querySelectorAll('.grimoire-select').forEach(function(s) { s.classList.remove('open'); });
+      if (!isOpen) select.classList.add('open');
     });
 
-    document.addEventListener('click', function() {
-        document.querySelectorAll('.grimoire-select').forEach(function(s) { s.classList.remove('open'); });
+    options.forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        options.forEach(function(o) { o.classList.remove('selected'); });
+        this.classList.add('selected');
+        var value = this.dataset.value;
+        select.dataset.value = value;
+
+        var content = select.querySelector('.trigger-content');
+        if (select.id === 'grimoireSchool' && value !== 'Wszystkie') {
+          var icon = GRIMOIRE_SCHOOLS[value] ? GRIMOIRE_SCHOOLS[value].icon : '';
+          var color = GRIMOIRE_SCHOOLS[value] ? GRIMOIRE_SCHOOLS[value].color : '#888';
+          content.innerHTML = `<span class="select-icon" style="color:${color};">${icon}</span><span class="text">${value}</span>`;
+        } else {
+          var displayText = value === '0' ? 'Sztuczki' : (value === 'Wszystkie' ? 'Wszystkie' : value + '. Krąg');
+          content.innerHTML = '<span class="text">' + displayText + '</span>';
+        }
+
+        select.classList.remove('open');
+        renderGrimoire();
+      });
     });
+  });
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.grimoire-select').forEach(function(s) { s.classList.remove('open'); });
+  });
 }
 
 // ---------- INICJALIZACJA ----------
 function initGrimoire() {
-    var searchInput = document.getElementById('grimoireSearch');
-    if (searchInput) {
-        searchInput.addEventListener('input', renderGrimoire);
-    }
+  var searchInput = document.getElementById('grimoireSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', renderGrimoire);
+  }
 
-    initGrimoireSelects();
+  initGrimoireSelects();
 
-    var modal = document.getElementById('grimoireModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) closeGrimoireModal();
-        });
-    }
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeGrimoireModal();
+  var modal = document.getElementById('grimoireModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closeGrimoireModal();
     });
+  }
 
-    renderGrimoire();
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeGrimoireModal();
+  });
+
+  renderGrimoire();
 }
 
 window.GRIMOIRE = GRIMOIRE;
@@ -308,7 +308,7 @@ window.initGrimoire = initGrimoire;
 window.GRIMOIRE_SCHOOLS = GRIMOIRE_SCHOOLS;
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGrimoire);
+  document.addEventListener('DOMContentLoaded', initGrimoire);
 } else {
-    initGrimoire();
+  initGrimoire();
 }
