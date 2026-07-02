@@ -58,6 +58,7 @@
   flex: 1; 
 }
 
+
 /* Przyciski */
 .btn {
   display: inline-flex;
@@ -205,7 +206,6 @@ select, input[type="text"], input[type="number"] {
   background: rgba(0,0,0,0.3);
   color: var(--parchment);
   border: 1px solid var(--hairline);
-  border-radius: 8px;
   font-family: var(--font-garamond);
   font-size: var(--font-md);
   cursor: pointer;

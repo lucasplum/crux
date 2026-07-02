@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V 29 Q</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V 29.1 Q</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -357,7 +357,7 @@
 
 <!-- ===== TAB: GRIMUAR ZAKLĘĆ ===== -->
 <section class="tab-section" data-tab="spellbook">
-  <div class="card" style="padding:18px 20px 24px;">
+  <div class="grimoire-container" style="padding:18px 20px 24px;">
 
     <!-- NAGŁÓWEK -->
     <div class="grimoire-masthead">
@@ -366,48 +366,65 @@
     </div>
 
     <!-- FILTRY -->
-    <div class="grimoire-filters">
-      <div class="filter-group">
-        <label>🔍 Szukaj</label>
-        <input type="text" id="grimoireSearch" class="grimoire-search" placeholder="Wpisz nazwę zaklęcia..." autocomplete="off">
-      </div>
+<div class="grimoire-filters">
+  <div class="filter-group">
+    <label>🔍 Szukaj</label>
+    <input type="text" id="grimoireSearch" class="grimoire-search" placeholder="Wpisz nazwę zaklęcia..." autocomplete="off">
+  </div>
 
-      <div class="filter-group">
-        <label>Krąg</label>
-        <div class="grimoire-select" id="grimoireLevel" data-value="Wszystkie">
-          <div class="select-trigger">
-            <div class="trigger-content"><span class="text">Wszystkie</span></div>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="select-options">
-            <div class="option selected" data-value="Wszystkie">Wszystkie</div>
-            <div class="option" data-value="0">Sztuczki</div>
-            <div class="option" data-value="1">1. Krąg</div>
-            <div class="option" data-value="2">2. Krąg</div>
-            <div class="option" data-value="3">3. Krąg</div>
-            <div class="option" data-value="4">4. Krąg</div>
-            <div class="option" data-value="5">5. Krąg</div>
-            <div class="option" data-value="6">6. Krąg</div>
-            <div class="option" data-value="7">7. Krąg</div>
-            <div class="option" data-value="8">8. Krąg</div>
-            <div class="option" data-value="9">9. Krąg</div>
-          </div>
-        </div>
+  <div class="filter-group">
+    <label>Krąg</label>
+    <div class="grimoire-select" id="grimoireLevel" data-value="Wszystkie">
+      <div class="select-trigger">
+        <div class="trigger-content"><span class="text">Wszystkie</span></div>
+        <span class="arrow">▼</span>
       </div>
-
-      <div class="filter-group">
-        <label>Szkoła</label>
-        <div class="grimoire-select" id="grimoireSchool" data-value="Wszystkie">
-          <div class="select-trigger">
-            <div class="trigger-content"><span class="text">Wszystkie</span></div>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="select-options" id="grimoireSchoolOptions">
-            <!-- Wypełniane przez JS -->
-          </div>
-        </div>
+      <div class="select-options">
+        <div class="option selected" data-value="Wszystkie">Wszystkie</div>
+        <div class="option" data-value="0">Sztuczki</div>
+        <div class="option" data-value="1">1. Krąg</div>
+        <div class="option" data-value="2">2. Krąg</div>
+        <div class="option" data-value="3">3. Krąg</div>
+        <div class="option" data-value="4">4. Krąg</div>
+        <div class="option" data-value="5">5. Krąg</div>
+        <div class="option" data-value="6">6. Krąg</div>
+        <div class="option" data-value="7">7. Krąg</div>
+        <div class="option" data-value="8">8. Krąg</div>
+        <div class="option" data-value="9">9. Krąg</div>
       </div>
     </div>
+  </div>
+
+  <div class="filter-group">
+    <label>Szkoła</label>
+    <div class="grimoire-select" id="grimoireSchool" data-value="Wszystkie">
+      <div class="select-trigger">
+        <div class="trigger-content"><span class="text">Wszystkie</span></div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="select-options" id="grimoireSchoolOptions">
+        <!-- Wypełniane przez JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- NOWY: SORTOWANIE -->
+  <div class="filter-group">
+    <label>Sortuj</label>
+    <div class="grimoire-select" id="grimoireSort" data-value="level-asc">
+      <div class="select-trigger">
+        <div class="trigger-content"><span class="text">Kręg ↑</span></div>
+        <span class="arrow">▼</span>
+      </div>
+      <div class="select-options">
+        <div class="option selected" data-value="level-asc">Kręg ↑ (rosnąco)</div>
+        <div class="option" data-value="level-desc">Kręg ↓ (malejąco)</div>
+        <div class="option" data-value="name-asc">A → Z</div>
+        <div class="option" data-value="name-desc">Z → A</div>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- SIATKA KAFELKÓW -->
     <div id="grimoireGrid" class="grimoire-grid"></div>
