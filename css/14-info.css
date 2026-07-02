@@ -1,0 +1,287 @@
+/* ============================================================
+   14 - INFO - PODRĘCZNIK MISTRZA GRY
+   ============================================================ */
+
+/* ---------- HAMBURGER (mobile) ---------- */
+.info-hamburger {
+  display: none;
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-cinzel);
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  color: var(--parchment);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s ease;
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+.info-hamburger:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+/* ---------- ZAKŁADKI (SPIS TREŚCI) ---------- */
+.info-tabs-wrapper {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.info-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--hairline-soft);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+}
+
+.info-tab-btn {
+  padding: 8px 16px;
+  font-family: var(--font-cinzel);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink-faint);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px);
+}
+.info-tab-btn:hover {
+  color: var(--parchment);
+  border-color: var(--hairline);
+  background: rgba(185, 146, 74, 0.04);
+}
+.info-tab-btn.active {
+  background: linear-gradient(135deg, var(--blood), #5a1a14);
+  color: #f3e7d6;
+  border-color: rgba(138, 42, 34, 0.4);
+  box-shadow: 0 2px 12px rgba(138, 42, 34, 0.2);
+}
+
+/* ---------- ZAWARTOŚĆ ---------- */
+.info-content {
+  display: none;
+  animation: tabFadeIn 0.3s ease;
+}
+.info-content.active {
+  display: block;
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- LISTA INFORMACJI ---------- */
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+  /* USUNIĘTO max-height i overflow */
+}
+
+/* ---------- KARTA INFORMACYJNA ---------- */
+.info-item {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  padding: 18px 22px;
+  transition: all 0.25s ease;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  position: relative;
+  border-radius: 0 !important;
+}
+.info-item::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(185, 146, 74, 0.06);
+  clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  pointer-events: none;
+}
+.info-item:hover {
+  border-color: var(--gold);
+  background: rgba(185, 146, 74, 0.03);
+  box-shadow: 0 0 30px rgba(185, 146, 74, 0.03);
+}
+
+.info-item-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.info-item-icon {
+  font-size: 1.4rem;
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.info-item-title {
+  font-family: var(--font-cinzel);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--gold-bright);
+  letter-spacing: 0.02em;
+}
+.info-item-title .en {
+  font-weight: 400;
+  font-size: 0.65rem;
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-left: 8px;
+}
+.info-item-desc {
+  font-family: var(--font-garamond);
+  font-size: 0.9rem;
+  color: var(--parchment);
+  line-height: 1.7;
+  padding-left: 46px;
+}
+.info-item-desc strong {
+  color: var(--gold);
+}
+.info-item-desc .tag {
+  display: inline-block;
+  background: rgba(185, 146, 74, 0.08);
+  border: 1px solid var(--hairline-soft);
+  color: var(--gold);
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  clip-path: polygon(3px 0, 100% 0, 100% calc(100% - 3px), calc(100% - 3px) 100%, 0 100%, 0 3px);
+}
+.info-item-desc ul {
+  padding-left: 20px;
+  margin-top: 4px;
+  list-style: none;
+}
+.info-item-desc ul li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 4px;
+}
+.info-item-desc ul li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+}
+
+/* ---------- TABELA ---------- */
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+}
+.info-table th,
+.info-table td {
+  padding: 8px 14px;
+  border: 1px solid var(--hairline-soft);
+  text-align: left;
+}
+.info-table th {
+  font-family: var(--font-cinzel);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.2);
+}
+.info-table td {
+  color: var(--parchment);
+}
+.info-table .level {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--gold-bright);
+  text-align: center;
+}
+.info-table .level-6 {
+  color: var(--red);
+}
+
+/* ============================================================
+   RESPONSYWNOŚĆ
+   ============================================================ */
+
+/* Mobile – hamburger + lista rozwijana */
+@media (max-width: 768px) {
+  .info-hamburger {
+    display: block;
+  }
+  
+  .info-tabs {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px;
+  }
+  .info-tabs.open {
+    display: flex;
+  }
+  
+  .info-tab-btn {
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 0.7rem;
+  }
+  
+  .info-item {
+    padding: 14px 16px;
+  }
+  .info-item-desc {
+    padding-left: 0;
+    font-size: 0.8rem;
+  }
+  .info-item-icon {
+    font-size: 1.2rem;
+    width: 28px;
+  }
+  .info-item-title {
+    font-size: 0.85rem;
+  }
+  .info-table {
+    font-size: 0.75rem;
+  }
+  .info-table th,
+  .info-table td {
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .info-item {
+    padding: 10px 12px;
+  }
+  .info-item-desc {
+    font-size: 0.75rem;
+  }
+  .info-item-title {
+    font-size: 0.75rem;
+  }
+  .info-item-icon {
+    font-size: 1rem;
+    width: 24px;
+  }
+  .info-table {
+    font-size: 0.65rem;
+  }
+  .info-table th,
+  .info-table td {
+    padding: 3px 6px;
+  }
+}

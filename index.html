@@ -26,7 +26,7 @@
       <div class="raven">🐦‍⬛</div>
     </div>
     <h1>CRUX Toolkit</h1>
-    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V 29.1 Q</span></p>
+    <p class="subtitle"><span class="highlight">ASYSTENT DLA BIEDNEJ DRUŻYNY V 29.2 Q</span></p>
     <div class="hex-deco"><span></span><span></span><span></span></div>
   </header>
 
@@ -252,108 +252,69 @@
   </div>
 </section>
 
-  <!-- ===== TAB: INFO ===== -->
-  <section class="tab-section" data-tab="info">
-    <div class="card">
-      <div class="card-title">📖 Informacje z podręcznika</div>
-      <div class="info-tabs-wrapper">
-    <button class="info-hamburger" onclick="toggleInfoMenu()">☰ Zakładki</button>
-    <div class="info-tabs" id="infoTabs">
-        <button class="info-tab-btn active" data-info="states">Stany</button>
-        <button class="info-tab-btn" data-info="actions">Akcje</button>
-        <button class="info-tab-btn" data-info="move">Ruch</button>
-        <button class="info-tab-btn" data-info="rest">Odpoczynek</button>
-        <button class="info-tab-btn" data-info="vision">Widoczność</button>
-        <button class="info-tab-btn" data-info="fall">Spadanie</button>
-        <button class="info-tab-btn" data-info="conc">Koncentracja</button>
-        <button class="info-tab-btn" data-info="travel">Podróż</button>
-    </div>
-</div>
+<!-- ===== TAB: INFO ===== -->
+<section class="tab-section" data-tab="info">
+  <div class="grimoire-container">
 
+    <!-- NAGŁÓWEK -->
+    <div class="grimoire-masthead">
+      <h2>📖 Podręcznik Mistrza Gry</h2>
+    </div>
+
+    <!-- ZAKŁADKI (SPIS TREŚCI) -->
+    <div class="info-tabs-wrapper">
+      <button class="info-hamburger" onclick="toggleInfoMenu()">☰ Spis treści</button>
+      <div class="info-tabs" id="infoTabs">
+        <button class="info-tab-btn active" data-info="states">👁️ Stany</button>
+        <button class="info-tab-btn" data-info="actions">⚔️ Akcje</button>
+        <button class="info-tab-btn" data-info="move">🚶 Ruch</button>
+        <button class="info-tab-btn" data-info="rest">☕ Odpoczynek</button>
+        <button class="info-tab-btn" data-info="vision">🌓 Widoczność</button>
+        <button class="info-tab-btn" data-info="adventuring">🎒 Przygoda</button>
+        <button class="info-tab-btn" data-info="conc">🔮 Koncentracja</button>
+      </div>
+    </div>
+
+    <!-- ZAWARTOŚĆ -->
+    <div id="infoContentContainer">
+      <!-- Stany -->
       <div class="info-content active" data-info="states">
         <div class="info-list" id="statesInfoList"></div>
       </div>
 
+      <!-- Akcje -->
       <div class="info-content" data-info="actions">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">⚔️</span><span class="info-title">Atak (Attack)</span></div><div class="info-desc">Wykonaj jeden atak wręcz lub dystansowy. Niektóre zdolności (np. Extra Attack) pozwalają na więcej ataków w ramach tej akcji.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🔮</span><span class="info-title">Rzucenie czaru (Cast a Spell)</span></div><div class="info-desc">Rzuć czar z czasem rzucania 1 akcja. Komponenty: <strong>V</strong> (werbalne), <strong>S</strong> (somatyczne), <strong>M</strong> (materialne).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🏃</span><span class="info-title">Zryw (Dash)</span></div><div class="info-desc">Zyskujesz dodatkowy ruch w tej turze równy twojej prędkości.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">💨</span><span class="info-title">Wycofanie (Disengage)</span></div><div class="info-desc">Twój ruch nie prowokuje okazyjnych ataków w tej turze.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🛡️</span><span class="info-title">Unik (Dodge)</span></div><div class="info-desc">Ataki przeciwko tobie mają utrudnienie, twoje rzuty obronne na Zręczność mają przewagę.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🤝</span><span class="info-title">Pomoc (Help)</span></div><div class="info-desc">Pierwszy atak sojusznika przeciwko celowi w zasięgu 5 ft ma przewagę.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">👻</span><span class="info-title">Ukrycie (Hide)</span></div><div class="info-desc">Test Zręczności (Skradanie) przeciwko Pasywnej Percepcji wrogów.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">⏳</span><span class="info-title">Przygotowanie (Ready)</span></div><div class="info-desc">Wybierz akcję i wyzwalacz. Użyj reakcji gdy wyzwalacz nastąpi.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🔍</span><span class="info-title">Szukanie (Search)</span></div><div class="info-desc">Test Mądrości (Percepcja) lub Inteligencji (Śledztwo).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🔧</span><span class="info-title">Użycie przedmiotu</span></div><div class="info-desc">Użyj przedmiotu (np. mikstury, narzędzia złodziejskiego).</div></div>
-        </div>
+        <div class="info-list" id="actionsInfoList"></div>
       </div>
 
+      <!-- Ruch -->
       <div class="info-content" data-info="move">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🚶</span><span class="info-title">Prędkość ruchu</span></div><div class="info-desc">Większość postaci: <strong>30 ft (9 m)</strong>. Małe rasy: <strong>25 ft (7.5 m)</strong>.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🌿</span><span class="info-title">Trudny teren</span></div><div class="info-desc">Każdy foot ruchu na trudnym terenie kosztuje <strong>2x</strong>.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🤼</span><span class="info-title">Chwytanie (Grapple)</span></div><div class="info-desc">Test Siły (Atletyka) vs cel. Cel ma prędkość 0.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">👊</span><span class="info-title">Popchnięcie (Shove)</span></div><div class="info-desc">Możesz powalić cel LUB popchnąć 5 ft od siebie.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">⚡</span><span class="info-title">Okazyjny atak</span></div><div class="info-desc">Gdy wróg wychodzi z twojego zasięgu – reakcja: jeden atak wręcz.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🐎</span><span class="info-title">Wsiadanie na wierzchowca</span></div><div class="info-desc">Kosztuje połowę prędkości.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🏊</span><span class="info-title">Pływanie i wspinaczka</span></div><div class="info-desc">Bez odpowiedniej prędkości – koszt 2x (jak trudny teren).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🎁</span><span class="info-title">Darmowa interakcja</span></div><div class="info-desc">Raz na turę: wyciągnąć/schować broń, otworzyć drzwi, podnieść przedmiot.</div></div>
-        </div>
+        <div class="info-list" id="moveInfoList"></div>
       </div>
 
+      <!-- Odpoczynek -->
       <div class="info-content" data-info="rest">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">☕</span><span class="info-title">Krótki odpoczynek</span></div><div class="info-desc"><strong>Czas:</strong> min. 1 godzina. <strong>Korzyści:</strong> wydaj Hit Dice aby odzyskać HP; niektóre zdolności się odnawiają.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🛏️</span><span class="info-title">Długi odpoczynek</span></div><div class="info-desc"><strong>Czas:</strong> min. 8h (6h snu + 2h lekkiej aktywności). <strong>Korzyści:</strong> pełne HP, połowa slotów czarów, wszystkie zdolności.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">⚠️</span><span class="info-title">Wariant: Gritty Realism</span></div><div class="info-desc">Krótki: <strong>7 dni</strong>. Długi: <strong>7 dni</strong>. Idealne do survivalu.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">💤</span><span class="info-title">Wariant: Heroic</span></div><div class="info-desc">Krótki: <strong>5 minut</strong>. Długi: <strong>1 godzina</strong>. Do szybkich, epickich kampanii.</div></div>
-        </div>
+        <div class="info-list" id="restInfoList"></div>
       </div>
 
+      <!-- Widoczność -->
       <div class="info-content" data-info="vision">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">☀️</span><span class="info-title">Jasne światło</span></div><div class="info-desc">Normalna percepcja: światło dzienne, pochodnia 20 ft, spell Light.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🌤️</span><span class="info-title">Słabe światło</span></div><div class="info-desc">Tworzy <strong>lekko zasłonięty</strong> teren – utrudnienie w testach Percepcji (wzrok).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🌑</span><span class="info-title">Ciemność</span></div><div class="info-desc"><strong>Silnie zasłonięty</strong> teren – efektywnie oślepiony bez Darkvision.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">👁️</span><span class="info-title">Darkvision</span></div><div class="info-desc">Widzisz w ciemności (zwykle 60 ft) jak w słabym świetle. Nie działa przez magiczną ciemność.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🔥</span><span class="info-title">Zasięg światła pochodni</span></div><div class="info-desc">Jasne: <strong>20 ft</strong>. Słabe: kolejne 20 ft (do 40 ft).</div></div>
-        </div>
+        <div class="info-list" id="visionInfoList"></div>
       </div>
 
-      <div class="info-content" data-info="fall">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">💥</span><span class="info-title">Obrażenia od upadku</span></div><div class="info-desc"><strong>1k6</strong> obrażeń obuchowych za każde 10 ft spadku (max 20k6). Lądujesz leżący.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">⏱️</span><span class="info-title">Czas spadania</span></div><div class="info-desc">500 ft w pierwszej rundzie, 500 ft w każdej kolejnej.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🪂</span><span class="info-title">Lądowanie na stworzeniu</span></div><div class="info-desc">Test Zręczności (DC 10) aby nie wylądować na nim. Inaczej dzielisz obrażenia.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🏊</span><span class="info-title">Spadanie do wody</span></div><div class="info-desc">Głębokość min. 10 ft: test Siły/Akrobatyki DC 15. DC -2 za każde 10 ft głębi.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🪶</span><span class="info-title">Feather Fall</span></div><div class="info-desc">Czar 1 poziomu, reakcja, 60 ft, do 5 stworzeń. Prędkość spadania = 60 ft/rundę.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🧗</span><span class="info-title">Skoki</span></div><div class="info-desc">Daleki: Siła × 5 ft (z rozbiegiem × 10 ft). Wysoki: 3 + mod. Siły ft.</div></div>
-        </div>
+      <!-- Przygoda -->
+      <div class="info-content" data-info="adventuring">
+        <div class="info-list" id="adventuringInfoList"></div>
       </div>
 
+      <!-- Koncentracja -->
       <div class="info-content" data-info="conc">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🎯</span><span class="info-title">Zasady koncentracji</span></div><div class="info-desc">Utrzymujesz koncentrację tylko na <strong>jednym czaru naraz</strong>.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">💥</span><span class="info-title">Utrata od obrażeń</span></div><div class="info-desc">Rzut obronny KON: <strong>DC = 10 lub połowa obrażeń</strong> (co wyższe).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">⚡</span><span class="info-title">Inne źródła utraty</span></div><div class="info-desc"><strong>Incapacitated</strong>, <strong>Stunned</strong>, zabity (0 HP).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🛡️</span><span class="info-title">War Caster (feat)</span></div><div class="info-desc"><strong>Przewaga</strong> na rzuty obronne KON dla koncentracji.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🔮</span><span class="info-title">Resilient (KON)</span></div><div class="info-desc">Biegłość w rzutach obronnych na KON + 1 do KON.</div></div>
-        </div>
-      </div>
-
-      <div class="info-content" data-info="travel">
-        <div class="info-list">
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🚶</span><span class="info-title">Tempo podróży</span></div><div class="info-desc">Szybkie: <strong>4 mph</strong> (-5 do Pasywnej Percepcji). Normalne: <strong>3 mph</strong>. Wolne: <strong>2 mph</strong> (Skradanie możliwe).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🗺️</span><span class="info-title">Dystans dzienny</span></div><div class="info-desc">Szybkie: 30 mil. Normalne: 24 mile. Wolne: 18 mil. W trudnym terenie: połowa.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🎒</span><span class="info-title">Aktywności podczas podróży</span></div><div class="info-desc">Maszerowanie, Nawigacja, Śledzenie, Poszukiwanie, Rysowanie mapy, Foraging.</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🍞</span><span class="info-title">Jedzenie i woda</span></div><div class="info-desc">Jedzenie: 1 funt/dzień. Woda: 1 galon/dzień (2x w gorącym klimacie).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🥱</span><span class="info-title">Forced March</span></div><div class="info-desc">Podróż powyżej 8h/dzień: test KON (DC 10 +1 za każdą dodatkową godzinę).</div></div>
-          <div class="info-item"><div class="info-item-header"><span class="info-icon">🏕️</span><span class="info-title">Niespodzianki</span></div><div class="info-desc">GM rzuca co X godzin (zwykle 4-6h) aby sprawdzić losowe spotkanie.</div></div>
-        </div>
+        <div class="info-list" id="concInfoList"></div>
       </div>
     </div>
-  </section>
+
+  </div>
+</section>
 
 <!-- ===== TAB: GRIMUAR ZAKLĘĆ ===== -->
 <section class="tab-section" data-tab="spellbook">
@@ -1087,6 +1048,7 @@
 <script src="js/ui/canvas.js"></script>
 <script src="js/ui/render.js"></script>
 <script src="js/modules/grimoire.js"></script>
+<script src="js/modules/info.js"></script>
 <!--<script src="js/modules/spellbook-loader.js"></script>-->
 <script src="js/app.js"></script>
 </body>
